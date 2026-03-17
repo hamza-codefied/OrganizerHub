@@ -1,0 +1,13 @@
+# Netlify config for OrganizerHub (Vite + React SPA)
+[build]
+  command = "pnpm run build"
+  publish = "dist"
+
+# SPA: send all routes to index.html for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[build.environment]
+  NODE_VERSION = "20"
