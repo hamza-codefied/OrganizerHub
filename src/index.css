@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #288E66;
+  --color-primary-50: #f1fbf7;
+  --color-primary-100: #def6eb;
+  --color-primary-200: #bee9d8;
+  --color-primary-300: #8fd5bd;
+  --color-primary-400: #59ba9c;
+  --color-primary-500: #288e66;
+  --color-primary-600: #207254;
+  --color-primary-700: #1b5c46;
+  --color-primary-800: #174a3a;
+  --color-primary-900: #143e31;
+
+  --color-secondary: #DD647F;
+  --color-secondary-400: #f47a97;
+  --color-secondary-500: #dd647f;
+  --color-secondary-600: #c73d5e;
+
+  --color-glass-white: rgba(255, 255, 255, 0.6);
+  --color-glass-border: rgba(255, 255, 255, 0.4);
+  
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 2rem;
+
+  --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.05);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+@layer base {
+  body {
+    @apply bg-[#fcfdfe] text-slate-900 antialiased selection:bg-primary/20;
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+@layer components {
+  /* Ultra-Premium Glass Effect */
+  .glass-premium {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: var(--shadow-glass);
+  }
+
+  /* Multi-layered Glass Card */
+  .glass-card-premium {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 
+      0 4px 15px 0 rgba(0, 0, 0, 0.02),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    @apply rounded-3xl transition-all duration-500;
+  }
+
+  .glass-card-premium:hover {
+    @apply -translate-y-1;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
+    box-shadow: 
+      0 20px 40px -10px rgba(0, 0, 0, 0.05),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+    border-color: rgba(40, 142, 102, 0.2);
+  }
+
+
+  .primary-gradient {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-700));
+    color: white;
+  }
+
+  .primary-gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-700;
+  }
+
+  .nav-active-item {
+    @apply relative text-white;
+    background: linear-gradient(135deg, #288E66, #1b5c46);
+    box-shadow: 0 10px 20px -5px rgba(40, 142, 102, 0.4);
+  }
+
+  .premium-scrollbar::-webkit-scrollbar {
+    width: 5px;
+  }
+  .premium-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
+  }
+}
+
+
