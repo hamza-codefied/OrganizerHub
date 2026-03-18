@@ -10,7 +10,22 @@ import { cn } from '../lib/utils';
 import { PremiumBackground } from '../components/UI';
 import { useAuth } from '../contexts/AuthContext';
 
-const menuItems = [
+type LucideIcon = React.ComponentType<{ className?: string }>;
+
+interface MenuSubItem {
+  name: string;
+  icon: LucideIcon;
+  path: string;
+}
+
+interface MenuItem {
+  name: string;
+  icon: LucideIcon;
+  path: string;
+  subItems?: MenuSubItem[];
+}
+
+const menuItems: { group: string; items: MenuItem[] }[] = [
   { group: "General", items: [
     { name: "Dashboard", icon: LayoutDashboard, path: "/" },
     { name: "Home Owners", icon: UserRound, path: "/users/home-owners" },
@@ -50,8 +65,8 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed
     );
   };
 
-  const isSubActive = (item: any) => {
-    return item.subItems?.some((sub: any) => location.pathname === sub.path);
+  const isSubActive = (item: MenuItem) => {
+    return item.subItems?.some((sub) => location.pathname === sub.path);
   };
 
   return (
@@ -104,7 +119,7 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed
                       </button>
                       {!collapsed && expandedMenus.includes(item.name) && (
                         <div className="ml-6 mt-1 space-y-1 border-l border-slate-200 pl-4 py-1">
-                          {item.subItems.map((sub) => (
+                          {item.subItems.map((sub: MenuSubItem) => (
                             <NavLink
                               key={sub.name}
                               to={sub.path}
