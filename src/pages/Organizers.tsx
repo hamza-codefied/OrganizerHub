@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader, StatCard, PremiumTabs } from '../components/UI';
 import { DataTable } from '../components/DataTable';
@@ -27,7 +28,7 @@ const OrganizersPage = () => {
 
   const columns = [
     { 
-      header: "Professional Identity", 
+      header: "Organizer", 
       accessor: (org: typeof ORGANIZERS[0]) => (
         <div className="flex items-center gap-4 cursor-pointer group">
           <div className="w-12 h-12 rounded-2xl bg-slate-100 border-2 border-white shadow-xl overflow-hidden p-0.5 group-hover:shadow-2xl transition-all">
@@ -41,7 +42,7 @@ const OrganizersPage = () => {
       )
     },
     { 
-      header: "Core Services", 
+      header: "Services", 
       accessor: (org: typeof ORGANIZERS[0]) => (
         <div className="flex flex-wrap gap-1.5">
           {org.services.slice(0, 2).map((s, i) => (
@@ -54,7 +55,7 @@ const OrganizersPage = () => {
       )
     },
     { 
-      header: "Tier & Plan", 
+      header: "Plan", 
       accessor: (org: typeof ORGANIZERS[0]) => (
         <span className={cn(
           "px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm",
@@ -63,7 +64,7 @@ const OrganizersPage = () => {
       )
     },
     { 
-      header: "Reputation", 
+      header: "Rating", 
       accessor: (org: typeof ORGANIZERS[0]) => (
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1 px-2 py-1 bg-white border border-slate-100 rounded-lg shadow-sm">
@@ -107,8 +108,8 @@ const OrganizersPage = () => {
   return (
     <div className="space-y-10 animate-in fade-in duration-700">
       <PageHeader 
-        title="Pro Network" 
-        description="Verify registrations, manage organizer profiles, and track performance across the network."
+        title="Organizers"
+        description="Manage organizer profiles and check their status."
       >
         <div className="flex flex-wrap gap-3">
           <PremiumTabs 
@@ -134,7 +135,7 @@ const OrganizersPage = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         <StatCard
-          title="Total Partners"
+          title="Total organizers"
           value={String(organizers.length)}
           change={4.2}
           icon={Briefcase}
@@ -142,7 +143,7 @@ const OrganizersPage = () => {
           trend="up"
         />
         <StatCard
-          title="Active Network"
+          title="Active"
           value={String(organizers.filter((o) => o.status === 'Active').length)}
           change={6.8}
           icon={ShieldCheck}
@@ -150,13 +151,13 @@ const OrganizersPage = () => {
           trend="up"
         />
         <StatCard
-          title="Pending Approval"
+          title="Pending"
           value={String(organizers.filter((o) => o.status === 'Pending').length)}
           icon={Clock}
           color="orange"
         />
         <StatCard
-          title="Avg Rating"
+          title="Average rating"
           value={String((organizers.reduce((acc, o) => acc + parseFloat(o.rating as any), 0) / Math.max(1, organizers.length)).toFixed(2))}
           change={2.1}
           icon={Star}
@@ -168,10 +169,10 @@ const OrganizersPage = () => {
       <DataTable 
         columns={columns} 
         data={filteredOrgs} 
-        searchPlaceholder="Search organizers by name, service, or status..."
+        searchPlaceholder="Search by name, service, or status..."
         onRowClick={(org) => navigate(`/users/organizers/${org.id}`)}
         rowActions={[
-          { label: 'View Profile', icon: Eye, onClick: (org: any) => navigate(`/users/organizers/${org.id}`) },
+          { label: 'View', icon: Eye, onClick: (org: any) => navigate(`/users/organizers/${org.id}`) },
           { label: 'Approve', icon: CheckCircle2, onClick: (org: Organizer) => setOrganizers((prev) => prev.map((o) => (o.id === org.id ? { ...o, status: 'Active' } : o))), variant: 'success' as const },
           { label: 'Reject', icon: XCircle, onClick: (org: Organizer) => setOrganizers((prev) => prev.map((o) => (o.id === org.id ? { ...o, status: 'Rejected' } : o))), variant: 'danger' as const },
           { label: 'Deactivate', icon: Power, onClick: (org: Organizer) => setOrganizers((prev) => prev.map((o) => (o.id === org.id ? { ...o, status: 'Deactivated' } : o))), variant: 'danger' as const },
@@ -179,9 +180,9 @@ const OrganizersPage = () => {
       />
 
       {/* Onboard Pro modal */}
-      {showOnboardModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setShowOnboardModal(false)} aria-hidden />
+      {showOnboardModal && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-9999 flex items-center justify-center p-4" aria-modal="true" role="dialog">
+          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-md" onClick={() => setShowOnboardModal(false)} aria-hidden />
           <div className="relative glass-premium p-8 rounded-[2rem] border border-white/60 shadow-2xl max-w-lg w-full animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-black text-slate-800 tracking-tight">Onboard Pro</h3>
@@ -237,7 +238,8 @@ const OrganizersPage = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <DetailsDialog
@@ -245,11 +247,54 @@ const OrganizersPage = () => {
         title={detailsTitle}
         onClose={() => setDetailsOpen(false)}
       >
-        <div className="mt-2">
-          <pre className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-bold text-slate-600 overflow-auto">
-            {detailsPayload ? JSON.stringify(detailsPayload, null, 2) : ''}
-          </pre>
-        </div>
+        {detailsPayload && (
+          <div className="mt-2 space-y-4">
+            {detailsPayload.id && detailsPayload.services ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <img src={detailsPayload.avatar} alt="" className="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-md" />
+                  <div>
+                    <p className="font-black text-slate-800 text-lg">{detailsPayload.name}</p>
+                    <p className="text-sm font-bold text-slate-500">{detailsPayload.email}</p>
+                    <p className="text-xs font-bold text-slate-400 mt-0.5">{detailsPayload.phone}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Plan</p>
+                    <p className="font-black text-slate-800">{detailsPayload.subscriptionPlan}</p>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                    <p className="font-black text-slate-800">{detailsPayload.status}</p>
+                  </div>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Services</p>
+                  <div className="flex flex-wrap gap-2">
+                    {detailsPayload.services?.map((s: string, i: number) => (
+                      <span key={i} className="px-2 py-1 bg-white border border-slate-100 rounded-lg text-xs font-bold text-slate-700">{s}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Rating</p>
+                    <p className="font-black text-slate-800">{detailsPayload.rating} ({detailsPayload.totalReviews} reviews)</p>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Completed jobs</p>
+                    <p className="font-black text-slate-800">{detailsPayload.completedJobs}</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="font-bold text-slate-700">Invite sent to <span className="text-slate-900">{detailsPayload.name || '—'}</span> ({detailsPayload.email || '—'}).</p>
+              </div>
+            )}
+          </div>
+        )}
       </DetailsDialog>
     </div>
   );

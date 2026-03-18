@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { PageHeader, GlassCard } from '../components/UI';
 import { 
-  Settings as SettingsIcon, Shield, CreditCard, Bell, 
+  Settings as SettingsIcon, Shield, CreditCard, 
   Users, Globe, ToggleLeft, ToggleRight, Save,
   Lock, Key, Zap, ShieldCheck
 } from 'lucide-react';
@@ -11,7 +11,7 @@ import ConfirmationDialog from '../components/ConfirmationDialog';
 import DetailsDialog from '../components/DetailsDialog';
 
 const SettingsPage = () => {
-  type TabKey = 'core' | 'security' | 'financial' | 'propagation' | 'team' | 'lexicon';
+  type TabKey = 'core' | 'security' | 'financial' | 'team' | 'lexicon';
 
   type SettingsState = {
     commissionFactor: number;
@@ -39,7 +39,7 @@ const SettingsPage = () => {
     maxPropagationBatch: 25,
     emergencyActionsAllowed: false,
     teamLead: 'Ops Lead',
-    globalTagline: 'Strategic command, delivered instantly.',
+    globalTagline: 'Your events, simplified.',
   });
 
   const [syncConfirmOpen, setSyncConfirmOpen] = useState(false);
@@ -50,12 +50,11 @@ const SettingsPage = () => {
   const tabs = useMemo(
     () =>
       [
-        { key: 'core' as const, name: 'Core Parameters', icon: SettingsIcon },
-        { key: 'security' as const, name: 'Strategic Security', icon: Shield },
-        { key: 'financial' as const, name: 'Financial Tiers', icon: CreditCard },
-        { key: 'propagation' as const, name: 'Propagation Rules', icon: Bell },
-        { key: 'team' as const, name: 'Command Team', icon: Users },
-        { key: 'lexicon' as const, name: 'Global Lexicon', icon: Globe },
+        { key: 'core' as const, name: 'General', icon: SettingsIcon },
+        { key: 'security' as const, name: 'Security', icon: Shield },
+        { key: 'financial' as const, name: 'Payments', icon: CreditCard },
+        // { key: 'team' as const, name: 'Team', icon: Users },
+        { key: 'lexicon' as const, name: 'Branding', icon: Globe },
       ] as const,
     [],
   );
@@ -78,8 +77,8 @@ const SettingsPage = () => {
   return (
     <div className="space-y-12 animate-in fade-in duration-700">
       <PageHeader 
-        title="Operational Protocol" 
-        description="Configure system-wide parameters, economic rules, and multi-layered security policies."
+        title="Settings" 
+        description="Manage platform rules, fees, and security."
       >
         <button
           type="button"
@@ -87,7 +86,7 @@ const SettingsPage = () => {
           className="flex items-center gap-2 primary-gradient text-white px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] shadow-xl shadow-primary/20 hover:scale-105 transition-all active:scale-95 outline-none"
         >
           <Save className="w-4 h-4" />
-          Synchronize Configuration
+          Save changes
         </button>
       </PageHeader>
 
@@ -113,26 +112,20 @@ const SettingsPage = () => {
              </motion.button>
            ))}
            
-           <div className="mt-10 p-6 bg-slate-50/50 backdrop-blur-md rounded-3xl border border-white/60">
-              <div className="flex items-center gap-3 mb-4">
-                 <ShieldCheck className="w-5 h-5 text-primary" />
-                 <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Protocol Integrity</span>
-              </div>
-              <p className="text-[10px] font-bold text-slate-500 leading-snug">All system changes are logged and audited via the global administrative ledger.</p>
-           </div>
+          
         </div>
 
         <div className="lg:col-span-9 space-y-10">
           {activeTab === 'core' && (
             <GlassCard
-              title="Strategic Business Logic"
-              subtitle="Determine platform commission velocity and economic thresholds."
+              title="General"
+              subtitle="Set commission and payout limits."
             >
               <div className="space-y-10 mt-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-3">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                      Platform Commission Factor (%)
+                      Commission (%)
                     </label>
                     <div className="relative">
                       <input
@@ -146,7 +139,7 @@ const SettingsPage = () => {
                   </div>
                   <div className="space-y-3">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                      Minimum Liquidity Release ($)
+                      Min payout ($)
                     </label>
                     <div className="relative">
                       <input
@@ -164,10 +157,10 @@ const SettingsPage = () => {
                   <div className="flex items-center justify-between group">
                     <div className="max-w-md">
                       <p className="font-black text-slate-800 text-base tracking-tight leading-none group-hover:text-primary transition-colors">
-                        Accelerated Payouts
+                        Fast payouts
                       </p>
                       <p className="text-xs font-bold text-slate-400 mt-2 leading-snug">
-                        Allow partners to release platform liquidity via instant protocol immediately upon session verification.
+                        Pay organizers as soon as a booking is confirmed.
                       </p>
                     </div>
                     <button
@@ -214,18 +207,18 @@ const SettingsPage = () => {
 
           {activeTab === 'security' && (
             <GlassCard
-              title="Verification Command"
-              subtitle="Manage high-level partner vetting and strategic onboarding protocols."
+              title="Security"
+              subtitle="Manage organizer verification and admin security."
             >
               <div className="space-y-6 mt-8">
-                <div className="flex items-center gap-6 p-8 bg-primary/[0.03] rounded-[2rem] border border-primary/10 hover:border-primary/30 transition-all group">
+                <div className="flex items-center gap-6 p-8 bg-primary/3 rounded-[2rem] border border-primary/10 hover:border-primary/30 transition-all group">
                   <div className="w-16 h-16 rounded-3xl bg-white flex items-center justify-center text-primary shadow-xl border border-primary/5 group-hover:rotate-6 transition-all duration-500">
                     <Zap className="w-8 h-8" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-lg font-black text-slate-800 tracking-tighter leading-none">Automated Pro Activation</p>
+                    <p className="text-lg font-black text-slate-800 tracking-tighter leading-none">Auto-approve organizers</p>
                     <p className="text-[13px] font-bold text-slate-500 mt-2 leading-snug max-w-sm">
-                      Registry entities are indexed and activated instantly post-verification without manual oversight.
+                      New organizers go live automatically after verification.
                     </p>
                   </div>
                   <button
@@ -248,9 +241,9 @@ const SettingsPage = () => {
                     <Lock className="w-8 h-8" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-lg font-black text-slate-800 tracking-tighter leading-none">Command Multi-Factor Security</p>
+                    <p className="text-lg font-black text-slate-800 tracking-tighter leading-none">Two-factor authentication</p>
                     <p className="text-[13px] font-bold text-slate-500 mt-2 leading-snug max-w-sm">
-                      Strict enforcement of cryptographic 2FA for all administrator and operational oversight accounts.
+                      Require 2FA for all admin accounts.
                     </p>
                   </div>
                   <button
@@ -273,12 +266,12 @@ const SettingsPage = () => {
 
           {activeTab === 'financial' && (
             <GlassCard
-              title="Financial Tiers"
-              subtitle="Economic threshold tuning for tiered releases and commission caps."
+              title="Payments"
+              subtitle="Set commission caps and payment limits."
             >
               <div className="mt-8 space-y-8">
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Tier Commission Cap (%)</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Max commission (%)</label>
                   <div className="relative">
                     <input
                       type="number"
@@ -293,51 +286,8 @@ const SettingsPage = () => {
             </GlassCard>
           )}
 
-          {activeTab === 'propagation' && (
-            <GlassCard
-              title="Propagation Rules"
-              subtitle="Control how updates are batched and suspended during maintenance windows."
-            >
-              <div className="mt-8 space-y-8">
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Max Batch Size</label>
-                  <input
-                    type="number"
-                    value={settings.maxPropagationBatch}
-                    onChange={(e) => setNumberField('maxPropagationBatch', e.target.value)}
-                    className="w-full bg-slate-50/50 border border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-slate-800 focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 outline-none transition-all shadow-inner"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between group">
-                  <div className="max-w-md">
-                    <p className="font-black text-slate-800 text-base tracking-tight leading-none group-hover:text-primary transition-colors">
-                      Allow Emergency Propagation Actions
-                    </p>
-                    <p className="text-xs font-bold text-slate-400 mt-2 leading-snug">
-                      Enables emergency overrides from the command team during critical incidents.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    aria-pressed={settings.emergencyActionsAllowed}
-                    onClick={() => setSettings((prev) => ({ ...prev, emergencyActionsAllowed: !prev.emergencyActionsAllowed }))}
-                    className={cn(
-                      'cursor-pointer hover:scale-110 transition-transform p-2 rounded-2xl border',
-                      settings.emergencyActionsAllowed
-                        ? 'text-primary bg-primary/5 border-primary/10'
-                        : 'text-slate-300 bg-slate-50 border-slate-100',
-                    )}
-                  >
-                    {settings.emergencyActionsAllowed ? <ToggleRight className="w-12 h-12" /> : <ToggleLeft className="w-12 h-12" />}
-                  </button>
-                </div>
-              </div>
-            </GlassCard>
-          )}
-
           {activeTab === 'team' && (
-            <GlassCard title="Command Team" subtitle="Define the operational lead and allowed oversight behavior.">
+            <GlassCard title="Team" subtitle="Set the team lead and permissions.">
               <div className="mt-8 space-y-8">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Team Lead</label>
@@ -353,10 +303,10 @@ const SettingsPage = () => {
           )}
 
           {activeTab === 'lexicon' && (
-            <GlassCard title="Global Lexicon" subtitle="Tune the platform’s tone and system-wide label messaging.">
+            <GlassCard title="Branding" subtitle="Set your tagline and messaging.">
               <div className="mt-8 space-y-8">
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Primary Tagline</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Tagline</label>
                   <input
                     type="text"
                     value={settings.globalTagline}
@@ -372,9 +322,9 @@ const SettingsPage = () => {
 
       <ConfirmationDialog
         open={syncConfirmOpen}
-        title="Confirm Synchronization"
-        description="Apply your configuration changes to the CMS mock state (client-side only)."
-        confirmText="Synchronize"
+        title="Save changes?"
+        description="Save your settings? (demo only)"
+        confirmText="Save"
         cancelText="Cancel"
         onConfirm={syncNow}
         onCancel={() => setSyncConfirmOpen(false)}
@@ -382,20 +332,49 @@ const SettingsPage = () => {
 
       <DetailsDialog
         open={syncDetailsOpen}
-        title="Configuration Synchronized"
+        title="Saved"
         onClose={() => setSyncDetailsOpen(false)}
       >
         <div className="space-y-4 mt-2">
           <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Last Synced</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saved at</p>
             <p className="text-sm font-black text-slate-800 mt-1">{lastSyncedAt ?? '—'}</p>
           </div>
           {lastSyncedSnapshot ? (
-            <pre className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-bold text-slate-600 overflow-auto">
-              {JSON.stringify(lastSyncedSnapshot, null, 2)}
-            </pre>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Commission</p>
+                  <p className="text-sm font-black text-slate-800">{lastSyncedSnapshot.commissionFactor}%</p>
+                </div>
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Min payout</p>
+                  <p className="text-sm font-black text-slate-800">${lastSyncedSnapshot.minLiquidityRelease}</p>
+                </div>
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fast payouts</p>
+                  <p className="text-sm font-black text-slate-800">{lastSyncedSnapshot.acceleratedPayouts ? 'On' : 'Off'}</p>
+                </div>
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Maintenance mode</p>
+                  <p className="text-sm font-black text-slate-800">{lastSyncedSnapshot.preservationMode ? 'On' : 'Off'}</p>
+                </div>
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">2FA for admins</p>
+                  <p className="text-sm font-black text-slate-800">{lastSyncedSnapshot.mfaEnabled ? 'On' : 'Off'}</p>
+                </div>
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Team lead</p>
+                  <p className="text-sm font-black text-slate-800 truncate">{lastSyncedSnapshot.teamLead || '—'}</p>
+                </div>
+              </div>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tagline</p>
+                <p className="text-sm font-bold text-slate-800">{lastSyncedSnapshot.globalTagline || '—'}</p>
+              </div>
+            </div>
           ) : (
-            <p className="text-sm font-bold text-slate-500">No snapshot available.</p>
+            <p className="text-sm font-bold text-slate-500">No data.</p>
           )}
         </div>
       </DetailsDialog>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { PageHeader, GlassCard, StatCard, PremiumTabs } from '../components/UI';
 import { DataTable } from '../components/DataTable';
 import { cn } from '../lib/utils';
@@ -46,11 +47,11 @@ const SupportPage = () => {
 
   const ticketColumns = [
     { 
-      header: "Strategic ID", 
+      header: "Ticket ID", 
       accessor: (t: any) => <span className="font-black text-primary text-[10px] tracking-[0.2em]">{t.id}</span> 
     },
     { 
-      header: "Platform Actor", 
+      header: "User", 
       accessor: (t: any) => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center border border-white shadow-sm overflow-hidden p-0.5">
@@ -58,14 +59,14 @@ const SupportPage = () => {
           </div>
           <div>
             <p className="font-black text-slate-800 text-sm tracking-tight">{t.user}</p>
-            <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Assigned: {t.agent}</p>
+            <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Agent: {t.agent}</p>
           </div>
         </div>
       )
     },
-    { header: "Incident Brief", accessor: (t: any) => <span className="max-w-[300px] truncate font-bold text-slate-600 text-sm block">{t.subject}</span> },
+    { header: "Subject", accessor: (t: any) => <span className="max-w-[300px] truncate font-bold text-slate-600 text-sm block">{t.subject}</span> },
     { 
-      header: "Urgency", 
+      header: "Priority", 
       accessor: (t: any) => (
         <span className={cn(
           "px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border shadow-sm",
@@ -76,7 +77,7 @@ const SupportPage = () => {
       )
     },
     { 
-      header: "Operation Status", 
+      header: "Status", 
       accessor: (t: any) => (
         <div className={cn(
           "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
@@ -88,17 +89,17 @@ const SupportPage = () => {
       )
     },
     { 
-      header: "Sync Timestamp", 
+      header: "Date", 
       accessor: (t: any) => <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.date}</span> 
     },
   ];
 
   const faqColumns = [
-    { header: "Strategic ID", accessor: (f: any) => <span className="font-black text-primary text-[10px] tracking-widest">FAQ-{f.id}</span> },
-    { header: "Question Narrative", accessor: (f: any) => <span className="font-bold text-slate-800 text-sm">{f.question}</span> },
-    { header: "Sector", accessor: (f: any) => <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{f.category}</span> },
+    { header: "FAQ ID", accessor: (f: any) => <span className="font-black text-primary text-[10px] tracking-widest">FAQ-{f.id}</span> },
+    { header: "Question", accessor: (f: any) => <span className="font-bold text-slate-800 text-sm">{f.question}</span> },
+    { header: "Category", accessor: (f: any) => <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{f.category}</span> },
     { 
-      header: "Registry Status", 
+      header: "Status", 
       accessor: (f: any) => (
         <span className={cn(
           "px-3 py-1 rounded-full text-[9px] font-black uppercase border",
@@ -112,13 +113,13 @@ const SupportPage = () => {
     <>
       <div className="space-y-12 animate-in fade-in duration-700">
       <PageHeader 
-        title="Support Command" 
-        description="Oversee user conflict resolution and maintain platform operational integrity."
+        title="Support" 
+        description="Manage tickets and FAQs."
       >
         <PremiumTabs 
           tabs={[
-            { id: 'tickets', label: 'Incident Stream' },
-            { id: 'faq', label: 'Strategic FAQs' },
+            { id: 'tickets', label: 'Tickets' },
+            { id: 'faq', label: 'FAQs' },
           ]}
           activeTab={activeTab}
           onChange={setActiveTab}
@@ -126,10 +127,10 @@ const SupportPage = () => {
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        <StatCard title="Priority Alerts" value="4" icon={ShieldAlert} color="secondary" trend="up" />
-        <StatCard title="Response Velocity" value="14m" icon={Clock} color="blue" />
-        <StatCard title="Total Registry" value="1,240" icon={HelpCircle} color="primary" />
-        <StatCard title="Active Tickets" value="24" icon={MessageSquare} color="orange" />
+        <StatCard title="Priority alerts" value="4" icon={ShieldAlert} color="secondary" trend="up" />
+        <StatCard title="Avg response time" value="14m" icon={Clock} color="blue" />
+        <StatCard title="Total FAQs" value="1,240" icon={HelpCircle} color="primary" />
+        <StatCard title="Open tickets" value="24" icon={MessageSquare} color="orange" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -140,25 +141,25 @@ const SupportPage = () => {
                     <DataTable 
                       columns={ticketColumns} 
                       data={tickets} 
-                      searchPlaceholder="Filter stream by Actor ID or Incident Ref..." 
+                      searchPlaceholder="Search by user or ticket ID..." 
                       rowActions={[
                         {
-                          label: 'Admin Reply',
+                          label: 'Reply',
                           icon: Reply,
                           onClick: (t: Ticket) => {
-                            setDetailsTitle('Admin Reply (mock)');
+                            setDetailsTitle('Reply (mock)');
                             setDetailsPayload(t);
                             setDetailsOpen(true);
                           },
                         },
                         {
-                          label: 'Assign Agent',
+                          label: 'Assign',
                           icon: UserPlus,
                           onClick: (t: Ticket) =>
                             setTickets((prev) => prev.map((x) => (x.id === t.id ? { ...x, agent: 'Support Delta' } : x))),
                         },
                         {
-                          label: 'Resolve Lifecycle',
+                          label: 'Resolve',
                           icon: CheckCircle2,
                           variant: 'success',
                           onClick: (t: Ticket) =>
@@ -167,7 +168,7 @@ const SupportPage = () => {
                             ),
                         },
                         {
-                          label: 'Kill Ticket',
+                          label: 'Delete',
                           icon: Trash2,
                           variant: 'danger',
                           onClick: (t: Ticket) => setDeleteTarget(t),
@@ -180,7 +181,7 @@ const SupportPage = () => {
                     <div className="flex justify-between items-center mb-4">
                        <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-3">
                           <HelpCircle className="w-5 h-5 text-primary" />
-                          Strategic FAQ Registry
+                          FAQ list
                        </h3>
                        <button
                          type="button"
@@ -188,16 +189,16 @@ const SupportPage = () => {
                          className="flex items-center gap-2 primary-gradient text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
                        >
                           <Plus className="w-4 h-4" />
-                          Deploy New FAQ
+                          New FAQ
                        </button>
                     </div>
                     <DataTable 
                       columns={faqColumns} 
                       data={faqs} 
-                      searchPlaceholder="Audit FAQs by category or narrative keywords..." 
+                      searchPlaceholder="Search FAQs by keyword or category..." 
                       rowActions={[
                         {
-                          label: 'Edit Payload',
+                          label: 'Edit',
                           icon: Edit3,
                           onClick: (f: Faq) => {
                             setDetailsTitle('Edit FAQ (mock)');
@@ -206,13 +207,13 @@ const SupportPage = () => {
                           },
                         },
                         {
-                          label: 'Archive Protocol',
+                          label: 'Archive',
                           icon: Lock,
                           onClick: (f: Faq) =>
                             setFaqs((prev) => prev.map((x) => (x.id === f.id ? { ...x, status: 'Archived' } : x))),
                         },
                         {
-                          label: 'Delete Registry',
+                          label: 'Delete',
                           icon: Trash2,
                           variant: 'danger',
                           onClick: (f: Faq) => setDeleteTarget(f),
@@ -231,19 +232,77 @@ const SupportPage = () => {
       title={detailsTitle}
       onClose={() => setDetailsOpen(false)}
     >
-      <pre className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-bold text-slate-600 overflow-auto">
-        {detailsPayload ? JSON.stringify(detailsPayload, null, 2) : ''}
-      </pre>
+      {detailsPayload && (
+        <div className="space-y-4">
+          {detailsPayload.subject !== undefined ? (
+            <div className="space-y-4">
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ticket ID</p>
+                <p className="font-black text-slate-800">{detailsPayload.id}</p>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Subject</p>
+                <p className="font-bold text-slate-800">{detailsPayload.subject}</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">User</p>
+                  <p className="font-bold text-slate-800">{detailsPayload.user}</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Assigned to</p>
+                  <p className="font-bold text-slate-800">{detailsPayload.agent}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                  <p className="font-bold text-slate-800">{detailsPayload.status}</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Priority</p>
+                  <p className="font-bold text-slate-800">{detailsPayload.priority}</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Date</p>
+                  <p className="font-bold text-slate-800">{detailsPayload.date}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">FAQ ID</p>
+                <p className="font-black text-slate-800">FAQ-{detailsPayload.id}</p>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Question</p>
+                <p className="font-bold text-slate-800">{detailsPayload.question}</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Category</p>
+                  <p className="font-bold text-slate-800">{detailsPayload.category}</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                  <p className="font-bold text-slate-800">{detailsPayload.status}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </DetailsDialog>
 
     <ConfirmationDialog
       open={!!deleteTarget}
-      title="Confirm Delete"
+      title="Delete"
       description={
         deleteTarget
           ? typeof deleteTarget.id === 'string'
-            ? `Are you sure you want to delete ticket ${deleteTarget.id}?`
-            : `Are you sure you want to delete FAQ #${deleteTarget.id}?`
+            ? `Delete ticket ${deleteTarget.id}?`
+            : `Delete FAQ #${deleteTarget.id}?`
           : undefined
       }
       confirmText="Delete"
@@ -262,15 +321,15 @@ const SupportPage = () => {
     />
 
       {/* Create FAQ modal */}
-      <AnimatePresence>
-        {isCreateFaqOpen && (
-          <div className="fixed inset-0 z-[320] flex items-center justify-center p-4">
+      {isCreateFaqOpen && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-9999 flex items-center justify-center p-4" aria-modal="true" role="dialog">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsCreateFaqOpen(false)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-900/50 backdrop-blur-md"
+              aria-hidden
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -281,16 +340,16 @@ const SupportPage = () => {
             >
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h2 className="text-2xl font-black text-slate-800 tracking-tighter">Deploy New FAQ</h2>
+                  <h2 className="text-2xl font-black text-slate-800 tracking-tighter">New FAQ</h2>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
-                    Add a new knowledge entry for your clients
+                    Add an FAQ for customers
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsCreateFaqOpen(false)}
                   className="p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-400 transition-all"
-                  aria-label="Close create FAQ modal"
+                  aria-label="Close modal"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -305,7 +364,7 @@ const SupportPage = () => {
                     type="text"
                     value={faqForm.question}
                     onChange={(e) => setFaqForm({ ...faqForm, question: e.target.value })}
-                    placeholder="Type the FAQ question..."
+                    placeholder="Type a question..."
                     className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all"
                   />
                 </div>
@@ -374,9 +433,9 @@ const SupportPage = () => {
                 </button>
               </div>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
-      </AnimatePresence>
     </>
   );
 };

@@ -34,8 +34,8 @@ const OrganizerDetails = () => {
     return (
       <div className="h-[60vh] flex flex-col items-center justify-center space-y-4">
         <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center text-rose-500 border border-rose-100 italic font-black text-4xl">!</div>
-        <p className="font-black text-slate-400 uppercase tracking-widest text-sm">Professional profile not recovered</p>
-        <button onClick={() => navigate('/users/organizers')} className="text-primary font-black text-xs uppercase tracking-widest hover:underline">Return to Pro Registry</button>
+        <p className="font-black text-slate-400 uppercase tracking-widest text-sm">Organizer not found</p>
+        <button onClick={() => navigate('/users/organizers')} className="text-primary font-black text-xs uppercase tracking-widest hover:underline">Back to organizers</button>
       </div>
     );
   }
@@ -50,8 +50,8 @@ const OrganizerDetails = () => {
           <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
         </button>
         <div>
-          <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Partner Management</p>
-          <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Org Network Index / {org.id}</h2>
+          <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Organizer</p>
+          <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Profile #{org.id}</h2>
         </div>
       </div>
 
@@ -94,7 +94,7 @@ const OrganizerDetails = () => {
               </div>
            </GlassCard>
 
-           <GlassCard title="Operational Control" subtitle="Approve, restrict or modify professional status.">
+          <GlassCard title="Status controls" subtitle="Approve or change organizer status.">
               <div className="space-y-4 mt-6">
                  {org.status === 'Pending' && (
                     <div className="grid grid-cols-2 gap-3">
@@ -120,7 +120,7 @@ const OrganizerDetails = () => {
                       onClick={() => updateStatus('Deactivated')}
                       className="w-full flex items-center justify-between p-4 bg-rose-100/40 hover:bg-rose-100/60 rounded-2xl border border-rose-200 transition-all text-rose-600"
                     >
-                       <span className="text-xs font-black uppercase tracking-widest">Deactivate Partner</span>
+                      <span className="text-xs font-black uppercase tracking-widest">Deactivate</span>
                        <Power className="w-5 h-5" />
                     </button>
                  )}
@@ -130,17 +130,17 @@ const OrganizerDetails = () => {
                       onClick={() => updateStatus('Active')}
                       className="w-full flex items-center justify-between p-4 primary-gradient rounded-2xl text-white transition-all shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity"
                     >
-                       <span className="text-xs font-black uppercase tracking-widest">Restore Network Access</span>
+                      <span className="text-xs font-black uppercase tracking-widest">Reactivate</span>
                        <CheckCircle2 className="w-5 h-5" />
                     </button>
                  )}
                  <div className="pt-4 border-t border-slate-50">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">
-                       Current Core Status: <span className={cn("inline-block ml-1 underline", 
+                       Current status: <span className={cn("inline-block ml-1 underline", 
                           org.status === 'Active' ? 'text-emerald-500' : 'text-amber-500'
                        )}>{org.status}</span>
                     </p>
-                    <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-1">Propagated {org.lastActive}</p>
+                    <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-1">Last active: {org.lastActive}</p>
                  </div>
               </div>
            </GlassCard>
@@ -164,10 +164,10 @@ const OrganizerDetails = () => {
                 <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                       {[
-                        { label: 'Completed Jobs', value: org.completedJobs, icon: Briefcase, color: 'blue' },
-                        { label: 'Total Earnings', value: formatCurrency(org.earnings), icon: TrendingUp, color: 'emerald' },
-                        { label: 'Response Rate', value: `${org.responseRate}%`, icon: Target, color: 'amber' },
-                        { label: 'On-Time Rate', value: `${org.onTimeRate}%`, icon: Clock, color: 'orange' },
+                        { label: 'Completed jobs', value: org.completedJobs, icon: Briefcase, color: 'blue' },
+                        { label: 'Total earnings', value: formatCurrency(org.earnings), icon: TrendingUp, color: 'emerald' },
+                        { label: 'Response rate', value: `${org.responseRate}%`, icon: Target, color: 'amber' },
+                        { label: 'On-time rate', value: `${org.onTimeRate}%`, icon: Clock, color: 'orange' },
                       ].map((stat, i) => (
                         <GlassCard key={i} className="p-6 text-center border-white/40">
                           <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 border shadow-sm",
@@ -185,7 +185,7 @@ const OrganizerDetails = () => {
                    </div>
 
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <GlassCard title="Subscription Protocol" subtitle="Current network authority level and billing.">
+                      <GlassCard title="Subscription" subtitle="Plan and billing details.">
                          <div className="mt-6 flex items-center justify-between p-6 bg-slate-50/50 border border-slate-100 rounded-3xl">
                             <div>
                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Active Plan</p>
@@ -195,13 +195,13 @@ const OrganizerDetails = () => {
                                </p>
                             </div>
                             <div className="text-right">
-                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Next Sync Event</p>
+                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Next update</p>
                                <p className="text-sm font-bold text-slate-800">Dec 15, 2024</p>
                             </div>
                          </div>
                       </GlassCard>
 
-                      <GlassCard title="Certifications Index" subtitle="Validated professional credentials and authority.">
+                      <GlassCard title="Certifications" subtitle="Saved credentials.">
                          <div className="mt-6 flex flex-wrap gap-2">
                             {org.certifications.map((cert, i) => (
                               <div key={i} className="flex items-center gap-2 px-4 py-2.5 bg-primary/5 text-primary rounded-xl border border-primary/10">
@@ -218,7 +218,7 @@ const OrganizerDetails = () => {
               {activeTab === 'services' && (
                 <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
                   <div className="flex items-center justify-between px-2">
-                     <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">{org.services.length} Service Capabilities Identified</p>
+                     <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">{org.services.length} Services</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {org.services.map((service, i) => (
@@ -239,7 +239,7 @@ const OrganizerDetails = () => {
 
               {activeTab === 'portfolio' && (
                 <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">{org.portfolio.length} Visual Evidences Recorded</p>
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">{org.portfolio.length} Portfolio items</p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {org.portfolio.map((img, i) => (
                       <motion.div 
@@ -257,7 +257,7 @@ const OrganizerDetails = () => {
                             </div>
                             <div>
                                <p className="text-xs font-black uppercase tracking-widest">Exhibit #{String(i + 1).padStart(2, '0')}</p>
-                               <p className="text-[10px] text-white/60 font-medium">Verified Operational Deployment</p>
+                               <p className="text-[10px] text-white/60 font-medium">Verified</p>
                             </div>
                           </div>
                         </div>
@@ -271,10 +271,10 @@ const OrganizerDetails = () => {
                 <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {[
-                      { label: 'Network Response Velocity', value: org.responseRate, color: 'primary', icon: Clock },
-                      { label: 'On-Time Deployment Metric', value: org.onTimeRate, color: 'blue', icon: Target },
-                      { label: 'Operator Reputation Factor', value: Math.min(Math.round(parseFloat(org.rating) * 20), 100), color: 'amber', icon: Star },
-                      { label: 'Home Owner Retention Amplitude', value: Math.floor(Math.random() * 30) + 50, color: 'secondary', icon: TrendingUp },
+                      { label: 'Response rate', value: org.responseRate, color: 'primary', icon: Clock },
+                      { label: 'On-time rate', value: org.onTimeRate, color: 'blue', icon: Target },
+                      { label: 'Reputation', value: Math.min(Math.round(parseFloat(org.rating) * 20), 100), color: 'amber', icon: Star },
+                      { label: 'Retention', value: Math.floor(Math.random() * 30) + 50, color: 'secondary', icon: TrendingUp },
                     ].map((metric, i) => (
                       <GlassCard key={i} className="p-8 border-white/40">
                         <div className="flex justify-between items-start mb-6">
@@ -311,19 +311,19 @@ const OrganizerDetails = () => {
                   <GlassCard className="p-10 border-white/60">
                      <div className="flex items-center gap-3 mb-10">
                         <BarChart3 className="w-6 h-6 text-primary" />
-                        <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.2em]">Aggregated Service Metadata</h3>
+                        <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.2em]">Summary</h3>
                      </div>
                      <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
                         <div className="p-8 bg-slate-50/50 rounded-[2rem] border border-slate-100 text-center group hover:bg-white transition-all">
-                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Jobs Processed</p>
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Jobs</p>
                            <p className="text-4xl font-black text-slate-800 tracking-tighter">{org.completedJobs}</p>
                         </div>
                         <div className="p-8 bg-slate-50/50 rounded-[2rem] border border-slate-100 text-center group hover:bg-white transition-all">
-                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Sentinel Reviews</p>
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Reviews</p>
                            <p className="text-4xl font-black text-slate-800 tracking-tighter">{org.totalReviews}</p>
                         </div>
                         <div className="p-8 bg-slate-50/50 rounded-[2rem] border border-slate-100 text-center group hover:bg-white transition-all">
-                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Economic Inflow</p>
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Earnings</p>
                            <p className="text-4xl font-black text-slate-800 tracking-tighter">{formatCurrency(org.earnings)}</p>
                         </div>
                      </div>

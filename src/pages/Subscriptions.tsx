@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { PageHeader, GlassCard, StatCard, PremiumTabs } from '../components/UI';
 import { SUBSCRIPTION_PLANS as INITIAL_PLANS, ORGANIZERS } from '../data/mockData';
 import { cn, formatCurrency } from '../lib/utils';
@@ -56,8 +57,8 @@ const SubscriptionsPage = () => {
   return (
     <div className="space-y-12 animate-in fade-in duration-700">
       <PageHeader 
-        title="Economic Tiers" 
-        description="Configure membership structures and oversee the pro-network subscription velocity."
+        title="Subscriptions" 
+        description="Manage subscription plans and see who is subscribed."
       >
         <div className="flex items-center gap-4">
           <PremiumTabs 
@@ -73,7 +74,7 @@ const SubscriptionsPage = () => {
             className="flex items-center gap-2 primary-gradient text-white px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:scale-105 transition-all outline-none"
           >
             <Plus className="w-4 h-4" />
-            New Tier
+            New plan
           </button>
         </div>
       </PageHeader>
@@ -101,7 +102,7 @@ const SubscriptionsPage = () => {
 
               {plan.name === 'Premium' && (
                 <div className="absolute top-8 right-[-45px] rotate-45 bg-gradient-to-r from-primary to-primary-700 text-white text-[9px] font-black px-12 py-1.5 shadow-xl tracking-[0.2em] uppercase">
-                  Apex Tier
+                  Popular
                 </div>
               )}
               
@@ -114,7 +115,7 @@ const SubscriptionsPage = () => {
                 </div>
                 <div>
                   <h3 className="text-2xl font-black text-slate-800 tracking-tighter">{plan.name}</h3>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Professional Capability</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Plan</p>
                 </div>
               </div>
 
@@ -124,7 +125,7 @@ const SubscriptionsPage = () => {
                     {formatCurrency(billingCycle === 'yearly' ? plan.price * 10 : plan.price).replace('.00', '')}
                   </span>
                   <span className="text-slate-400 text-xs font-black uppercase tracking-widest">
-                    / {billingCycle === 'yearly' ? 'Fiscal Year' : 'Monthly'}
+                    / {billingCycle === 'yearly' ? 'per year' : 'per month'}
                   </span>
                 </div>
               </div>
@@ -148,11 +149,11 @@ const SubscriptionsPage = () => {
         <div className="flex items-center justify-between mb-8">
            <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
               <Layers className="w-5 h-5 text-primary" />
-              Strategic Network Log
+              Who's subscribed
            </h3>
            <div className="flex gap-4">
-              <StatCard title="Active Subscriptions" value="1,402" icon={Users} className="py-2 px-4 h-auto min-w-[200px]" color="primary" />
-              <StatCard title="Projected Revenue" value={formatCurrency(12400)} icon={TrendingUp} className="py-2 px-4 h-auto min-w-[200px]" color="blue" />
+              <StatCard title="Active subscribers" value="1,402" icon={Users} className="py-2 px-4 h-auto min-w-[200px]" color="primary" />
+              <StatCard title="Expected revenue" value={formatCurrency(12400)} icon={TrendingUp} className="py-2 px-4 h-auto min-w-[200px]" color="blue" />
            </div>
         </div>
 
@@ -161,11 +162,11 @@ const SubscriptionsPage = () => {
             <table className="w-full text-left">
               <thead className="bg-slate-50/50 backdrop-blur-md border-b border-slate-100">
                 <tr>
-                  <th className="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Partner Identity</th>
-                  <th className="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Deployment Tier</th>
-                  <th className="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Auto-Renew</th>
-                  <th className="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Renewal Horizon</th>
-                  <th className="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Strategic Action</th>
+                  <th className="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Organizer</th>
+                  <th className="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Plan</th>
+                  <th className="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Auto-renew</th>
+                  <th className="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Expires</th>
+                  <th className="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -206,7 +207,7 @@ const SubscriptionsPage = () => {
                     </td>
                     <td className="px-8 py-5">
                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{org.subscriptionExpiry}</p>
-                       <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest mt-0.5">Sync Expected</p>
+                       <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest mt-0.5">Expires</p>
                     </td>
                     <td className="px-8 py-5 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -220,23 +221,22 @@ const SubscriptionsPage = () => {
             </table>
           </div>
           <div className="p-6 bg-slate-50/30 border-t border-slate-100 text-center">
-             <button className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] hover:text-primary transition-all">View Extended Network Log</button>
+             <button className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] hover:text-primary transition-all">View all subscribers</button>
           </div>
         </GlassCard>
       </div>
 
       {/* Plan Modal */}
-      <AnimatePresence>
-        {isPlanModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsPlanModalOpen(false)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+      {isPlanModalOpen && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-9999 flex items-center justify-center p-4" aria-modal="true" role="dialog">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsPlanModalOpen(false)} className="absolute inset-0 bg-slate-900/50 backdrop-blur-md" aria-hidden />
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl border border-white overflow-hidden p-10">
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h2 className="text-3xl font-black text-slate-800 tracking-tighter">
-                    {currentPlan ? 'Optimize Economic Tier' : 'Blueprint New Tier'}
+                    {currentPlan ? 'Edit plan' : 'Create plan'}
                   </h2>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Tiered Architecture Protocol</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Set plan name, price, and features</p>
                 </div>
                 <button onClick={() => setIsPlanModalOpen(false)} className="p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-400 transition-all">
                   <X className="w-5 h-5" />
@@ -246,11 +246,11 @@ const SubscriptionsPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                  <div className="space-y-6">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tier Designation</label>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Plan name</label>
                       <input type="text" value={planForm.name} onChange={(e) => setPlanForm({ ...planForm, name: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:bg-white focus:border-primary/20 transition-all" placeholder="Standard, Premium, etc." />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Monthly Valuation ($)</label>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Price per month ($)</label>
                       <div className="relative">
                          <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 font-bold">$</div>
                          <input type="number" value={planForm.price} onChange={(e) => setPlanForm({ ...planForm, price: parseInt(e.target.value) })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-10 pr-6 text-sm font-bold outline-none focus:bg-white focus:border-primary/20 transition-all" />
@@ -259,7 +259,7 @@ const SubscriptionsPage = () => {
                  </div>
 
                  <div className="space-y-6">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Feature Assignments & Privileges</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Features</label>
                     <div className="space-y-3 p-6 bg-slate-50 rounded-3xl border border-slate-100 min-h-[200px]">
                        <div className="flex flex-wrap gap-2">
                           {planForm.features.map((feat, i) => (
@@ -275,7 +275,7 @@ const SubscriptionsPage = () => {
                           ))}
                        </div>
                        <div className="flex items-center gap-2 mt-4 pt-4 border-t border-slate-200/50">
-                          <input type="text" value={newFeature} onChange={(e) => setNewFeature(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addFeature()} placeholder="Protocol feature..." className="flex-1 bg-transparent text-xs font-bold outline-none border-b border-dashed border-slate-300 focus:border-primary/40 transition-all" />
+                          <input type="text" value={newFeature} onChange={(e) => setNewFeature(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addFeature()} placeholder="Add feature..." className="flex-1 bg-transparent text-xs font-bold outline-none border-b border-dashed border-slate-300 focus:border-primary/40 transition-all" />
                           <button onClick={addFeature} className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all">
                              <Plus className="w-4 h-4" />
                           </button>
@@ -290,15 +290,15 @@ const SubscriptionsPage = () => {
               </div>
 
               <div className="mt-12 flex gap-4">
-                <button onClick={() => setIsPlanModalOpen(false)} className="flex-1 py-5 bg-slate-50 text-slate-400 text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-slate-100 transition-all">Decline Edit</button>
+                <button onClick={() => setIsPlanModalOpen(false)} className="flex-1 py-5 bg-slate-50 text-slate-400 text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-slate-100 transition-all">Cancel</button>
                 <button onClick={handleSavePlan} className="flex-1 py-5 primary-gradient text-white text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
-                   Save Economic Tier
+                   Save plan
                 </button>
               </div>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
-      </AnimatePresence>
     </div>
   );
 };

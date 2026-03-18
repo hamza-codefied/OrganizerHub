@@ -13,10 +13,8 @@ import { useAuth } from '../contexts/AuthContext';
 const menuItems = [
   { group: "General", items: [
     { name: "Dashboard", icon: LayoutDashboard, path: "/" },
-    { name: "Users", icon: Users, path: "/users", subItems: [
-      { name: "Home Owners", icon: UserRound, path: "/users/home-owners" },
-      { name: "Organizers", icon: Briefcase, path: "/users/organizers" },
-    ]},
+    { name: "Home Owners", icon: UserRound, path: "/users/home-owners" },
+    { name: "Organizers", icon: Briefcase, path: "/users/organizers" },
   ]},
   { group: "Operation", items: [
     { name: "Services", icon: Layers, path: "/services" },
@@ -27,12 +25,12 @@ const menuItems = [
   ]},
   { group: "Strategy", items: [
     { name: "Promotions", icon: Megaphone, path: "/promotions" },
-    { name: "Ads Management", icon: Presentation, path: "/ads" },
-    { name: "Analytics", icon: BarChart3, path: "/analytics" },
+    // { name: "Ads Management", icon: Presentation, path: "/ads" },
+    // { name: "Analytics", icon: BarChart3, path: "/analytics" },
   ]},
   { group: "System", items: [
     { name: "Support", icon: Headphones, path: "/support" },
-    { name: "CMS", icon: FileText, path: "/cms" },
+    // { name: "CMS", icon: FileText, path: "/cms" },
     { name: "Notifications", icon: Bell, path: "/notifications" },
     { name: "Settings", icon: Settings, path: "/settings" },
   ]}
@@ -43,7 +41,7 @@ interface LayoutProps {
 }
 
 const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed: (v: boolean) => void }) => {
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(["Users"]);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const location = useLocation();
 
   const toggleExpand = (name: string) => {
@@ -61,19 +59,14 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed
       "h-screen transition-all duration-500 ease-in-out glass-premium flex flex-col fixed left-0 top-0 z-50 border-r border-white/40",
       collapsed ? "w-20" : "w-72"
     )}>
-      <div className="p-6 flex items-center justify-center mb-4">
-        {!collapsed ? (
-          <div className="flex items-center gap-3 w-full px-2">
-            <div className="w-10 h-10 rounded-2xl primary-gradient flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
-              <span className="text-white font-black text-xl">O</span>
-            </div>
-            <span className="font-black text-xl text-slate-800 tracking-tighter truncate">OrganizeHub<span className="text-primary text-2xl">.</span></span>
-          </div>
-        ) : (
-          <div className="w-11 h-11 rounded-2xl primary-gradient flex items-center justify-center shadow-lg shadow-primary/20">
-            <span className="text-white font-black text-xl">O</span>
-          </div>
-        )}
+      <div className="p-6 flex  mb-4">
+        <NavLink to="/" className="flex items-start justify-center focus:outline-none">
+          <img
+            src="/logo.png"
+            alt="OrganizerHub"
+            className={cn("object-contain", collapsed ? "w-10 h-10" : "h-10 w-auto max-w-[180px]")}
+          />
+        </NavLink>
       </div>
 
       <div className="flex-1 overflow-y-auto premium-scrollbar px-4 space-y-7 pb-10">
@@ -192,9 +185,9 @@ const Navbar = () => {
             <Bell className="w-5 h-5" />
             <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-secondary rounded-full border-2 border-white animate-pulse"></span>
           </button>
-          <button className="p-2.5 rounded-2xl hover:bg-white/80 text-slate-500 hover:text-primary transition-all">
+          {/* <button className="p-2.5 rounded-2xl hover:bg-white/80 text-slate-500 hover:text-primary transition-all">
             <Settings className="w-5 h-5" />
-          </button>
+          </button> */}
         </div>
         
         <div className="h-8 w-[1.5px] bg-slate-200/50 rounded-full mx-1"></div>
@@ -205,8 +198,8 @@ const Navbar = () => {
             className="flex items-center gap-3 group outline-none"
           >
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-black text-slate-800 leading-none group-hover:text-primary transition-colors">Admin Hub</p>
-              <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-widest leading-none">Global Executive</p>
+              <p className="text-xs font-black text-slate-800 leading-none group-hover:text-primary transition-colors">Admin</p>
+              {/* <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-widest leading-none">Global Executive</p> */}
             </div>
             <div className="w-10 h-10 rounded-xl border-2 border-white shadow-xl overflow-hidden group-hover:scale-105 transition-all duration-300">
               <img 

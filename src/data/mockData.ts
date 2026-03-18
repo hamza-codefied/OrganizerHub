@@ -1,5 +1,5 @@
-const homeOwnerNames = ["John Doe", "Jane Smith", "Michael Brown", "Sara Ali", "Khalid Mansoor", "Fatima Noor", "Omar Hassan", "Layla Ahmed"];
-const orgNames = ["Sarah Green", "David White", "Emma Wilson", "Ali Kazmi", "Nadia Rashid", "Carlos Mendez"];
+const homeOwnerNames = ["John Doe", "Jane Smith", "Michael Brown", "Emily Davis", "James Wilson", "Jessica Taylor", "Robert Anderson", "Amanda Harris"];
+const orgNames = ["Sarah Green", "David White", "Emma Wilson", "Chris Johnson", "Rachel Clark", "Daniel Lewis"];
 const locations = ["Dubai, UAE", "Abu Dhabi, UAE", "Sharjah, UAE", "Ajman, UAE", "Riyadh, KSA"];
 
 export const HOME_OWNERS = Array.from({ length: 25 }).map((_, i) => ({
@@ -150,6 +150,7 @@ export const REVIEWS = Array.from({ length: 35 }).map((_, i) => ({
   id: `rev-${i + 1}`,
   homeOwner: HOME_OWNERS[Math.floor(Math.random() * HOME_OWNERS.length)].name,
   organizer: ORGANIZERS[Math.floor(Math.random() * ORGANIZERS.length)].name,
+  service: SERVICES[Math.floor(Math.random() * SERVICES.length)].name,
   rating: Math.floor(Math.random() * 2) + 4,
   comment: "Great experience working with this professional. Highly recommended!",
   date: "2024-03-10",

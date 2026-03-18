@@ -20,8 +20,8 @@ const HomeOwnerDetails = () => {
     return (
       <div className="h-[60vh] flex flex-col items-center justify-center space-y-4">
         <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center text-rose-500 border border-rose-100 italic font-black text-4xl">!</div>
-        <p className="font-black text-slate-400 uppercase tracking-widest text-sm">Home Owner profile not recovered</p>
-        <button onClick={() => navigate('/users/home-owners')} className="text-primary font-black text-xs uppercase tracking-widest hover:underline">Return to Registry</button>
+        <p className="font-black text-slate-400 uppercase tracking-widest text-sm">Home owner not found</p>
+        <button onClick={() => navigate('/users/home-owners')} className="text-primary font-black text-xs uppercase tracking-widest hover:underline">Back to home owners</button>
       </div>
     );
   }
@@ -36,8 +36,8 @@ const HomeOwnerDetails = () => {
           <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
         </button>
         <div>
-          <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">User Management</p>
-          <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Registry Index / {homeOwner.id}</h2>
+          <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Home owner</p>
+          <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Profile #{homeOwner.id}</h2>
         </div>
       </div>
 
@@ -52,7 +52,7 @@ const HomeOwnerDetails = () => {
                  <div className="absolute bottom-2 right-2 w-6 h-6 bg-emerald-500 border-4 border-white rounded-full"></div>
               </div>
               <h1 className="text-3xl font-black text-slate-800 tracking-tighter">{homeOwner.name}</h1>
-              <p className="text-sm font-bold text-slate-400 mt-2 uppercase tracking-widest">Premium Home Owner Entity</p>
+              <p className="text-sm font-bold text-slate-400 mt-2 uppercase tracking-widest">Premium home owner</p>
               
               <div className={cn(
                 "mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] border shadow-sm",
@@ -61,7 +61,7 @@ const HomeOwnerDetails = () => {
                 "bg-rose-50 text-rose-600 border-rose-100"
               )}>
                 {homeOwner.status === 'Active' ? <BadgeCheck className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
-                {homeOwner.status} Protocol
+                {homeOwner.status} account
               </div>
 
               <div className="w-full space-y-4 mt-10 text-left pt-8 border-t border-slate-100">
@@ -70,7 +70,7 @@ const HomeOwnerDetails = () => {
                        <Mail className="w-4 h-4" />
                     </div>
                     <div className="min-w-0 flex-1">
-                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Email Identity</p>
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Email</p>
                        <p className="text-sm font-bold text-slate-800 truncate">{homeOwner.email}</p>
                     </div>
                  </div>
@@ -79,7 +79,7 @@ const HomeOwnerDetails = () => {
                        <Phone className="w-4 h-4" />
                     </div>
                     <div className="min-w-0 flex-1">
-                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Comm Signal</p>
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Phone</p>
                        <p className="text-sm font-bold text-slate-800">{homeOwner.phone}</p>
                     </div>
                  </div>
@@ -88,7 +88,7 @@ const HomeOwnerDetails = () => {
                        <MapPin className="w-4 h-4" />
                     </div>
                     <div className="min-w-0 flex-1">
-                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Regional Zone</p>
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Location</p>
                        <p className="text-sm font-bold text-slate-800">{homeOwner.location}</p>
                     </div>
                  </div>
@@ -96,20 +96,20 @@ const HomeOwnerDetails = () => {
             </div>
           </GlassCard>
 
-          <GlassCard title="Security Protocols" subtitle="Manage account access and restrictions.">
+          {/* <GlassCard title="Account security" subtitle="Control access and restrictions.">
              <div className="space-y-4 mt-6">
                 {homeOwner.status === 'Active' ? (
                   <>
                     <button className="w-full flex items-center justify-between p-4 bg-amber-50/50 hover:bg-amber-50 rounded-2xl border border-amber-100 transition-all group">
                        <div className="flex items-center gap-3">
                           <ShieldAlert className="w-5 h-5 text-amber-500" />
-                          <span className="text-xs font-black text-amber-600 uppercase tracking-widest">Suspend Access</span>
+                          <span className="text-xs font-black text-amber-600 uppercase tracking-widest">Suspend access</span>
                        </div>
                     </button>
                     <button className="w-full flex items-center justify-between p-4 bg-rose-50/50 hover:bg-rose-50 rounded-2xl border border-rose-100 transition-all group">
                        <div className="flex items-center gap-3">
                           <ShieldOff className="w-5 h-5 text-rose-500" />
-                          <span className="text-xs font-black text-rose-600 uppercase tracking-widest">Permanent Ban</span>
+                          <span className="text-xs font-black text-rose-600 uppercase tracking-widest">Block permanently</span>
                        </div>
                     </button>
                   </>
@@ -117,12 +117,12 @@ const HomeOwnerDetails = () => {
                   <button className="w-full flex items-center justify-between p-4 primary-gradient rounded-2xl text-white transition-all group shadow-lg shadow-primary/20">
                      <div className="flex items-center gap-3">
                         <ShieldCheck className="w-5 h-5" />
-                        <span className="text-xs font-black uppercase tracking-widest">Restore Full Protocol</span>
+                        <span className="text-xs font-black uppercase tracking-widest">Restore access</span>
                      </div>
                   </button>
                 )}
              </div>
-          </GlassCard>
+          </GlassCard> */}
         </div>
 
         {/* Main Content */}
@@ -143,10 +143,10 @@ const HomeOwnerDetails = () => {
                 <div className="space-y-8">
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {[
-                        { label: 'Platform Transactions', value: homeOwner.totalBookings, icon: ShoppingBag, color: 'primary' },
-                        { label: 'Economic Velocity', value: formatCurrency(homeOwner.totalSpent), icon: Star, color: 'blue' },
-                        { label: 'Sentinel Feedback', value: homeOwner.reviewsGiven, icon: ShieldCheck, color: 'orange' },
-                        { label: 'Strategic Favorites', value: homeOwner.favorites, icon: Heart, color: 'secondary' },
+                        { label: 'Bookings', value: homeOwner.totalBookings, icon: ShoppingBag, color: 'primary' },
+                        { label: 'Total spending', value: formatCurrency(homeOwner.totalSpent), icon: Star, color: 'blue' },
+                        { label: 'Reviews', value: homeOwner.reviewsGiven, icon: ShieldCheck, color: 'orange' },
+                        { label: 'Favorites', value: homeOwner.favorites, icon: Heart, color: 'secondary' },
                       ].map((stat, i) => (
                         <GlassCard key={i} className="flex items-center gap-6 p-6">
                            <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center border shadow-sm", 
@@ -165,26 +165,26 @@ const HomeOwnerDetails = () => {
                       ))}
                    </div>
 
-                   <GlassCard title="Registry Vector History" subtitle="Global account propagation and activity metrics.">
+                   <GlassCard title="Activity overview" subtitle="Recent activity and verification details.">
                       <div className="grid grid-cols-2 gap-8 mt-6">
                          <div className="space-y-1">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Onboarding Event</p>
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Joined</p>
                             <p className="text-lg font-black text-slate-800">{homeOwner.joinedDate}</p>
                          </div>
                          <div className="space-y-1">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Identity Verified</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Verified</p>
                             <div className="flex items-center gap-2">
                                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                               <p className="text-lg font-black text-slate-800 uppercase tracking-widest">Protocol Sec-01</p>
+                               <p className="text-lg font-black text-slate-800 uppercase tracking-widest">Verified</p>
                             </div>
                          </div>
                          <div className="space-y-1">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Last Synchronization</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Last active</p>
                             <p className="text-lg font-black text-slate-800 uppercase tracking-widest">{homeOwner.lastActive}</p>
                          </div>
                          <div className="space-y-1">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Account Authority</p>
-                            <p className="text-lg font-black text-slate-800 uppercase tracking-widest">Level 04</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Account level</p>
+                            <p className="text-lg font-black text-slate-800 uppercase tracking-widest">Level 4</p>
                          </div>
                       </div>
                    </GlassCard>
@@ -194,7 +194,7 @@ const HomeOwnerDetails = () => {
               {activeTab === 'bookings' && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between px-2 mb-2">
-                     <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">{homeOwner.bookingHistory.length} registry events detected</p>
+                     <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">{homeOwner.bookingHistory.length} bookings found</p>
                   </div>
                   {homeOwner.bookingHistory.map((booking, i) => (
                     <GlassCard key={i} className="flex items-center justify-between p-6 hover:border-primary/20 group cursor-default">
@@ -205,14 +205,14 @@ const HomeOwnerDetails = () => {
                         <div>
                           <p className="text-lg font-black text-slate-800 tracking-tighter group-hover:text-primary transition-colors">{booking.service}</p>
                           <p className="text-xs font-bold text-slate-400 mt-1 flex items-center gap-2">
-                             Indexed <span className="text-primary font-black">{booking.organizer}</span> • {booking.date}
+                             Organizer: <span className="text-primary font-black">{booking.organizer}</span> • {booking.date}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-8">
                         <div className="text-right">
                            <p className="text-xl font-black text-slate-800 tracking-tighter">{formatCurrency(booking.amount)}</p>
-                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Transaction Valve</p>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Amount</p>
                         </div>
                         <div className={cn(
                           "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm",
@@ -228,7 +228,7 @@ const HomeOwnerDetails = () => {
 
               {activeTab === 'reviews' && (
                 <div className="space-y-4">
-                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] px-2 mb-2">{homeOwner.reviewsGiven} narrative signals submitted</p>
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] px-2 mb-2">{homeOwner.reviewsGiven} reviews submitted</p>
                   {Array.from({ length: Math.min(homeOwner.reviewsGiven, 5) }).map((_, i) => (
                     <GlassCard key={i} className="p-8">
                       <div className="flex items-center justify-between mb-6">
@@ -238,14 +238,14 @@ const HomeOwnerDetails = () => {
                                 <Star key={j} className={cn("w-4 h-4", j < (4 + (i % 2)) ? "fill-amber-400 text-amber-400" : "text-slate-200")} />
                               ))}
                            </div>
-                           <span className="text-sm font-black text-slate-800 ml-2">{(4 + (i % 2)).toFixed(1)} Impact Factor</span>
+                           <span className="text-sm font-black text-slate-800 ml-2">{(4 + (i % 2)).toFixed(1)} rating</span>
                         </div>
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Protocol Date: 2024.0{(i % 9) + 1}.{String((i % 28) + 1).padStart(2, '0')}</span>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Review date: 2024.0{(i % 9) + 1}.{String((i % 28) + 1).padStart(2, '0')}</span>
                       </div>
-                      <p className="text-lg font-bold text-slate-600 italic leading-snug">"Exceptional execution of the decluttering protocol. The organizational system implemented has significantly increased domestic productivity."</p>
+                      <p className="text-lg font-bold text-slate-600 italic leading-snug">"Great experience (mock review)."</p>
                       <div className="flex items-center gap-3 mt-8 pt-6 border-t border-slate-50">
                          <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-primary font-black border border-slate-100 shadow-inner">P</div>
-                         <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Partner Identity: <span className="text-primary">Sarah Green</span></p>
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Organizer: <span className="text-primary">Sarah Green</span></p>
                       </div>
                     </GlassCard>
                   ))}
@@ -272,7 +272,7 @@ const HomeOwnerDetails = () => {
                               <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                               <span className="text-[11px] font-black text-slate-800">{(4 + Math.random()).toFixed(1)}</span>
                            </div>
-                           <button className="text-[10px] font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">View Node <ExternalLink className="w-3 h-3" /></button>
+                           <button className="text-[10px] font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">View organizer <ExternalLink className="w-3 h-3" /></button>
                         </div>
                       </div>
                     </GlassCard>

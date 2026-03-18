@@ -31,8 +31,8 @@ const Dashboard = () => {
   return (
     <div className="space-y-10">
       <PageHeader 
-        title="Command Center" 
-        description="Analytics and operational oversight for OrganizeHub Global."
+        title="Dashboard" 
+        description="A quick view of users, revenue, and bookings."
       >
         {/* <PremiumTabs 
           tabs={[
@@ -46,14 +46,14 @@ const Dashboard = () => {
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <StatCard title="Total Platform Users" value="12,842" change={14.2} icon={Users} color="blue" trend="up" />
-        <StatCard title="Verified Organizers" value="842" change={5.1} icon={Briefcase} color="primary" trend="up" />
-        <StatCard title="Premium Revenue" value={formatCurrency(142500)} change={22.4} icon={DollarSign} color="secondary" trend="up" />
-        <StatCard title="Global Bookings" value="3,105" change={2.5} icon={Calendar} color="orange" trend="down" />
+        <StatCard title="Total users" value="12,842" change={14.2} icon={Users} color="blue" trend="up" />
+        <StatCard title="Verified organizers" value="842" change={5.1} icon={Briefcase} color="primary" trend="up" />
+        <StatCard title="Premium revenue" value={formatCurrency(142500)} change={22.4} icon={DollarSign} color="secondary" trend="up" />
+        <StatCard title="Total bookings" value="3,105" change={2.5} icon={Calendar} color="orange" trend="down" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        <GlassCard className="lg:col-span-2" title="Revenue Velocity" subtitle="Real-time tracking of platform earnings and subscription growth.">
+        <GlassCard className="lg:col-span-2" title="Revenue over time" subtitle="Track earnings and subscription growth.">
           <div className="h-[350px] w-full mt-6">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={REVENUE_DATA}>
@@ -81,7 +81,7 @@ const Dashboard = () => {
           </div>
         </GlassCard>
 
-        <GlassCard title="Market Share" subtitle="Distribution across core service categories.">
+        <GlassCard title="Service share" subtitle="Which services are getting the most activity.">
           <div className="h-[280px] w-full mt-6 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -120,7 +120,7 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        <GlassCard title="Live Booking Stream" subtitle="Process transparency for recent marketplace transactions.">
+        <GlassCard title="Recent bookings" subtitle="A quick look at recent booking activity.">
           <div className="space-y-5 mt-6">
             {BOOKINGS.slice(0, 5).map((booking) => (
               <div 
@@ -154,11 +154,11 @@ const Dashboard = () => {
             ))}
           </div>
           <button className="w-full mt-8 py-4 text-xs font-black text-slate-500 hover:text-primary hover:bg-white/80 rounded-2xl transition-all border border-transparent hover:border-white/60 hover:shadow-premium tracking-[0.2em] uppercase">
-            Expand Booking Registry
+            View all bookings
           </button>
         </GlassCard>
 
-        <GlassCard title="Global Engagement" subtitle="Session and booking frequency by weekday.">
+        <GlassCard title="Bookings by day" subtitle="How bookings change across the week.">
           <div className="h-[350px] w-full mt-6">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={BOOKING_STATS}>

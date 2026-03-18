@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { PageHeader, GlassCard, StatCard, PremiumTabs } from '../components/UI';
 import { DataTable } from '../components/DataTable';
 import { ADS, ORGANIZERS } from '../data/mockData';
@@ -230,15 +231,15 @@ const AdsManagementPage = () => {
       )}
 
       {/* Deploy Campaign modal */}
-      <AnimatePresence>
-        {showDeployModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {showDeployModal && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-9999 flex items-center justify-center p-4" aria-modal="true" role="dialog">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowDeployModal(false)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-900/50 backdrop-blur-md"
+              aria-hidden
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -340,18 +341,59 @@ const AdsManagementPage = () => {
                 </button>
               </div>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
-      </AnimatePresence>
 
       <DetailsDialog
         open={detailsOpen}
         title={detailsTitle}
         onClose={() => setDetailsOpen(false)}
       >
-        <pre className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-bold text-slate-600 overflow-auto mt-2">
-          {detailsPayload ? JSON.stringify(detailsPayload, null, 2) : ''}
-        </pre>
+        {detailsPayload && (
+          <div className="space-y-4 mt-2">
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Campaign ID</p>
+              <p className="font-black text-slate-800">{detailsPayload.id}</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Organizer</p>
+                <p className="font-bold text-slate-800">{detailsPayload.organizer}</p>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Budget</p>
+                <p className="font-black text-slate-800">{formatCurrency(detailsPayload.budget)}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Duration</p>
+                <p className="font-bold text-slate-800">{detailsPayload.duration}</p>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                <p className="font-bold text-slate-800">{detailsPayload.status}</p>
+              </div>
+            </div>
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Targeting</p>
+              <p className="font-bold text-slate-800">{detailsPayload.targeting}</p>
+            </div>
+            {detailsPayload.stats && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Impressions</p>
+                  <p className="font-black text-slate-800">{detailsPayload.stats.impressions}</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Clicks</p>
+                  <p className="font-black text-slate-800">{detailsPayload.stats.clicks}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </DetailsDialog>
     </div>
   );

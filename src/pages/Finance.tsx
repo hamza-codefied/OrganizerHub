@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { PageHeader, StatCard, GlassCard, PremiumTabs } from '../components/UI';
 import { DataTable } from '../components/DataTable';
-import { TRANSACTIONS, WITHDRAWAL_REQUESTS, REVENUE_REPORTS } from '../data/mockData';
+import { TRANSACTIONS, REVENUE_REPORTS } from '../data/mockData';
 import { formatCurrency, cn } from '../lib/utils';
 import { 
-  DollarSign, TrendingUp, CreditCard, 
-  ArrowDownToLine, ShieldCheck,
-  Globe, Wallet, History, BarChart3,
+  DollarSign, TrendingUp, CreditCard, Crown, Star,
+  Sparkles, Zap, Megaphone,
+  ShieldCheck,
+  Globe, History, BarChart3,
   CheckCircle2, XCircle, RotateCcw,
   ArrowUpRight, Activity, Download, Briefcase
 } from 'lucide-react';
@@ -14,11 +15,9 @@ import { motion } from 'framer-motion';
 import DetailsDialog from '../components/DetailsDialog';
 
 const FinancePage = () => {
-  const [activeTab, setActiveTab] = useState<'ledgers' | 'withdrawals' | 'reports'>('ledgers');
+  const [activeTab, setActiveTab] = useState<'ledgers' | 'reports'>('ledgers');
   type Transaction = typeof TRANSACTIONS[0];
-  type Withdrawal = typeof WITHDRAWAL_REQUESTS[0];
   const [transactions, setTransactions] = useState<Transaction[]>(TRANSACTIONS as Transaction[]);
-  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>(WITHDRAWAL_REQUESTS as Withdrawal[]);
 
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsTitle, setDetailsTitle] = useState('');
@@ -26,11 +25,11 @@ const FinancePage = () => {
 
   const transactionColumns = [
     { 
-      header: "Strategic ID", 
+      header: "Transaction ID",
       accessor: (tx: any) => <span className="font-black text-slate-400 text-[10px] uppercase tracking-widest">TX-{tx.id}</span>
     },
     { 
-      header: "Node Entities", 
+      header: "Participants",
       accessor: (tx: any) => (
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
@@ -45,7 +44,7 @@ const FinancePage = () => {
       )
     },
     { 
-      header: "Financial Flow", 
+      header: "Amount",
       accessor: (tx: any) => (
         <div className="flex flex-col">
            <span className="font-black text-slate-800 text-sm tracking-tighter">{formatCurrency(tx.amount)}</span>
@@ -56,7 +55,7 @@ const FinancePage = () => {
       )
     },
     { 
-      header: "Partner Yield", 
+      header: "Earnings",
       accessor: (tx: any) => (
         <div className="flex flex-col">
            <span className="font-black text-emerald-600 text-sm tracking-tighter">{formatCurrency(tx.earnings)}</span>
@@ -65,7 +64,7 @@ const FinancePage = () => {
       )
     },
     { 
-      header: "Status", 
+      header: "Status",
       accessor: (tx: any) => (
         <div className={cn(
           "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm",
@@ -77,70 +76,39 @@ const FinancePage = () => {
         </div>
       )
     },
-    { header: "Sync Time", accessor: (tx: any) => <span className="font-bold text-slate-400 text-[10px] uppercase tracking-widest">{tx.date}</span> },
-  ];
-
-  const withdrawalColumns = [
-    { header: "Request ID", accessor: (wd: any) => <span className="font-black text-slate-400 text-[10px] uppercase tracking-widest">WD-{wd.id}</span> },
-    { 
-      header: "Pro Entity", 
-      accessor: (wd: any) => (
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center border border-primary/10 shadow-sm">
-             <Wallet className="w-4 h-4 text-primary" />
-          </div>
-          <span className="font-black text-slate-800 text-xs tracking-tight">{wd.organizer}</span>
-        </div>
-      )
-    },
-    { 
-      header: "Liquidity Volume", 
-      accessor: (wd: any) => <span className="font-black text-slate-800 text-sm tracking-tighter">{formatCurrency(wd.amount)}</span> 
-    },
-    { header: "Gateway", accessor: (wd: any) => <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{wd.method}</span> },
-    { 
-      header: "Protocol Status", 
-      accessor: (wd: any) => (
-        <div className={cn(
-          "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm",
-          wd.status === 'Approved' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-amber-50 text-amber-600 border-amber-100"
-        )}>
-          {wd.status === 'Approved' ? <CheckCircle2 className="w-3 h-3" /> : <Activity className="w-3 h-3 animate-pulse" />}
-          {wd.status}
-        </div>
-      )
-    },
+    { header: "Date", accessor: (tx: any) => <span className="font-bold text-slate-400 text-[10px] uppercase tracking-widest">{tx.date}</span> },
   ];
 
   return (
     <>
       <div className="space-y-10 animate-in fade-in duration-700">
       <PageHeader 
-        title="Escrow & Finance" 
-        description="Monitor global liquidity, platform commissions, and payout schedules with absolute precision."
+        title="Finance" 
+        description="Track payments, fees, and payouts in one place."
       >
         <div className="flex gap-3">
           <button className="flex items-center gap-2 bg-white/40 backdrop-blur-md border border-white/60 text-slate-600 px-6 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all">
-             <Download className="w-4 h-4" /> Export Ledger
-          </button>
-          <button className="flex items-center gap-2 primary-gradient text-white px-6 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:scale-105 transition-all">
-            <ArrowDownToLine className="w-4 h-4" /> Initiate Batch
+             <Download className="w-4 h-4" /> Export
           </button>
         </div>
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        <StatCard title="Aggregate Volume" value={formatCurrency(145800)} change={22.5} icon={Globe} color="blue" trend="up" />
-        <StatCard title="Platform Commission" value={formatCurrency(21870)} change={18.2} icon={DollarSign} color="primary" trend="up" />
-        <StatCard title="Organizer Yield" value={formatCurrency(123930)} change={24.1} icon={Briefcase} color="emerald" trend="up" />
-        <StatCard title="Pending Liquidity" value={formatCurrency(8450)} icon={CreditCard} color="orange" />
+        <StatCard title="Total Revenue" value={formatCurrency(0)} icon={DollarSign} color="primary" />
+        <StatCard title="Transactions" value={0} icon={TrendingUp} color="blue" />
+        <StatCard title="Boost Revenue" value={formatCurrency(0)} icon={Megaphone} color="emerald" />
+        <StatCard title="Platform Fees" value={formatCurrency(0)} icon={CreditCard} color="orange" />
+
+        <StatCard title="Premium Subscriptions" value={formatCurrency(0)} icon={Crown} color="primary" />
+        <StatCard title="Standard Subscriptions" value={formatCurrency(0)} icon={Star} color="blue" />
+        <StatCard title="Homepage Spotlight" value={formatCurrency(0)} icon={Sparkles} color="emerald" />
+        <StatCard title="Highlighted Listing" value={formatCurrency(0)} icon={Zap} color="orange" />
       </div>
 
       <PremiumTabs 
         tabs={[
-          { id: 'ledgers', label: 'Transaction Stream' },
-          { id: 'withdrawals', label: 'Withdrawal Registry' },
-          { id: 'reports', label: 'Revenue Matrix' },
+          { id: 'ledgers', label: 'Transactions' },
+          { id: 'reports', label: 'Reports' },
         ]}
         activeTab={activeTab}
         onChange={setActiveTab}
@@ -151,62 +119,29 @@ const FinancePage = () => {
            <DataTable 
              columns={transactionColumns} 
              data={transactions} 
-             searchPlaceholder="Filter ledgers by actor ID, volume reference, or status..." 
+             searchPlaceholder="Search by user, amount, or status..." 
              rowActions={[
                {
-                 label: 'View Audit Log',
+                 label: 'View details',
                  icon: History,
                  onClick: (tx: Transaction) => {
-                   setDetailsTitle('Transaction Audit Log (mock)');
+                   setDetailsTitle('Transaction details (mock)');
                    setDetailsPayload(tx);
                    setDetailsOpen(true);
                  },
                },
                {
-                 label: 'Issue Refund',
+                 label: 'Refund',
                  icon: RotateCcw,
                  variant: 'danger',
                  onClick: (tx: Transaction) => setTransactions((prev) => prev.map((x) => (x.id === tx.id ? { ...x, status: 'Refunded' } : x))),
                },
                {
-                 label: 'Verify Entity',
+                 label: 'Verify',
                  icon: ShieldCheck,
                  onClick: (tx: Transaction) => {
-                   setDetailsTitle('Verify Entity (mock)');
+                   setDetailsTitle('Verification details (mock)');
                    setDetailsPayload(tx);
-                   setDetailsOpen(true);
-                 },
-               },
-             ]}
-           />
-        </div>
-      )}
-
-      {activeTab === 'withdrawals' && (
-        <div className="animate-in slide-in-from-bottom-4 duration-500">
-           <DataTable 
-             columns={withdrawalColumns} 
-             data={withdrawals} 
-             searchPlaceholder="Audit requests by pro-entity name or gateway..." 
-             rowActions={[
-               {
-                 label: 'Process Approve',
-                 icon: CheckCircle2,
-                 variant: 'success',
-                 onClick: (wd: Withdrawal) => setWithdrawals((prev) => prev.map((x) => (x.id === wd.id ? { ...x, status: 'Approved' } : x))),
-               },
-               {
-                 label: 'Decline Protocol',
-                 icon: XCircle,
-                 variant: 'danger',
-                 onClick: (wd: Withdrawal) => setWithdrawals((prev) => prev.map((x) => (x.id === wd.id ? { ...x, status: 'Pending' } : x))),
-               },
-               {
-                 label: 'Verify Bank Data',
-                 icon: BarChart3,
-                 onClick: (wd: Withdrawal) => {
-                   setDetailsTitle('Withdrawal Verification (mock)');
-                   setDetailsPayload(wd);
                    setDetailsOpen(true);
                  },
                },
@@ -217,7 +152,7 @@ const FinancePage = () => {
 
       {activeTab === 'reports' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-in slide-in-from-bottom-4 duration-500">
-           <GlassCard title="Daily Revenue Velocity" subtitle="Real-time commission propagation (Last 7 Days).">
+          <GlassCard title="Last 7 Days" subtitle="Commission and revenue overview.">
               <div className="mt-8 space-y-6">
                  {REVENUE_REPORTS.daily.map((day, i) => (
                    <div key={i} className="flex items-center gap-6 group">
@@ -228,7 +163,7 @@ const FinancePage = () => {
                       </div>
                       <div className="w-24 text-right">
                          <p className="text-xs font-black text-slate-800 tracking-tighter">{formatCurrency(day.revenue)}</p>
-                         <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest mt-0.5">Yield: {formatCurrency(day.commission)}</p>
+                         <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest mt-0.5">Earnings: {formatCurrency(day.commission)}</p>
                       </div>
                    </div>
                  ))}
@@ -248,16 +183,16 @@ const FinancePage = () => {
               </div>
            </GlassCard>
 
-           <GlassCard title="Monthly Economic Synthesis" subtitle="Macro-level revenue and yield auditing.">
+           <GlassCard title="Monthly Summary" subtitle="Revenue and earnings overview.">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8">
                  {REVENUE_REPORTS.monthly.map((month, i) => (
                    <div key={i} className="p-6 bg-slate-50/50 rounded-3xl border border-slate-100 text-center hover:bg-white transition-all group cursor-default">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 group-hover:text-primary transition-colors">{month.name} Signal</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 group-hover:text-primary transition-colors">{month.name} Total</p>
                       <p className="text-2xl font-black text-slate-800 tracking-tighter leading-none mb-1">{formatCurrency(month.revenue / 1000)}k</p>
-                      <p className="text-[8px] font-black text-primary uppercase tracking-widest">Gross Deployment</p>
+                      <p className="text-[8px] font-black text-primary uppercase tracking-widest">Revenue</p>
                       <div className="mt-4 pt-4 border-t border-slate-100">
                          <p className="text-sm font-black text-emerald-600 tracking-tighter">{formatCurrency(month.commission)}</p>
-                         <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest mt-0.5">Aggregated Yield</p>
+                         <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest mt-0.5">Earnings</p>
                       </div>
                    </div>
                  ))}
@@ -267,8 +202,8 @@ const FinancePage = () => {
                     <TrendingUp className="w-6 h-6" />
                  </div>
                  <div>
-                    <h4 className="text-[11px] font-black text-blue-600 uppercase tracking-[0.2em] mb-2">Growth Vector Audit</h4>
-                    <p className="text-sm font-bold text-slate-600 leading-relaxed italic">"Aggregate marketplace velocity has increased by 18.5% compared to the previous fiscal quarter, with premium commission yield scaling at a 1.2x multiplier."</p>
+                    <h4 className="text-[11px] font-black text-blue-600 uppercase tracking-[0.2em] mb-2">Growth summary</h4>
+                    <p className="text-sm font-bold text-slate-600 leading-relaxed italic">In this mock report, growth increased by 18.5% compared to the last period.</p>
                  </div>
               </div>
            </GlassCard>
@@ -281,9 +216,90 @@ const FinancePage = () => {
       title={detailsTitle}
       onClose={() => setDetailsOpen(false)}
     >
-      <pre className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-bold text-slate-600 overflow-auto">
-        {detailsPayload ? JSON.stringify(detailsPayload, null, 2) : ''}
-      </pre>
+      {detailsPayload && (
+        <div className="space-y-4">
+          {detailsPayload.pendingWithdrawalsApproved !== undefined ? (
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <p className="font-bold text-slate-800">
+                {detailsPayload.pendingWithdrawalsApproved} pending withdrawal(s) approved. Status set to {detailsPayload.updatedStatus}.
+              </p>
+              {detailsPayload.note && <p className="text-sm text-slate-500 mt-2">{detailsPayload.note}</p>}
+            </div>
+          ) : typeof detailsPayload.id === 'string' && detailsPayload.id.startsWith('wd-') ? (
+            <div className="space-y-4">
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Withdrawal ID</p>
+                <p className="font-black text-slate-800">{detailsPayload.id}</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Organizer</p>
+                  <p className="font-bold text-slate-800">{detailsPayload.organizer}</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Amount</p>
+                  <p className="font-black text-slate-800">{formatCurrency(detailsPayload.amount)}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Method</p>
+                  <p className="font-bold text-slate-800">{detailsPayload.method}</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                  <p className="font-bold text-slate-800">{detailsPayload.status}</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Date</p>
+                  <p className="font-bold text-slate-800">{detailsPayload.date}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Transaction ID</p>
+                <p className="font-black text-slate-800">TX-{detailsPayload.id}</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">User</p>
+                  <p className="font-bold text-slate-800">{detailsPayload.user}</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Organizer</p>
+                  <p className="font-bold text-slate-800">{detailsPayload.organizer}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Amount</p>
+                  <p className="font-black text-slate-800">{formatCurrency(detailsPayload.amount)}</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Fee</p>
+                  <p className="font-bold text-slate-800">{formatCurrency(Number(detailsPayload.fee))}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Earnings</p>
+                  <p className="font-black text-emerald-600">{formatCurrency(Number(detailsPayload.earnings))}</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                  <p className="font-bold text-slate-800">{detailsPayload.status}</p>
+                </div>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Date</p>
+                <p className="font-bold text-slate-800">{detailsPayload.date}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </DetailsDialog>
     </>
   );

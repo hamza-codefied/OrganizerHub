@@ -26,13 +26,13 @@ const BookingsPage = () => {
 
   const columns = [
     { 
-      header: "Session Ref", 
+      header: "Booking ID", 
       accessor: (b: any) => (
         <span className="font-black text-slate-400 text-[10px] tracking-widest">#{b.id}</span>
       )
     },
     { 
-      header: "Engagement Partners", 
+      header: "Home owner & organizer", 
       accessor: (b: any) => (
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2 group/home-owner">
@@ -41,7 +41,7 @@ const BookingsPage = () => {
             </div>
             <div className="flex flex-col">
                <span className="font-black text-slate-800 text-xs tracking-tight leading-none">{b.homeOwner.name}</span>
-               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Home Owner Entity</span>
+               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Home owner</span>
             </div>
           </div>
           <div className="flex items-center gap-2 group/org">
@@ -50,14 +50,14 @@ const BookingsPage = () => {
             </div>
             <div className="flex flex-col">
                <span className="font-black text-slate-600 text-xs tracking-tight leading-none">{b.organizer.name}</span>
-               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Pro Partner</span>
+               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Organizer</span>
             </div>
           </div>
         </div>
       )
     },
     { 
-      header: "Strategic Service", 
+      header: "Service", 
       accessor: (b: any) => (
         <div className="flex items-center gap-2">
            <Tag className="w-3.5 h-3.5 text-slate-300" />
@@ -66,7 +66,7 @@ const BookingsPage = () => {
       )
     },
     { 
-      header: "Valuation", 
+      header: "Amount", 
       accessor: (b: any) => (
         <div className="flex flex-col">
            <span className="font-black text-slate-800 text-sm tracking-tighter">{formatCurrency(b.amount)}</span>
@@ -80,19 +80,19 @@ const BookingsPage = () => {
       )
     },
     { 
-      header: "Timeline", 
+      header: "Date", 
       accessor: (b: any) => (
         <div className="flex flex-col">
           <span className="text-xs font-black text-slate-800 tracking-tighter">{b.date}</span>
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Scheduled Slot</span>
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Scheduled</span>
         </div>
       )
     },
     { 
-      header: "Flow Status", 
+      header: "Status", 
       accessor: (b: any) => (
         <div className={cn(
-          "inline-flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.1em] border shadow-sm",
+          "inline-flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm",
           b.status === 'Completed' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
           b.status === 'Pending' ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-rose-50 text-rose-600 border-rose-100"
         )}>
@@ -110,12 +110,12 @@ const BookingsPage = () => {
   return (
     <div className="space-y-10 animate-in fade-in duration-700">
       <PageHeader 
-        title="Transaction Stream" 
-        description="Monitor end-to-end booking life cycles. Track completion rates and session valuations."
+        title="Bookings" 
+        description="View booking requests and their status. Check who booked and for what service."
       >
         <PremiumTabs 
           tabs={[
-            { id: 'all', label: 'Every Session' },
+            { id: 'all', label: 'All' },
             { id: 'Pending', label: 'Pending' },
             { id: 'Completed', label: 'Completed' },
             { id: 'Cancelled', label: 'Cancelled' },
@@ -126,34 +126,34 @@ const BookingsPage = () => {
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        <StatCard title="Active Protocols" value={String(bookings.filter(b => b.status === 'Pending').length)} icon={Activity} color="blue" />
-        <StatCard title="Successful Syncs" value={String(bookings.filter(b => b.status === 'Completed').length)} icon={CheckCircle2} color="primary" />
-        <StatCard title="Economic Flow" value={formatCurrency(bookings.reduce((acc, b) => acc + b.amount, 0))} icon={DollarSign} color="secondary" />
-        <StatCard title="Calculated Yield" value={formatCurrency(bookings.reduce((acc, b) => acc + b.amount * 0.15, 0))} icon={Percent} color="emerald" />
+        <StatCard title="Pending bookings" value={String(bookings.filter(b => b.status === 'Pending').length)} icon={Activity} color="blue" />
+        <StatCard title="Completed bookings" value={String(bookings.filter(b => b.status === 'Completed').length)} icon={CheckCircle2} color="primary" />
+        <StatCard title="Total booking amount" value={formatCurrency(bookings.reduce((acc, b) => acc + b.amount, 0))} icon={DollarSign} color="secondary" />
+        <StatCard title="Total fees (15%)" value={formatCurrency(bookings.reduce((acc, b) => acc + b.amount * 0.15, 0))} icon={Percent} color="emerald" />
       </div>
 
       <DataTable 
         columns={columns} 
         data={filteredBookings} 
-        searchPlaceholder="Locate session by reference, partner, or home owner ID..." 
+        searchPlaceholder="Search by booking ID, home owner, or organizer..." 
         rowActions={[
           {
-            label: 'View Session Ledger',
+            label: 'View details',
             icon: Activity,
             onClick: (b: Booking) => {
-              setDetailsTitle('Session Ledger (mock)');
+              setDetailsTitle('Booking details');
               setDetailsPayload(b);
               setDetailsOpen(true);
             },
           },
           {
-            label: 'Cancel Protocol',
+            label: 'Cancel',
             icon: XCircle,
             variant: 'danger',
             onClick: (b: Booking) => setBookings((prev) => prev.map((x) => (x.id === b.id ? { ...x, status: 'Cancelled' } : x))),
           },
           {
-            label: 'Execute Refund',
+            label: 'Mark cancelled',
             icon: RotateCcw,
             variant: 'danger',
             onClick: (b: Booking) =>
@@ -173,9 +173,59 @@ const BookingsPage = () => {
         title={detailsTitle}
         onClose={() => setDetailsOpen(false)}
       >
-        <pre className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-bold text-slate-600 overflow-auto">
-          {detailsPayload ? JSON.stringify(detailsPayload, null, 2) : ''}
-        </pre>
+        {detailsPayload && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Booking ID</p>
+                <p className="font-black text-slate-800">#{detailsPayload.id}</p>
+              </div>
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                <p className={cn(
+                  "font-black",
+                  detailsPayload.status === 'Completed' ? "text-emerald-600" :
+                  detailsPayload.status === 'Pending' ? "text-amber-600" : "text-rose-600"
+                )}>{detailsPayload.status}</p>
+              </div>
+            </div>
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Home owner</p>
+              <div className="flex items-center gap-3">
+                <img src={detailsPayload.homeOwner?.avatar} alt="" className="w-10 h-10 rounded-xl object-cover border border-white shadow-sm" />
+                <div>
+                  <p className="font-black text-slate-800">{detailsPayload.homeOwner?.name}</p>
+                  <p className="text-xs font-bold text-slate-500">{detailsPayload.homeOwner?.email}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Organizer</p>
+              <div className="flex items-center gap-3">
+                <img src={detailsPayload.organizer?.avatar} alt="" className="w-10 h-10 rounded-xl object-cover border border-white shadow-sm" />
+                <div>
+                  <p className="font-black text-slate-800">{detailsPayload.organizer?.name}</p>
+                  <p className="text-xs font-bold text-slate-500">{detailsPayload.organizer?.email}</p>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Service</p>
+                <p className="font-black text-slate-800">{detailsPayload.service}</p>
+              </div>
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Date</p>
+                <p className="font-black text-slate-800">{detailsPayload.date}</p>
+              </div>
+            </div>
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Amount & fee</p>
+              <p className="font-black text-slate-800 text-lg">{formatCurrency(detailsPayload.amount)}</p>
+              <p className="text-xs font-bold text-slate-500 mt-1">Platform fee (15%): {formatCurrency(detailsPayload.amount * 0.15)}</p>
+            </div>
+          </div>
+        )}
       </DetailsDialog>
     </div>
   );

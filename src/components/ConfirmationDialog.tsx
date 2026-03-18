@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -33,16 +34,17 @@ export default function ConfirmationDialog({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [open, onCancel]);
 
-  return (
+  const overlay = (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" aria-modal="true" role="dialog">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onCancel}
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/50 backdrop-blur-md"
+            aria-hidden
           />
 
           <motion.div
@@ -96,5 +98,7 @@ export default function ConfirmationDialog({
       )}
     </AnimatePresence>
   );
+
+  return typeof document !== 'undefined' ? createPortal(overlay, document.body) : null;
 }
 

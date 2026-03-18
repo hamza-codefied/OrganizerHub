@@ -27,7 +27,7 @@ const ReviewsPage = () => {
 
   const columns = [
     { 
-      header: "Strategic Rating", 
+      header: "Rating", 
       accessor: (r: any) => (
         <div className="flex items-center gap-1">
            {Array.from({ length: 5 }).map((_, i) => (
@@ -38,37 +38,43 @@ const ReviewsPage = () => {
       )
     },
     { 
-      header: "Engagement Partners", 
+      header: "Service", 
+      accessor: (r: any) => (
+        <span className="font-bold text-slate-700 text-sm">{r.service || '—'}</span>
+      )
+    },
+    { 
+      header: "From & to", 
       accessor: (r: any) => (
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-             <span className="text-[9px] font-black text-slate-300 uppercase">From</span>
+             <span className="text-[9px] font-black text-slate-300 uppercase">Home owner</span>
              <p className="font-black text-slate-800 text-sm tracking-tight leading-none">{r.homeOwner}</p>
           </div>
           <div className="flex items-center gap-2">
-             <span className="text-[9px] font-black text-slate-300 uppercase">To</span>
+             <span className="text-[9px] font-black text-slate-300 uppercase">Organizer</span>
              <p className="font-black text-primary text-[11px] tracking-tight leading-none">{r.organizer}</p>
           </div>
         </div>
       ) 
     },
     { 
-      header: "Core Narrative", 
+      header: "Comment", 
       accessor: (r: any) => (
         <p className="max-w-[400px] font-bold text-slate-600 text-sm italic tracking-tight leading-snug">"{r.comment}"</p>
       )
     },
     { 
-      header: "Status", 
+      header: "Verification", 
       accessor: () => (
         <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50/50 border border-emerald-100 rounded-full w-fit">
            <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-           <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Verified Hub</span>
+           <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Verified</span>
         </div>
       )
     },
     { 
-      header: "Sync Event", 
+      header: "Date", 
       accessor: (r: any) => <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{r.date}</span> 
     },
   ];
@@ -77,13 +83,13 @@ const ReviewsPage = () => {
     <>
       <div className="space-y-12 animate-in fade-in duration-700">
       <PageHeader 
-        title="Reputation Command" 
-        description="Monitor marketplace quality signals, moderate user feedback, and maintain global service standards."
+        title="Reviews" 
+        description="Review customer feedback. Flag issues, verify entries, or delete reviews."
       >
         <PremiumTabs 
           tabs={[
-            { id: 'all', label: 'Global Registry' },
-            { id: 'flagged', label: 'Flagged Items' },
+            { id: 'all', label: 'All reviews' },
+            { id: 'flagged', label: 'Flagged' },
           ]}
           activeTab={activeTab}
           onChange={setActiveTab}
@@ -91,10 +97,10 @@ const ReviewsPage = () => {
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        <StatCard title="Mean Rating" value="4.9" change={2.1} icon={Star} color="primary" trend="up" />
-        <StatCard title="Total Narratives" value="1,240" change={14} icon={MessageSquare} color="blue" trend="up" />
-        <StatCard title="Critical Flags" value="12" change={5} icon={Flag} color="secondary" trend="down" />
-        <StatCard title="Health Index" value="98%" icon={ShieldAlert} color="emerald" />
+        <StatCard title="Average rating" value="4.9" change={2.1} icon={Star} color="primary" trend="up" />
+        <StatCard title="Total reviews" value="1,240" change={14} icon={MessageSquare} color="blue" trend="up" />
+        <StatCard title="Flagged reviews" value="12" change={5} icon={Flag} color="secondary" trend="down" />
+        <StatCard title="Trust score" value="98%" icon={ShieldAlert} color="emerald" />
       </div>
 
       <div className="grid grid-cols-1 gap-10">
@@ -102,11 +108,11 @@ const ReviewsPage = () => {
             <div className="flex items-center justify-between px-2">
                <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-3">
                   <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
-                  Reputation Registry
+                  Reviews list
                </h3>
                <div className="flex items-center gap-4">
                   <button className="p-2.5 bg-white/40 border border-white/60 rounded-xl text-slate-400 hover:text-primary transition-all"><Filter className="w-4 h-4" /></button>
-                  <button className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-primary transition-all">Export Analysis</button>
+                  <button className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-primary transition-all">Export report</button>
                </div>
             </div>
 
@@ -117,19 +123,19 @@ const ReviewsPage = () => {
                   ? reviews
                   : reviews.filter((r) => r.flagged)
               } 
-              searchPlaceholder="Audit narratives by actor ID or keywords..." 
+              searchPlaceholder="Search by reviewer ID, keyword, or service..." 
               rowActions={[
                 {
-                  label: 'View Context',
+                  label: 'View',
                   icon: Eye,
                   onClick: (r: Review) => {
-                    setDetailsTitle('Review Context (mock)');
+                    setDetailsTitle('Review details');
                     setDetailsPayload(r);
                     setDetailsOpen(true);
                   },
                 },
                 {
-                  label: 'Flag Abuse',
+                  label: 'Flag',
                   icon: Flag,
                   variant: 'danger',
                   onClick: (r: Review) => {
@@ -137,13 +143,13 @@ const ReviewsPage = () => {
                   },
                 },
                 {
-                  label: 'Delete Lifecycle',
+                  label: 'Delete',
                   icon: Trash2,
                   variant: 'danger',
                   onClick: (r: Review) => setDeleteTarget(r),
                 },
                 {
-                  label: 'Verified Status',
+                  label: 'Mark verified',
                   icon: CheckCircle2,
                   onClick: (r: Review) =>
                     setReviews((prev) => prev.map((x) => (x.id === r.id ? { ...x, verified: true, flagged: false } : x))),
@@ -152,35 +158,7 @@ const ReviewsPage = () => {
             />
          </div>
          
-         <div className="w-full max-w-2xl mx-auto">
-           <GlassCard title="Rating Evolution" subtitle="Macro-level sentiment trajectory.">
-              <div className="mt-8 space-y-6">
-                 {RATING_TRENDS.map((t, i) => (
-                   <div key={i} className="space-y-2">
-                      <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                         <span className="text-slate-400">{t.month} Pulse</span>
-                         <span className="text-slate-800">{t.rating} / 5.0</span>
-                      </div>
-                      <div className="h-2 w-full bg-slate-50 rounded-full border border-white overflow-hidden shadow-inner">
-                         <motion.div 
-                           initial={{ width: 0 }} 
-                           animate={{ width: `${(t.rating / 5) * 100}%` }} 
-                           transition={{ duration: 1, delay: i * 0.1 }}
-                           className={cn("h-full rounded-full primary-gradient", t.rating < 4.5 ? "opacity-60" : "opacity-100")} 
-                         />
-                      </div>
-                   </div>
-                 ))}
-                 <div className="mt-8 p-6 bg-primary/5 rounded-3xl border border-primary/10">
-                    <div className="flex items-center gap-3 mb-2">
-                       <TrendingUp className="w-4 h-4 text-primary" />
-                       <p className="text-[10px] font-black text-primary uppercase tracking-widest">Growth Vector</p>
-                    </div>
-                    <p className="text-xs font-bold text-slate-600 leading-snug italic">"Aggregated sentiment has scaled by 16% this quarter following the pro-tier verification deployment."</p>
-                 </div>
-              </div>
-           </GlassCard>
-         </div>
+      
       </div>
     </div>
 
@@ -190,18 +168,47 @@ const ReviewsPage = () => {
       title={detailsTitle}
       onClose={() => setDetailsOpen(false)}
     >
-      <div className="mt-2">
-        <pre className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-bold text-slate-600 overflow-auto">
-          {detailsPayload ? JSON.stringify(detailsPayload, null, 2) : ''}
-        </pre>
+      <div className="mt-2 space-y-3">
+        {detailsPayload && (
+          <>
+            {detailsPayload.service && (
+              <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Review for</p>
+                <p className="font-black text-slate-800">{detailsPayload.service}</p>
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+              <span className="font-black text-slate-800">{detailsPayload.rating}.0</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">out of 5</span>
+            </div>
+            <div className="text-sm font-bold text-slate-600">
+              <span className="text-slate-400 uppercase tracking-widest text-[10px] font-black">Home owner:</span>{" "}
+              <span className="text-slate-800">{detailsPayload.homeOwner}</span>
+            </div>
+            <div className="text-sm font-bold text-slate-600">
+              <span className="text-slate-400 uppercase tracking-widest text-[10px] font-black">Organizer:</span>{" "}
+              <span className="text-slate-800">{detailsPayload.organizer}</span>
+            </div>
+            <div className="text-sm font-bold text-slate-600">
+              <span className="text-slate-400 uppercase tracking-widest text-[10px] font-black">Date:</span>{" "}
+              <span className="text-slate-800">{detailsPayload.date}</span>
+            </div>
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+              <p className="text-xs font-bold text-slate-600">
+                “{detailsPayload.comment}”
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </DetailsDialog>
 
     {/* Delete confirmation dialog */}
     <ConfirmationDialog
       open={!!deleteTarget}
-      title="Delete Lifecycle"
-      description={deleteTarget ? `Are you sure you want to delete this review lifecycle? (${deleteTarget.id})` : undefined}
+      title="Delete review"
+      description={deleteTarget ? `Are you sure you want to delete this review? (${deleteTarget.id})` : undefined}
       confirmText="Delete"
       cancelText="Cancel"
       danger
