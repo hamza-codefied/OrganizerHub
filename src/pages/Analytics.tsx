@@ -1,4 +1,5 @@
-import { PageHeader, StatCard, GlassCard } from '../components/UI';
+import { useState } from 'react';
+import { PageHeader, StatCard, GlassCard, PremiumTabs } from '../components/UI';
 import { 
   Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, ComposedChart, Bar, Legend, PieChart, Pie, Cell
@@ -19,6 +20,7 @@ import { motion } from 'framer-motion';
 
 const AnalyticsPage = () => {
   const COLORS = ['#288E66', '#DD647F', '#3B82F6', '#F59E0B', '#8B5CF6'];
+  const [activeTab, setActiveTab] = useState<'overview' | 'intelligence'>('overview');
 
   return (
     <div className="space-y-12 animate-in fade-in duration-700">
@@ -26,22 +28,52 @@ const AnalyticsPage = () => {
         title="Predictive Analytics" 
         description="Deep learning insights into platform growth, churn, and strategic market capture."
       >
-        <div className="flex bg-white/40 backdrop-blur-md p-1.5 rounded-2xl border border-white/60 shadow-sm">
-          <button className="flex items-center gap-2 px-6 py-2 bg-white shadow-xl text-xs font-black uppercase tracking-widest text-slate-800 rounded-xl transition-all">
-            Intelligence Report
-          </button>
-          <div className="flex items-center">
-             <button className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary transition-all rounded-xl">
-               <Download className="w-4 h-4" />
-               CSV
-             </button>
-             <button className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-emerald-500 transition-all rounded-xl">
-               <FileSpreadsheet className="w-4 h-4" />
-               Excel
-             </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <PremiumTabs
+            tabs={[
+              { id: 'overview', label: 'Analytics Overview' },
+              { id: 'intelligence', label: 'Intelligence Report' },
+            ]}
+            activeTab={activeTab}
+            onChange={(id) => setActiveTab(id as 'overview' | 'intelligence')}
+          />
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary transition-all rounded-xl bg-white/40 backdrop-blur-md border border-white/60">
+              <Download className="w-4 h-4" />
+              CSV
+            </button>
+            <button className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-emerald-500 transition-all rounded-xl bg-white/40 backdrop-blur-md border border-white/60">
+              <FileSpreadsheet className="w-4 h-4" />
+              Excel
+            </button>
           </div>
         </div>
       </PageHeader>
+
+      {activeTab === 'intelligence' && (
+        <GlassCard
+          title="Intelligence Report"
+          subtitle="Actionable predictions derived from recent platform telemetry."
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+            <div className="p-6 bg-slate-50/50 rounded-3xl border border-white text-center hover:scale-[1.02] transition-all">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Growth Forecast</p>
+              <p className="text-3xl font-black text-slate-800 tracking-tighter">+18.6%</p>
+              <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mt-2">Next 30 days</p>
+            </div>
+            <div className="p-6 bg-slate-50/50 rounded-3xl border border-white text-center hover:scale-[1.02] transition-all">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Churn Risk</p>
+              <p className="text-3xl font-black text-slate-800 tracking-tighter">Low</p>
+              <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mt-2">Mitigation ready</p>
+            </div>
+            <div className="p-6 bg-primary/5 rounded-3xl border border-primary/10 text-center hover:scale-[1.02] transition-all">
+              <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2">Spotlight Opportunities</p>
+              <p className="text-3xl font-black text-primary tracking-tighter">12</p>
+              <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mt-2">Top partners</p>
+            </div>
+          </div>
+        </GlassCard>
+      )}
 
       {/* Platform Level Intelligence */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

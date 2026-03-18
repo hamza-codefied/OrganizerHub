@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader, StatCard, GlassCard, PremiumTabs } from '../components/UI';
 import { ORGANIZERS } from '../data/mockData';
@@ -12,11 +12,23 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+type OrganizerStatus = 'Active' | 'Pending' | 'Rejected' | 'Deactivated';
+
 const OrganizerDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const org = ORGANIZERS.find(o => o.id === id);
+  const foundOrg = ORGANIZERS.find(o => o.id === id);
+  const [org, setOrg] = useState<typeof ORGANIZERS[0] | null>(foundOrg ?? null);
   const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'portfolio' | 'performance'>('overview');
+
+  useEffect(() => {
+    if (foundOrg) setOrg(foundOrg);
+    else setOrg(null);
+  }, [id, foundOrg]);
+
+  const updateStatus = (status: OrganizerStatus) => {
+    if (org) setOrg({ ...org, status });
+  };
 
   if (!org) {
     return (
@@ -86,22 +98,38 @@ const OrganizerDetails = () => {
               <div className="space-y-4 mt-6">
                  {org.status === 'Pending' && (
                     <div className="grid grid-cols-2 gap-3">
-                       <button className="primary-gradient py-4 rounded-2xl text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+                       <button
+                         type="button"
+                         onClick={() => updateStatus('Active')}
+                         className="primary-gradient py-4 rounded-2xl text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity"
+                       >
                           <CheckCircle2 className="w-4 h-4" /> Approve
                        </button>
-                       <button className="bg-rose-50 border border-rose-100 py-4 rounded-2xl text-rose-600 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                       <button
+                         type="button"
+                         onClick={() => updateStatus('Rejected')}
+                         className="bg-rose-50 border border-rose-100 py-4 rounded-2xl text-rose-600 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-rose-100/80 transition-colors"
+                       >
                           <XCircle className="w-4 h-4" /> Reject
                        </button>
                     </div>
                  )}
                  {org.status === 'Active' && (
-                    <button className="w-full flex items-center justify-between p-4 bg-rose-100/40 hover:bg-rose-100/60 rounded-2xl border border-rose-200 transition-all text-rose-600">
+                    <button
+                      type="button"
+                      onClick={() => updateStatus('Deactivated')}
+                      className="w-full flex items-center justify-between p-4 bg-rose-100/40 hover:bg-rose-100/60 rounded-2xl border border-rose-200 transition-all text-rose-600"
+                    >
                        <span className="text-xs font-black uppercase tracking-widest">Deactivate Partner</span>
                        <Power className="w-5 h-5" />
                     </button>
                  )}
                  {(org.status === 'Rejected' || org.status === 'Deactivated') && (
-                    <button className="w-full flex items-center justify-between p-4 primary-gradient rounded-2xl text-white transition-all shadow-lg shadow-primary/20">
+                    <button
+                      type="button"
+                      onClick={() => updateStatus('Active')}
+                      className="w-full flex items-center justify-between p-4 primary-gradient rounded-2xl text-white transition-all shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity"
+                    >
                        <span className="text-xs font-black uppercase tracking-widest">Restore Network Access</span>
                        <CheckCircle2 className="w-5 h-5" />
                     </button>

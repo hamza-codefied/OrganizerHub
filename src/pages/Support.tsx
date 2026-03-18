@@ -6,9 +6,11 @@ import {
   Clock, CheckCircle2, 
   MessageSquare, ShieldAlert,
   LifeBuoy, UserPlus, Reply, Trash2, 
-  HelpCircle, Plus, Edit3, Lock
+  HelpCircle, Plus, Edit3, Lock, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ConfirmationDialog from '../components/ConfirmationDialog';
+import DetailsDialog from '../components/DetailsDialog';
 
 const MOCK_TICKETS = Array.from({ length: 15 }).map((_, i) => ({
   id: `TK-${1000 + i}`,
@@ -28,6 +30,19 @@ const MOCK_FAQS = [
 
 const SupportPage = () => {
   const [activeTab, setActiveTab] = useState<'tickets' | 'faq'>('tickets');
+  type Ticket = typeof MOCK_TICKETS[0];
+  type Faq = typeof MOCK_FAQS[0];
+  const [tickets, setTickets] = useState<Ticket[]>(MOCK_TICKETS as Ticket[]);
+  const [faqs, setFaqs] = useState<Faq[]>(MOCK_FAQS as Faq[]);
+
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsTitle, setDetailsTitle] = useState('');
+  const [detailsPayload, setDetailsPayload] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+
+  // Create FAQ modal
+  const [isCreateFaqOpen, setIsCreateFaqOpen] = useState(false);
+  const [faqForm, setFaqForm] = useState({ question: '', category: '', status: 'Draft' });
 
   const ticketColumns = [
     { 
@@ -94,7 +109,8 @@ const SupportPage = () => {
   ];
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700">
+    <>
+      <div className="space-y-12 animate-in fade-in duration-700">
       <PageHeader 
         title="Support Command" 
         description="Oversee user conflict resolution and maintain platform operational integrity."
@@ -117,54 +133,45 @@ const SupportPage = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-         <div className="lg:col-span-3 space-y-6">
-            <GlassCard title="Support Vitals">
-               <div className="space-y-8 mt-6">
-                  {[
-                    { label: 'Conflict Delta', val: 12, color: 'bg-rose-500' },
-                    { label: 'Resolution Rate', val: 92, color: 'bg-primary' },
-                    { label: 'Partner Satis.', val: 85, color: 'bg-amber-500' },
-                  ].map((vital, i) => (
-                    <div key={i} className="space-y-2">
-                       <div className="flex justify-between text-[9px] font-black uppercase tracking-widest">
-                          <span className="text-slate-400">{vital.label}</span>
-                          <span className="text-slate-800">{vital.val}%</span>
-                       </div>
-                       <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden border border-white">
-                          <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: `${vital.val}%` }}
-                            transition={{ duration: 1, delay: 0.5 + (i * 0.1) }}
-                            className={cn("h-full rounded-full", vital.color)}
-                          />
-                       </div>
-                    </div>
-                  ))}
-                  
-                  <div className="p-6 bg-blue-50/30 rounded-3xl border border-blue-100 mt-10">
-                     <div className="flex items-center gap-3 mb-3">
-                        <LifeBuoy className="w-5 h-5 text-blue-500" />
-                        <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">System Note</span>
-                     </div>
-                     <p className="text-xs font-bold text-slate-600 leading-snug tracking-tight">Support flow is currently within optimal temporal thresholds. No escalation required.</p>
-                  </div>
-               </div>
-            </GlassCard>
-         </div>
-
-         <div className="lg:col-span-9">
+         <div className="lg:col-span-12">
             <AnimatePresence mode="wait">
                {activeTab === 'tickets' ? (
                  <motion.div key="tickets" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.4 }}>
                     <DataTable 
                       columns={ticketColumns} 
-                      data={MOCK_TICKETS} 
+                      data={tickets} 
                       searchPlaceholder="Filter stream by Actor ID or Incident Ref..." 
                       rowActions={[
-                        { label: 'Admin Reply', icon: Reply, onClick: () => {} },
-                        { label: 'Assign Agent', icon: UserPlus, onClick: () => {} },
-                        { label: 'Resolve Lifecycle', icon: CheckCircle2, onClick: () => {}, variant: 'success' },
-                        { label: 'Kill Ticket', icon: Trash2, onClick: () => {}, variant: 'danger' },
+                        {
+                          label: 'Admin Reply',
+                          icon: Reply,
+                          onClick: (t: Ticket) => {
+                            setDetailsTitle('Admin Reply (mock)');
+                            setDetailsPayload(t);
+                            setDetailsOpen(true);
+                          },
+                        },
+                        {
+                          label: 'Assign Agent',
+                          icon: UserPlus,
+                          onClick: (t: Ticket) =>
+                            setTickets((prev) => prev.map((x) => (x.id === t.id ? { ...x, agent: 'Support Delta' } : x))),
+                        },
+                        {
+                          label: 'Resolve Lifecycle',
+                          icon: CheckCircle2,
+                          variant: 'success',
+                          onClick: (t: Ticket) =>
+                            setTickets((prev) =>
+                              prev.map((x) => (x.id === t.id ? { ...x, status: 'Resolved', agent: x.agent === 'Unassigned' ? 'Support Delta' : x.agent } : x)),
+                            ),
+                        },
+                        {
+                          label: 'Kill Ticket',
+                          icon: Trash2,
+                          variant: 'danger',
+                          onClick: (t: Ticket) => setDeleteTarget(t),
+                        },
                       ]}
                     />
                  </motion.div>
@@ -175,19 +182,41 @@ const SupportPage = () => {
                           <HelpCircle className="w-5 h-5 text-primary" />
                           Strategic FAQ Registry
                        </h3>
-                       <button className="flex items-center gap-2 primary-gradient text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20">
+                       <button
+                         type="button"
+                         onClick={() => setIsCreateFaqOpen(true)}
+                         className="flex items-center gap-2 primary-gradient text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
+                       >
                           <Plus className="w-4 h-4" />
                           Deploy New FAQ
                        </button>
                     </div>
                     <DataTable 
                       columns={faqColumns} 
-                      data={MOCK_FAQS} 
+                      data={faqs} 
                       searchPlaceholder="Audit FAQs by category or narrative keywords..." 
                       rowActions={[
-                        { label: 'Edit Payload', icon: Edit3, onClick: () => {} },
-                        { label: 'Archive Protocol', icon: Lock, onClick: () => {} },
-                        { label: 'Delete Registry', icon: Trash2, onClick: () => {}, variant: 'danger' },
+                        {
+                          label: 'Edit Payload',
+                          icon: Edit3,
+                          onClick: (f: Faq) => {
+                            setDetailsTitle('Edit FAQ (mock)');
+                            setDetailsPayload(f);
+                            setDetailsOpen(true);
+                          },
+                        },
+                        {
+                          label: 'Archive Protocol',
+                          icon: Lock,
+                          onClick: (f: Faq) =>
+                            setFaqs((prev) => prev.map((x) => (x.id === f.id ? { ...x, status: 'Archived' } : x))),
+                        },
+                        {
+                          label: 'Delete Registry',
+                          icon: Trash2,
+                          variant: 'danger',
+                          onClick: (f: Faq) => setDeleteTarget(f),
+                        },
                       ]}
                     />
                  </motion.div>
@@ -196,6 +225,159 @@ const SupportPage = () => {
          </div>
       </div>
     </div>
+
+    <DetailsDialog
+      open={detailsOpen}
+      title={detailsTitle}
+      onClose={() => setDetailsOpen(false)}
+    >
+      <pre className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-bold text-slate-600 overflow-auto">
+        {detailsPayload ? JSON.stringify(detailsPayload, null, 2) : ''}
+      </pre>
+    </DetailsDialog>
+
+    <ConfirmationDialog
+      open={!!deleteTarget}
+      title="Confirm Delete"
+      description={
+        deleteTarget
+          ? typeof deleteTarget.id === 'string'
+            ? `Are you sure you want to delete ticket ${deleteTarget.id}?`
+            : `Are you sure you want to delete FAQ #${deleteTarget.id}?`
+          : undefined
+      }
+      confirmText="Delete"
+      cancelText="Cancel"
+      danger
+      onCancel={() => setDeleteTarget(null)}
+      onConfirm={() => {
+        if (!deleteTarget) return;
+        if (typeof deleteTarget.id === 'string') {
+          setTickets((prev) => prev.filter((t) => t.id !== deleteTarget.id));
+        } else {
+          setFaqs((prev) => prev.filter((f) => f.id !== deleteTarget.id));
+        }
+        setDeleteTarget(null);
+      }}
+    />
+
+      {/* Create FAQ modal */}
+      <AnimatePresence>
+        {isCreateFaqOpen && (
+          <div className="fixed inset-0 z-[320] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsCreateFaqOpen(false)}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl border border-white overflow-hidden p-8"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-2xl font-black text-slate-800 tracking-tighter">Deploy New FAQ</h2>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                    Add a new knowledge entry for your clients
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsCreateFaqOpen(false)}
+                  className="p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-400 transition-all"
+                  aria-label="Close create FAQ modal"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                    Question
+                  </label>
+                  <input
+                    type="text"
+                    value={faqForm.question}
+                    onChange={(e) => setFaqForm({ ...faqForm, question: e.target.value })}
+                    placeholder="Type the FAQ question..."
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                    Category
+                  </label>
+                  <input
+                    type="text"
+                    value={faqForm.category}
+                    onChange={(e) => setFaqForm({ ...faqForm, category: e.target.value })}
+                    placeholder="e.g., Finance"
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                    Status
+                  </label>
+                  <input
+                    type="text"
+                    value={faqForm.status}
+                    onChange={(e) => setFaqForm({ ...faqForm, status: e.target.value })}
+                    placeholder="e.g., Draft"
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-10 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateFaqOpen(false)}
+                  className="flex-1 py-4 bg-slate-50 text-slate-400 text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-100 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const question = faqForm.question.trim();
+                    const category = faqForm.category.trim();
+                    if (!question || !category) return;
+
+                    const ids = faqs.map((f) => typeof f.id === 'number' ? f.id : 0);
+                    const nextId = (Math.max(...ids) || 0) + 1;
+
+                    setFaqs((prev) => [
+                      {
+                        id: nextId,
+                        question,
+                        category,
+                        status: faqForm.status.trim() || 'Draft',
+                      } as Faq,
+                      ...prev,
+                    ]);
+
+                    setIsCreateFaqOpen(false);
+                    setFaqForm({ question: '', category: '', status: 'Draft' });
+                  }}
+                  className="flex-1 py-4 primary-gradient text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all"
+                >
+                  Create FAQ
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

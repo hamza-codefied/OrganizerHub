@@ -34,7 +34,7 @@ const Dashboard = () => {
         title="Command Center" 
         description="Analytics and operational oversight for OrganizeHub Global."
       >
-        <PremiumTabs 
+        {/* <PremiumTabs 
           tabs={[
             { id: 'today', label: 'Today' },
             { id: 'month', label: 'Month' },
@@ -42,7 +42,7 @@ const Dashboard = () => {
           ]}
           activeTab={timeFilter}
           onChange={setTimeFilter}
-        />
+        /> */}
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

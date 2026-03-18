@@ -4,6 +4,7 @@ import { PageHeader, StatCard, PremiumTabs } from '../components/UI';
 import { DataTable } from '../components/DataTable';
 import { HOME_OWNERS } from '../data/mockData';
 import { cn } from '../lib/utils';
+import DetailsDialog from '../components/DetailsDialog';
 import { 
   BadgeCheck, Ban, Users, UserCheck, UserPlus, Download,
   MapPin, Eye, ShieldAlert, ChevronRight
@@ -12,8 +13,10 @@ import {
 const HomeOwnersPage = () => {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  type HomeOwner = typeof HOME_OWNERS[0];
+  const [homeOwners, setHomeOwners] = useState<HomeOwner[]>(HOME_OWNERS as HomeOwner[]);
 
-  const filteredHomeOwners = statusFilter === 'all' ? HOME_OWNERS : HOME_OWNERS.filter(h => h.status === statusFilter);
+  const filteredHomeOwners = statusFilter === 'all' ? homeOwners : homeOwners.filter(h => h.status === statusFilter);
 
   const columns = [
     { 
@@ -111,8 +114,8 @@ const HomeOwnersPage = () => {
         onRowClick={(homeOwner) => navigate(`/users/home-owners/${homeOwner.id}`)}
         rowActions={[
           { label: 'View Profile', icon: Eye, onClick: (homeOwner: any) => navigate(`/users/home-owners/${homeOwner.id}`) },
-          { label: 'Suspend User', icon: ShieldAlert, onClick: () => {}, variant: 'danger' as const },
-          { label: 'Block User', icon: Ban, onClick: () => {}, variant: 'danger' as const },
+          { label: 'Suspend User', icon: ShieldAlert, onClick: (homeOwner: any) => setHomeOwners((prev) => prev.map((h) => (h.id === homeOwner.id ? { ...h, status: 'Suspended' } : h))), variant: 'danger' as const },
+          { label: 'Block User', icon: Ban, onClick: (homeOwner: any) => setHomeOwners((prev) => prev.map((h) => (h.id === homeOwner.id ? { ...h, status: 'Blocked' } : h))), variant: 'danger' as const },
         ]}
       />
     </div>

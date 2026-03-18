@@ -1,13 +1,29 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { PageHeader, GlassCard, StatCard, PremiumTabs } from '../components/UI';
 import { DataTable } from '../components/DataTable';
 import { REVIEWS, RATING_TRENDS } from '../data/mockData';
 import { cn } from '../lib/utils';
 import { Star, Flag, Trash2, MessageSquare, ShieldAlert, CheckCircle2, TrendingUp, Filter, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
+import ConfirmationDialog from '../components/ConfirmationDialog';
+import DetailsDialog from '../components/DetailsDialog';
 
 const ReviewsPage = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'flagged'>('all');
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsTitle, setDetailsTitle] = useState('');
+  const [detailsPayload, setDetailsPayload] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+
+  type Review = typeof REVIEWS[0] & { flagged?: boolean; verified?: boolean };
+  const [reviews, setReviews] = useState<Review[]>(
+    () =>
+      REVIEWS.map((r, i) => ({
+        ...r,
+        flagged: i < 2,
+        verified: true,
+      })) as Review[],
+  );
 
   const columns = [
     { 
@@ -58,7 +74,8 @@ const ReviewsPage = () => {
   ];
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700">
+    <>
+      <div className="space-y-12 animate-in fade-in duration-700">
       <PageHeader 
         title="Reputation Command" 
         description="Monitor marketplace quality signals, moderate user feedback, and maintain global service standards."
@@ -95,13 +112,42 @@ const ReviewsPage = () => {
 
             <DataTable 
               columns={columns} 
-              data={activeTab === 'all' ? REVIEWS : REVIEWS.slice(0, 2)} 
+              data={
+                activeTab === 'all'
+                  ? reviews
+                  : reviews.filter((r) => r.flagged)
+              } 
               searchPlaceholder="Audit narratives by actor ID or keywords..." 
               rowActions={[
-                { label: 'View Context', icon: Eye, onClick: () => {} },
-                { label: 'Flag Abuse', icon: Flag, onClick: () => {}, variant: 'danger' },
-                { label: 'Delete Lifecycle', icon: Trash2, onClick: () => {}, variant: 'danger' },
-                { label: 'Verified Status', icon: CheckCircle2, onClick: () => {} },
+                {
+                  label: 'View Context',
+                  icon: Eye,
+                  onClick: (r: Review) => {
+                    setDetailsTitle('Review Context (mock)');
+                    setDetailsPayload(r);
+                    setDetailsOpen(true);
+                  },
+                },
+                {
+                  label: 'Flag Abuse',
+                  icon: Flag,
+                  variant: 'danger',
+                  onClick: (r: Review) => {
+                    setReviews((prev) => prev.map((x) => (x.id === r.id ? { ...x, flagged: true } : x)));
+                  },
+                },
+                {
+                  label: 'Delete Lifecycle',
+                  icon: Trash2,
+                  variant: 'danger',
+                  onClick: (r: Review) => setDeleteTarget(r),
+                },
+                {
+                  label: 'Verified Status',
+                  icon: CheckCircle2,
+                  onClick: (r: Review) =>
+                    setReviews((prev) => prev.map((x) => (x.id === r.id ? { ...x, verified: true, flagged: false } : x))),
+                },
               ]}
             />
          </div>
@@ -137,6 +183,36 @@ const ReviewsPage = () => {
          </div>
       </div>
     </div>
+
+    {/* View Details dialog */}
+    <DetailsDialog
+      open={detailsOpen}
+      title={detailsTitle}
+      onClose={() => setDetailsOpen(false)}
+    >
+      <div className="mt-2">
+        <pre className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-bold text-slate-600 overflow-auto">
+          {detailsPayload ? JSON.stringify(detailsPayload, null, 2) : ''}
+        </pre>
+      </div>
+    </DetailsDialog>
+
+    {/* Delete confirmation dialog */}
+    <ConfirmationDialog
+      open={!!deleteTarget}
+      title="Delete Lifecycle"
+      description={deleteTarget ? `Are you sure you want to delete this review lifecycle? (${deleteTarget.id})` : undefined}
+      confirmText="Delete"
+      cancelText="Cancel"
+      danger
+      onCancel={() => setDeleteTarget(null)}
+      onConfirm={() => {
+        if (!deleteTarget) return;
+        setReviews((prev) => prev.filter((r) => r.id !== deleteTarget.id));
+        setDeleteTarget(null);
+      }}
+    />
+    </>
   );
 };
 

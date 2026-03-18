@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { PageHeader, GlassCard, StatCard, PremiumTabs } from '../components/UI';
 import { DataTable } from '../components/DataTable';
-import { ADS } from '../data/mockData';
+import { ADS, ORGANIZERS } from '../data/mockData';
+import DetailsDialog from '../components/DetailsDialog';
+import CustomSelect from '../components/CustomSelect';
 import { cn, formatCurrency } from '../lib/utils';
 import { 
   Megaphone, MousePointer2, Eye, TrendingUp, 
@@ -9,10 +11,18 @@ import {
   Pause, Play, BarChart3, DollarSign,
   MapPin, Globe, Activity
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const TARGETING_OPTIONS = ['Home Owners, UAE', 'Corporate HR, KSA', 'Events Sector, UAE', 'Luxury Market, Qatar'];
 
 const AdsManagementPage = () => {
   const [activeTab, setActiveTab] = useState<'campaigns' | 'revenue'>('campaigns');
+  const [ads, setAds] = useState(ADS);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsTitle, setDetailsTitle] = useState('');
+  const [detailsPayload, setDetailsPayload] = useState<any>(null);
+  const [showDeployModal, setShowDeployModal] = useState(false);
+  const [deployForm, setDeployForm] = useState({ organizerId: '', budget: 100, targeting: TARGETING_OPTIONS[0], duration: '14 Days' });
 
   const columns = [
     { 
@@ -88,7 +98,11 @@ const AdsManagementPage = () => {
         title="Ad Command" 
         description="Optimize platform visibility through premium featured slots and strategic campaign management."
       >
-        <button className="flex items-center gap-2 primary-gradient text-white px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:scale-105 transition-all">
+        <button
+          type="button"
+          onClick={() => setShowDeployModal(true)}
+          className="flex items-center gap-2 primary-gradient text-white px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+        >
           <Plus className="w-4 h-4" />
           Deploy Campaign
         </button>
@@ -106,7 +120,7 @@ const AdsManagementPage = () => {
       {activeTab === 'campaigns' && (
         <div className="space-y-10 animate-in slide-in-from-bottom-4 duration-500">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <StatCard title="Active Protocols" value={String(ADS.filter(a => a.status === 'Active').length)} icon={Activity} color="emerald" />
+            <StatCard title="Active Protocols" value={String(ads.filter(a => a.status === 'Active').length)} icon={Activity} color="emerald" />
             <StatCard title="Global Impressions" value="450.8k" icon={Eye} color="blue" />
             <StatCard title="Engagement Ratio" value="12.4k" icon={TrendingUp} color="primary" />
             <StatCard title="Budget Volume" value={formatCurrency(12500)} icon={DollarSign} color="secondary" />
@@ -114,14 +128,45 @@ const AdsManagementPage = () => {
 
           <DataTable 
             columns={columns} 
-            data={ADS} 
+            data={ads} 
             searchPlaceholder="Locate campaign by signal ID, partner, or status..." 
             rowActions={[
-              { label: 'View Analytics', icon: BarChart3, onClick: () => {} },
-              { label: 'Approve Campaign', icon: CheckCircle2, onClick: () => {}, variant: 'success' },
-              { label: 'Pause Campaign', icon: Pause, onClick: () => {} },
-              { label: 'Resume Campaign', icon: Play, onClick: () => {}, variant: 'success' },
-              { label: 'Reject / Kill', icon: XCircle, onClick: () => {}, variant: 'danger' },
+              {
+                label: 'View Analytics',
+                icon: BarChart3,
+                onClick: (ad: any) => {
+                  setDetailsTitle('Campaign Analytics (mock)');
+                  setDetailsPayload(ad);
+                  setDetailsOpen(true);
+                },
+              },
+              {
+                label: 'Approve Campaign',
+                icon: CheckCircle2,
+                onClick: (ad: any) =>
+                  setAds((prev) => prev.map((x) => (x.id === ad.id ? { ...x, status: 'Active' } : x))),
+                variant: 'success',
+              },
+              {
+                label: 'Pause Campaign',
+                icon: Pause,
+                onClick: (ad: any) =>
+                  setAds((prev) => prev.map((x) => (x.id === ad.id ? { ...x, status: 'Paused' } : x))),
+              },
+              {
+                label: 'Resume Campaign',
+                icon: Play,
+                onClick: (ad: any) =>
+                  setAds((prev) => prev.map((x) => (x.id === ad.id ? { ...x, status: 'Active' } : x))),
+                variant: 'success',
+              },
+              {
+                label: 'Reject / Kill',
+                icon: XCircle,
+                onClick: (ad: any) =>
+                  setAds((prev) => prev.map((x) => (x.id === ad.id ? { ...x, status: 'Ended' } : x))),
+                variant: 'danger',
+              },
             ]}
           />
         </div>
@@ -162,7 +207,7 @@ const AdsManagementPage = () => {
 
            <GlassCard className="lg:col-span-8" title="Recent Financial Flux">
               <div className="space-y-4 mt-8">
-                 {ADS.slice(0, 6).map((ad, i) => (
+                 {ads.slice(0, 6).map((ad, i) => (
                    <div key={i} className="flex items-center justify-between p-6 bg-slate-50/50 rounded-2xl border border-slate-100 hover:bg-white transition-all group">
                       <div className="flex items-center gap-5">
                          <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-primary shadow-sm group-hover:rotate-6 transition-all">
@@ -183,6 +228,131 @@ const AdsManagementPage = () => {
            </GlassCard>
         </div>
       )}
+
+      {/* Deploy Campaign modal */}
+      <AnimatePresence>
+        {showDeployModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowDeployModal(false)}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl border border-white overflow-hidden p-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-2xl font-black text-slate-800 tracking-tighter">Deploy Campaign</h2>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Launch a new ad campaign</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowDeployModal(false)}
+                  className="p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-400 transition-all"
+                >
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Partner</label>
+                    <CustomSelect
+                      value={deployForm.organizerId}
+                      onChange={(v) => setDeployForm({ ...deployForm, organizerId: v })}
+                      placeholder="Select organizer"
+                      options={ORGANIZERS.map((org) => ({ value: org.id, label: org.name }))}
+                    />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Budget</label>
+                  <input
+                    type="number"
+                    min={50}
+                    max={1000}
+                    value={deployForm.budget}
+                    onChange={(e) => setDeployForm({ ...deployForm, budget: Number(e.target.value) || 50 })}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Targeting</label>
+                    <CustomSelect
+                      value={deployForm.targeting}
+                      onChange={(v) => setDeployForm({ ...deployForm, targeting: v })}
+                      options={TARGETING_OPTIONS.map((opt) => ({ value: opt, label: opt }))}
+                    />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Duration</label>
+                    <CustomSelect
+                      value={deployForm.duration}
+                      onChange={(v) => setDeployForm({ ...deployForm, duration: v })}
+                      options={[
+                        { value: '10 Days', label: '10 Days' },
+                        { value: '14 Days', label: '14 Days' },
+                        { value: '20 Days', label: '20 Days' },
+                        { value: '30 Days', label: '30 Days' },
+                      ]}
+                    />
+                </div>
+              </div>
+
+              <div className="mt-10 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowDeployModal(false)}
+                  className="flex-1 py-4 bg-slate-50 text-slate-400 text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-100 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const organizer = ORGANIZERS.find((o) => o.id === deployForm.organizerId);
+                    if (!organizer) return;
+                    setAds((prev) => [
+                      {
+                        id: `ad-${Date.now()}`,
+                        organizer: organizer.name,
+                        budget: deployForm.budget,
+                        targeting: deployForm.targeting,
+                        duration: deployForm.duration,
+                        status: 'Active',
+                        stats: { clicks: 0, impressions: 0 },
+                        revenue: 0,
+                        startDate: new Date().toISOString().slice(0, 10),
+                      },
+                      ...prev,
+                    ]);
+                    setShowDeployModal(false);
+                  }}
+                  className="flex-1 py-4 primary-gradient text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+                >
+                  <Target className="w-4 h-4" /> Deploy
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <DetailsDialog
+        open={detailsOpen}
+        title={detailsTitle}
+        onClose={() => setDetailsOpen(false)}
+      >
+        <pre className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-bold text-slate-600 overflow-auto mt-2">
+          {detailsPayload ? JSON.stringify(detailsPayload, null, 2) : ''}
+        </pre>
+      </DetailsDialog>
     </div>
   );
 };

@@ -91,13 +91,43 @@ export function DataTable<T extends { id: string | number }>({
   rowActions,
   onRowClick,
 }: DataTableProps<T>) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(8);
+  const searchRef = useRef<HTMLInputElement | null>(null);
+
   const defaultActions: RowAction<T>[] = [
     { label: 'View Details', icon: Eye, onClick: (item) => onRowClick?.(item) },
-    { label: 'Edit Record', icon: Edit3, onClick: () => {} },
-    { label: 'Delete', icon: Trash2, onClick: () => {}, variant: 'danger' },
+    // If the page doesn't provide handlers, at least make the button respond visibly.
+    { label: 'Edit Record', icon: Edit3, onClick: (item) => onRowClick?.(item) },
+    { label: 'Delete', icon: Trash2, onClick: (item) => onRowClick?.(item), variant: 'danger' },
   ];
 
   const actions = rowActions || defaultActions;
+
+  const filteredData = searchTerm.trim()
+    ? data.filter((item) => {
+        try {
+          return JSON.stringify(item).toLowerCase().includes(searchTerm.toLowerCase());
+        } catch {
+          return false;
+        }
+      })
+    : data;
+
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedData = filteredData.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  const pageButtons = Array.from({ length: Math.min(3, totalPages) }).map((_, i) => {
+    const candidate = safePage - 1 + i;
+    return Math.max(1, Math.min(totalPages, candidate));
+  });
+  const uniquePageButtons = Array.from(new Set(pageButtons));
 
   return (
     <div className="space-y-6">
@@ -106,12 +136,26 @@ export function DataTable<T extends { id: string | number }>({
           <input 
             type="text" 
             placeholder={searchPlaceholder}
+            ref={searchRef}
             className="w-full bg-white/40 backdrop-blur-md border border-white/60 rounded-2xl py-3 pl-12 pr-4 focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none font-medium text-sm shadow-sm"
-            onChange={(e) => onSearch?.(e.target.value)}
+            value={searchTerm}
+            onChange={(e) => {
+              const v = e.target.value;
+              setSearchTerm(v);
+              onSearch?.(v);
+            }}
           />
           <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" />
         </div>
-        <button className="flex items-center gap-2 px-6 py-3 bg-white/40 backdrop-blur-md border border-white/60 rounded-2xl hover:bg-white hover:border-primary/20 transition-all text-sm font-bold text-slate-600 hover:text-primary hover:shadow-lg shadow-sm w-full sm:w-auto justify-center">
+        <button
+          type="button"
+          onClick={() => {
+            setSearchTerm('');
+            setCurrentPage(1);
+            searchRef.current?.focus();
+          }}
+          className="flex items-center gap-2 px-6 py-3 bg-white/40 backdrop-blur-md border border-white/60 rounded-2xl hover:bg-white hover:border-primary/20 transition-all text-sm font-bold text-slate-600 hover:text-primary hover:shadow-lg shadow-sm w-full sm:w-auto justify-center"
+        >
           <SlidersHorizontal className="w-4 h-4" />
           Refine Search
         </button>
@@ -131,7 +175,7 @@ export function DataTable<T extends { id: string | number }>({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {data.map((item, idx) => (
+              {pagedData.map((item, idx) => (
                 <motion.tr 
                   key={item.id} 
                   initial={{ opacity: 0, y: 10 }}
@@ -163,23 +207,57 @@ export function DataTable<T extends { id: string | number }>({
                   </td>
                 </tr>
               )}
+
+              {data.length !== 0 && pagedData.length === 0 && (
+                <tr>
+                  <td colSpan={columns.length + 1} className="px-8 py-20 text-center">
+                    <div className="flex flex-col items-center">
+                      <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100 italic font-black text-slate-200 text-3xl">!</div>
+                      <p className="font-bold text-slate-400">No matching records found.</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
 
         <div className="px-8 py-5 flex items-center justify-between border-t border-slate-100 bg-slate-50/30">
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest leading-none">
-            Registry Index <span className="text-slate-800">1 — {data.length}</span>
+            Registry Index <span className="text-slate-800">{(safePage - 1) * itemsPerPage + 1} — {Math.min(safePage * itemsPerPage, filteredData.length)}</span>
           </p>
           <div className="flex items-center gap-2">
-            <button className="p-2 border border-slate-200 rounded-xl hover:bg-white transition-all disabled:opacity-30 disabled:hover:bg-transparent" disabled>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              className="p-2 border border-slate-200 rounded-xl hover:bg-white transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+            >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <div className="flex gap-1.5 px-2">
-               <button className="w-8 h-8 flex items-center justify-center bg-primary text-white text-xs font-black rounded-xl shadow-lg shadow-primary/20">1</button>
-               <button className="w-8 h-8 flex items-center justify-center hover:bg-white text-slate-400 text-xs font-black rounded-xl transition-all">2</button>
+              {uniquePageButtons.map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={cn(
+                    "w-8 h-8 flex items-center justify-center text-xs font-black rounded-xl transition-all",
+                    page === safePage
+                      ? "bg-primary text-white shadow-lg shadow-primary/20"
+                      : "hover:bg-white text-slate-400 hover:text-slate-600"
+                  )}
+                >
+                  {page}
+                </button>
+              ))}
             </div>
-            <button className="p-2 border border-slate-200 rounded-xl hover:bg-white transition-all hover:border-primary/20 hover:text-primary">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+              className="p-2 border border-slate-200 rounded-xl hover:bg-white transition-all hover:border-primary/20 hover:text-primary disabled:opacity-30 disabled:hover:bg-transparent"
+            >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>

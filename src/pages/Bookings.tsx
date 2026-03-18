@@ -9,13 +9,20 @@ import {
   User, Briefcase, Tag, Percent
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import DetailsDialog from '../components/DetailsDialog';
 
 const BookingsPage = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  type Booking = typeof BOOKINGS[0];
+  const [bookings, setBookings] = useState<Booking[]>(BOOKINGS as Booking[]);
+
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsTitle, setDetailsTitle] = useState('');
+  const [detailsPayload, setDetailsPayload] = useState<any>(null);
 
   const filteredBookings = statusFilter === 'all' 
-    ? BOOKINGS 
-    : BOOKINGS.filter(b => b.status === statusFilter);
+    ? bookings 
+    : bookings.filter(b => b.status === statusFilter);
 
   const columns = [
     { 
@@ -119,10 +126,10 @@ const BookingsPage = () => {
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        <StatCard title="Active Protocols" value={String(BOOKINGS.filter(b => b.status === 'Pending').length)} icon={Activity} color="blue" />
-        <StatCard title="Successful Syncs" value={String(BOOKINGS.filter(b => b.status === 'Completed').length)} icon={CheckCircle2} color="primary" />
-        <StatCard title="Economic Flow" value={formatCurrency(BOOKINGS.reduce((acc, b) => acc + b.amount, 0))} icon={DollarSign} color="secondary" />
-        <StatCard title="Calculated Yield" value={formatCurrency(BOOKINGS.reduce((acc, b) => acc + b.amount * 0.15, 0))} icon={Percent} color="emerald" />
+        <StatCard title="Active Protocols" value={String(bookings.filter(b => b.status === 'Pending').length)} icon={Activity} color="blue" />
+        <StatCard title="Successful Syncs" value={String(bookings.filter(b => b.status === 'Completed').length)} icon={CheckCircle2} color="primary" />
+        <StatCard title="Economic Flow" value={formatCurrency(bookings.reduce((acc, b) => acc + b.amount, 0))} icon={DollarSign} color="secondary" />
+        <StatCard title="Calculated Yield" value={formatCurrency(bookings.reduce((acc, b) => acc + b.amount * 0.15, 0))} icon={Percent} color="emerald" />
       </div>
 
       <DataTable 
@@ -130,11 +137,46 @@ const BookingsPage = () => {
         data={filteredBookings} 
         searchPlaceholder="Locate session by reference, partner, or home owner ID..." 
         rowActions={[
-          { label: 'View Session Ledger', icon: Activity, onClick: () => {} },
-          { label: 'Cancel Protocol', icon: XCircle, onClick: () => {}, variant: 'danger' },
-          { label: 'Execute Refund', icon: RotateCcw, onClick: () => {}, variant: 'danger' },
+          {
+            label: 'View Session Ledger',
+            icon: Activity,
+            onClick: (b: Booking) => {
+              setDetailsTitle('Session Ledger (mock)');
+              setDetailsPayload(b);
+              setDetailsOpen(true);
+            },
+          },
+          {
+            label: 'Cancel Protocol',
+            icon: XCircle,
+            variant: 'danger',
+            onClick: (b: Booking) => setBookings((prev) => prev.map((x) => (x.id === b.id ? { ...x, status: 'Cancelled' } : x))),
+          },
+          {
+            label: 'Execute Refund',
+            icon: RotateCcw,
+            variant: 'danger',
+            onClick: (b: Booking) =>
+              setBookings((prev) =>
+                prev.map((x) =>
+                  x.id === b.id
+                    ? { ...x, status: 'Cancelled' }
+                    : x,
+                ),
+              ),
+          },
         ]}
       />
+
+      <DetailsDialog
+        open={detailsOpen}
+        title={detailsTitle}
+        onClose={() => setDetailsOpen(false)}
+      >
+        <pre className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-bold text-slate-600 overflow-auto">
+          {detailsPayload ? JSON.stringify(detailsPayload, null, 2) : ''}
+        </pre>
+      </DetailsDialog>
     </div>
   );
 };

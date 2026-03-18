@@ -4,6 +4,7 @@ import { PageHeader, StatCard, PremiumTabs } from '../components/UI';
 import { DataTable } from '../components/DataTable';
 import { ORGANIZERS } from '../data/mockData';
 import { cn } from '../lib/utils';
+import DetailsDialog from '../components/DetailsDialog';
 import { 
   BadgeCheck, Ban, Star, Briefcase, ShieldCheck, UserPlus,
   Clock, Eye, ChevronRight, CheckCircle2, XCircle, Power
@@ -12,8 +13,17 @@ import {
 const OrganizersPage = () => {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showOnboardModal, setShowOnboardModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteName, setInviteName] = useState('');
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsTitle, setDetailsTitle] = useState('');
+  const [detailsPayload, setDetailsPayload] = useState<any>(null);
 
-  const filteredOrgs = statusFilter === 'all' ? ORGANIZERS : ORGANIZERS.filter(o => o.status === statusFilter);
+  type Organizer = typeof ORGANIZERS[0];
+  const [organizers, setOrganizers] = useState<Organizer[]>(ORGANIZERS as Organizer[]);
+
+  const filteredOrgs = statusFilter === 'all' ? organizers : organizers.filter(o => o.status === statusFilter);
 
   const columns = [
     { 
@@ -112,17 +122,47 @@ const OrganizersPage = () => {
             activeTab={statusFilter}
             onChange={setStatusFilter}
           />
-          <button className="flex items-center gap-2 primary-gradient text-white px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:scale-105 transition-all">
+          <button
+            type="button"
+            onClick={() => setShowOnboardModal(true)}
+            className="flex items-center gap-2 primary-gradient text-white px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+          >
             <UserPlus className="w-4 h-4" /> Onboard Pro
           </button>
         </div>
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        <StatCard title="Total Partners" value="842" change={4.2} icon={Briefcase} color="primary" trend="up" />
-        <StatCard title="Active Network" value="790" change={6.8} icon={ShieldCheck} color="blue" trend="up" />
-        <StatCard title="Pending Approval" value={String(ORGANIZERS.filter(o => o.status === 'Pending').length)} icon={Clock} color="orange" />
-        <StatCard title="Avg Rating" value="4.85" change={2.1} icon={Star} color="secondary" trend="up" />
+        <StatCard
+          title="Total Partners"
+          value={String(organizers.length)}
+          change={4.2}
+          icon={Briefcase}
+          color="primary"
+          trend="up"
+        />
+        <StatCard
+          title="Active Network"
+          value={String(organizers.filter((o) => o.status === 'Active').length)}
+          change={6.8}
+          icon={ShieldCheck}
+          color="blue"
+          trend="up"
+        />
+        <StatCard
+          title="Pending Approval"
+          value={String(organizers.filter((o) => o.status === 'Pending').length)}
+          icon={Clock}
+          color="orange"
+        />
+        <StatCard
+          title="Avg Rating"
+          value={String((organizers.reduce((acc, o) => acc + parseFloat(o.rating as any), 0) / Math.max(1, organizers.length)).toFixed(2))}
+          change={2.1}
+          icon={Star}
+          color="secondary"
+          trend="up"
+        />
       </div>
 
       <DataTable 
@@ -132,11 +172,85 @@ const OrganizersPage = () => {
         onRowClick={(org) => navigate(`/users/organizers/${org.id}`)}
         rowActions={[
           { label: 'View Profile', icon: Eye, onClick: (org: any) => navigate(`/users/organizers/${org.id}`) },
-          { label: 'Approve', icon: CheckCircle2, onClick: () => {}, variant: 'success' as const },
-          { label: 'Reject', icon: XCircle, onClick: () => {}, variant: 'danger' as const },
-          { label: 'Deactivate', icon: Power, onClick: () => {}, variant: 'danger' as const },
+          { label: 'Approve', icon: CheckCircle2, onClick: (org: Organizer) => setOrganizers((prev) => prev.map((o) => (o.id === org.id ? { ...o, status: 'Active' } : o))), variant: 'success' as const },
+          { label: 'Reject', icon: XCircle, onClick: (org: Organizer) => setOrganizers((prev) => prev.map((o) => (o.id === org.id ? { ...o, status: 'Rejected' } : o))), variant: 'danger' as const },
+          { label: 'Deactivate', icon: Power, onClick: (org: Organizer) => setOrganizers((prev) => prev.map((o) => (o.id === org.id ? { ...o, status: 'Deactivated' } : o))), variant: 'danger' as const },
         ]}
       />
+
+      {/* Onboard Pro modal */}
+      {showOnboardModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setShowOnboardModal(false)} aria-hidden />
+          <div className="relative glass-premium p-8 rounded-[2rem] border border-white/60 shadow-2xl max-w-lg w-full animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-black text-slate-800 tracking-tight">Onboard Pro</h3>
+              <button
+                type="button"
+                onClick={() => setShowOnboardModal(false)}
+                className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors"
+                aria-label="Close"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-sm font-medium text-slate-500 mb-6">
+              Add a new professional organizer to the network. Invite via email or enter details manually.
+            </p>
+            <div className="space-y-4">
+              <input
+                type="email"
+                placeholder="Email address"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl py-3 px-4 text-sm font-medium outline-none focus:bg-white focus:border-primary/20"
+              />
+              <input
+                type="text"
+                placeholder="Full name"
+                value={inviteName}
+                onChange={(e) => setInviteName(e.target.value)}
+                className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl py-3 px-4 text-sm font-medium outline-none focus:bg-white focus:border-primary/20"
+              />
+            </div>
+            <div className="flex gap-3 mt-8">
+              <button
+                type="button"
+                onClick={() => setShowOnboardModal(false)}
+                className="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowOnboardModal(false);
+                  setDetailsTitle('Onboard Pro Invite (mock)');
+                  setDetailsPayload({ email: inviteEmail, name: inviteName });
+                  setDetailsOpen(true);
+                  setInviteEmail('');
+                  setInviteName('');
+                }}
+                className="flex-1 py-3 primary-gradient text-white rounded-2xl text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all"
+              >
+                Send Invite
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <DetailsDialog
+        open={detailsOpen}
+        title={detailsTitle}
+        onClose={() => setDetailsOpen(false)}
+      >
+        <div className="mt-2">
+          <pre className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-bold text-slate-600 overflow-auto">
+            {detailsPayload ? JSON.stringify(detailsPayload, null, 2) : ''}
+          </pre>
+        </div>
+      </DetailsDialog>
     </div>
   );
 };

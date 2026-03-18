@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 @theme {
   --color-primary: #288E66;
@@ -31,7 +32,18 @@
 @layer base {
   body {
     @apply bg-[#fcfdfe] text-slate-900 antialiased selection:bg-primary/20;
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  /* Reduce overall heaviness (your UI uses `font-black` / `font-bold` a lot). */
+  .font-black {
+    font-weight: 700 !important; /* Tailwind `font-black` -> lighter */
+  }
+  .font-extrabold {
+    font-weight: 700 !important;
+  }
+  .font-bold {
+    font-weight: 600 !important; /* Tailwind `font-bold` -> semibold */
   }
 }
 

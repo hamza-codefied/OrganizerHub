@@ -11,9 +11,18 @@ import {
   ArrowUpRight, Activity, Download, Briefcase
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import DetailsDialog from '../components/DetailsDialog';
 
 const FinancePage = () => {
   const [activeTab, setActiveTab] = useState<'ledgers' | 'withdrawals' | 'reports'>('ledgers');
+  type Transaction = typeof TRANSACTIONS[0];
+  type Withdrawal = typeof WITHDRAWAL_REQUESTS[0];
+  const [transactions, setTransactions] = useState<Transaction[]>(TRANSACTIONS as Transaction[]);
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>(WITHDRAWAL_REQUESTS as Withdrawal[]);
+
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsTitle, setDetailsTitle] = useState('');
+  const [detailsPayload, setDetailsPayload] = useState<any>(null);
 
   const transactionColumns = [
     { 
@@ -104,7 +113,8 @@ const FinancePage = () => {
   ];
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
+    <>
+      <div className="space-y-10 animate-in fade-in duration-700">
       <PageHeader 
         title="Escrow & Finance" 
         description="Monitor global liquidity, platform commissions, and payout schedules with absolute precision."
@@ -140,12 +150,33 @@ const FinancePage = () => {
         <div className="animate-in slide-in-from-bottom-4 duration-500">
            <DataTable 
              columns={transactionColumns} 
-             data={TRANSACTIONS} 
+             data={transactions} 
              searchPlaceholder="Filter ledgers by actor ID, volume reference, or status..." 
              rowActions={[
-               { label: 'View Audit Log', icon: History, onClick: () => {} },
-               { label: 'Issue Refund', icon: RotateCcw, onClick: () => {}, variant: 'danger' },
-               { label: 'Verify Entity', icon: ShieldCheck, onClick: () => {} },
+               {
+                 label: 'View Audit Log',
+                 icon: History,
+                 onClick: (tx: Transaction) => {
+                   setDetailsTitle('Transaction Audit Log (mock)');
+                   setDetailsPayload(tx);
+                   setDetailsOpen(true);
+                 },
+               },
+               {
+                 label: 'Issue Refund',
+                 icon: RotateCcw,
+                 variant: 'danger',
+                 onClick: (tx: Transaction) => setTransactions((prev) => prev.map((x) => (x.id === tx.id ? { ...x, status: 'Refunded' } : x))),
+               },
+               {
+                 label: 'Verify Entity',
+                 icon: ShieldCheck,
+                 onClick: (tx: Transaction) => {
+                   setDetailsTitle('Verify Entity (mock)');
+                   setDetailsPayload(tx);
+                   setDetailsOpen(true);
+                 },
+               },
              ]}
            />
         </div>
@@ -155,12 +186,30 @@ const FinancePage = () => {
         <div className="animate-in slide-in-from-bottom-4 duration-500">
            <DataTable 
              columns={withdrawalColumns} 
-             data={WITHDRAWAL_REQUESTS} 
+             data={withdrawals} 
              searchPlaceholder="Audit requests by pro-entity name or gateway..." 
              rowActions={[
-               { label: 'Process Approve', icon: CheckCircle2, onClick: () => {}, variant: 'success' },
-               { label: 'Decline Protocol', icon: XCircle, onClick: () => {}, variant: 'danger' },
-               { label: 'Verify Bank Data', icon: BarChart3, onClick: () => {} },
+               {
+                 label: 'Process Approve',
+                 icon: CheckCircle2,
+                 variant: 'success',
+                 onClick: (wd: Withdrawal) => setWithdrawals((prev) => prev.map((x) => (x.id === wd.id ? { ...x, status: 'Approved' } : x))),
+               },
+               {
+                 label: 'Decline Protocol',
+                 icon: XCircle,
+                 variant: 'danger',
+                 onClick: (wd: Withdrawal) => setWithdrawals((prev) => prev.map((x) => (x.id === wd.id ? { ...x, status: 'Pending' } : x))),
+               },
+               {
+                 label: 'Verify Bank Data',
+                 icon: BarChart3,
+                 onClick: (wd: Withdrawal) => {
+                   setDetailsTitle('Withdrawal Verification (mock)');
+                   setDetailsPayload(wd);
+                   setDetailsOpen(true);
+                 },
+               },
              ]}
            />
         </div>
@@ -226,6 +275,17 @@ const FinancePage = () => {
         </div>
       )}
     </div>
+
+    <DetailsDialog
+      open={detailsOpen}
+      title={detailsTitle}
+      onClose={() => setDetailsOpen(false)}
+    >
+      <pre className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-bold text-slate-600 overflow-auto">
+        {detailsPayload ? JSON.stringify(detailsPayload, null, 2) : ''}
+      </pre>
+    </DetailsDialog>
+    </>
   );
 };
 
