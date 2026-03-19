@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader, GlassCard, StatCard, PremiumTabs } from '../components/UI';
@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const SPOTLIGHT_TYPES = ['Homepage Spotlight', 'Highlight Listing', 'Strategic Badge'] as const;
+const SPOTLIGHT_TYPES = ['Homepage Spotlight', 'Highlight Listing'] as const;
 
 const PromotionsPage = () => {
   const [activeTab, setActiveTab] = useState<'inventory' | 'requests'>('inventory');
@@ -22,6 +22,25 @@ const PromotionsPage = () => {
   const [requests, setRequests] = useState(FEATURE_REQUESTS);
   const [showDeployModal, setShowDeployModal] = useState(false);
   const [deployForm, setDeployForm] = useState({ organizerId: '', type: 'Homepage Spotlight' as string, duration: '1 week' });
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (!showDeployModal) return;
+
+    const body = document.body;
+    const prevOverflow = body.style.overflow;
+    const prevPaddingRight = body.style.paddingRight;
+
+    // Prevent background scroll + minimize layout shift when the scrollbar disappears.
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`;
+    body.style.overflow = 'hidden';
+
+    return () => {
+      body.style.overflow = prevOverflow;
+      body.style.paddingRight = prevPaddingRight;
+    };
+  }, [showDeployModal]);
 
   const columns = [
     { 
@@ -113,20 +132,7 @@ const PromotionsPage = () => {
                        <span className="text-4xl font-black text-slate-800 tracking-tighter">{formatCurrency(pkg.price)}</span>
                        <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest">/ {pkg.period}</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDeployForm({
-                          organizerId: '',
-                          type: pkg.name,
-                          duration: pkg.period === 'month' ? '1 month' : '1 week',
-                        });
-                        setShowDeployModal(true);
-                      }}
-                      className="w-full py-4 bg-white/40 backdrop-blur-md border border-white/60 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white hover:text-primary hover:shadow-lg transition-all text-slate-500 active:scale-95"
-                    >
-                      Deploy
-                    </button>
+                   
                  </GlassCard>
                </motion.div>
              ))}
@@ -157,12 +163,7 @@ const PromotionsPage = () => {
                      </div>
                      <div className="p-6">
                         <div className="grid grid-cols-2 gap-4">
-                           <div className="space-y-1">
-                              <div className="flex items-center gap-1.5 text-blue-500">
-                                 <Eye className="w-3 h-3" /> <span className="text-[11px] font-black tracking-tighter">{req.performance.impressions}</span>
-                              </div>
-                              <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Views</p>
-                           </div>
+                         
                            <div className="space-y-1">
                               <div className="flex items-center gap-1.5 text-emerald-500">
                                  <MousePointer2 className="w-3 h-3" /> <span className="text-[11px] font-black tracking-tighter">{req.performance.clicks}</span>
@@ -240,10 +241,10 @@ const PromotionsPage = () => {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl border border-white overflow-hidden p-8"
+              className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl border border-white overflow-hidden p-8 flex flex-col max-h-[calc(100vh-2rem)]"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center justify-between mb-8 shrink-0">
                 <div>
                   <h2 className="text-2xl font-black text-slate-800 tracking-tighter">Deploy promotion</h2>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Choose an organizer and type</p>
@@ -257,7 +258,7 @@ const PromotionsPage = () => {
                 </button>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-6 overflow-y-auto pr-2 -mr-2 flex-1 min-h-0">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Organizer</label>
                   <CustomSelect
@@ -289,7 +290,7 @@ const PromotionsPage = () => {
                 </div>
               </div>
 
-              <div className="mt-10 flex gap-3">
+              <div className="mt-auto flex gap-3 shrink-0 pt-8">
                 <button
                   type="button"
                   onClick={() => setShowDeployModal(false)}

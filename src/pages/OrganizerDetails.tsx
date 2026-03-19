@@ -153,7 +153,7 @@ const OrganizerDetails = () => {
                { id: 'overview', label: 'Overview' },
                { id: 'services', label: 'Services' },
                { id: 'portfolio', label: 'Portfolio' },
-               { id: 'performance', label: 'Performance' },
+              //  { id: 'performance', label: 'Performance' },
              ]}
              activeTab={activeTab}
              onChange={setActiveTab}

@@ -7,7 +7,7 @@ import { cn } from '../lib/utils';
 import DetailsDialog from '../components/DetailsDialog';
 import { 
   BadgeCheck, Ban, Users, UserCheck, UserPlus, Download,
-  MapPin, Eye, ShieldAlert, ChevronRight
+  Eye, ShieldAlert, ChevronRight
 } from 'lucide-react';
 
 const HomeOwnersPage = () => {
@@ -31,14 +31,6 @@ const HomeOwnersPage = () => {
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{homeOwner.email}</p>
           </div>
         </div>
-      )
-    },
-    { 
-      header: "Location", 
-      accessor: (homeOwner: typeof HOME_OWNERS[0]) => (
-        <span className="flex items-center gap-1.5 font-bold text-slate-600 tracking-tight text-sm">
-          <MapPin className="w-3.5 h-3.5 text-slate-300" /> {homeOwner.location}
-        </span>
       )
     },
     { 
@@ -110,7 +102,7 @@ const HomeOwnersPage = () => {
       <DataTable 
         columns={columns} 
         data={filteredHomeOwners} 
-        searchPlaceholder="Search by name, email, or location..."
+        searchPlaceholder="Search by name or email..."
         onRowClick={(homeOwner) => navigate(`/users/home-owners/${homeOwner.id}`)}
         rowActions={[
           { label: 'View', icon: Eye, onClick: (homeOwner: any) => navigate(`/users/home-owners/${homeOwner.id}`) },

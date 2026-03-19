@@ -168,7 +168,7 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed
 
       <button 
         onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-4 top-10 w-8 h-8 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-lg text-slate-400 hover:text-primary transition-all hover:scale-110 active:scale-90 z-[60]"
+        className="absolute -right-4 top-10 w-8 h-8 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-lg text-slate-400 hover:text-primary transition-all hover:scale-110 active:scale-90 z-60"
       >
         <ChevronRight className={cn("w-4 h-4 transition-transform duration-500", !collapsed && "rotate-180")} />
       </button>
@@ -182,7 +182,7 @@ const Navbar = () => {
   const { logout } = useAuth();
 
   return (
-    <nav className="h-20 glass-premium px-8 flex items-center justify-between border-b border-white/40 sticky top-4 rounded-3xl z-[60] mb-8 backdrop-blur-xl">
+    <nav className="h-20 glass-premium px-8 flex items-center justify-between border-b border-white/40 sticky top-4 rounded-3xl z-60 mb-8 backdrop-blur-xl">
       <div className="flex-1 max-w-xl">
         <div className="relative group">
           <input 
@@ -196,7 +196,12 @@ const Navbar = () => {
 
       <div className="flex items-center gap-5">
         <div className="flex items-center gap-1.5">
-          <button className="p-2.5 rounded-2xl hover:bg-white/80 relative text-slate-500 hover:text-primary transition-all">
+          <button
+            type="button"
+            onClick={() => navigate('/notifications')}
+            aria-label="Go to notifications"
+            className="p-2.5 rounded-2xl hover:bg-white/80 relative text-slate-500 hover:text-primary transition-all"
+          >
             <Bell className="w-5 h-5" />
             <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-secondary rounded-full border-2 border-white animate-pulse"></span>
           </button>
@@ -229,7 +234,7 @@ const Navbar = () => {
               <>
                 <div className="fixed inset-0 z-[-1]" onClick={() => setShowDropdown(false)} />
                 <div 
-                  className="absolute right-0 mt-3 w-56 bg-white p-2 rounded-2xl border border-slate-100 shadow-[0_20px_70px_-10px_rgba(0,0,0,0.15)] z-[100] animate-in fade-in zoom-in-95 duration-200"
+                  className="absolute right-0 mt-3 w-56 bg-white p-2 rounded-2xl border border-slate-100 shadow-[0_20px_70px_-10px_rgba(0,0,0,0.15)] z-100 animate-in fade-in zoom-in-95 duration-200"
                 >
                   <button 
                     onClick={() => {

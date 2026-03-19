@@ -52,9 +52,9 @@ const SettingsPage = () => {
       [
         { key: 'core' as const, name: 'General', icon: SettingsIcon },
         { key: 'security' as const, name: 'Security', icon: Shield },
-        { key: 'financial' as const, name: 'Payments', icon: CreditCard },
+        // { key: 'financial' as const, name: 'Payments', icon: CreditCard },
         // { key: 'team' as const, name: 'Team', icon: Users },
-        { key: 'lexicon' as const, name: 'Branding', icon: Globe },
+        // { key: 'lexicon' as const, name: 'Branding', icon: Globe },
       ] as const,
     [],
   );
@@ -236,30 +236,7 @@ const SettingsPage = () => {
                   </button>
                 </div>
 
-                <div className="flex items-center gap-6 p-8 bg-white/40 backdrop-blur-md rounded-[2rem] border border-white/60 hover:border-blue-200 transition-all group shadow-sm">
-                  <div className="w-16 h-16 rounded-3xl bg-blue-50 flex items-center justify-center text-blue-500 shadow-xl border border-blue-50 group-hover:-rotate-6 transition-all duration-500">
-                    <Lock className="w-8 h-8" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-lg font-black text-slate-800 tracking-tighter leading-none">Two-factor authentication</p>
-                    <p className="text-[13px] font-bold text-slate-500 mt-2 leading-snug max-w-sm">
-                      Require 2FA for all admin accounts.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    aria-pressed={settings.mfaEnabled}
-                    onClick={() => setSettings((prev) => ({ ...prev, mfaEnabled: !prev.mfaEnabled }))}
-                    className={cn(
-                      'cursor-pointer hover:scale-105 transition-all p-2 rounded-2xl border',
-                      settings.mfaEnabled
-                        ? 'text-primary bg-primary/5 border-primary/10'
-                        : 'text-slate-300 bg-slate-50 border-slate-100',
-                    )}
-                  >
-                    {settings.mfaEnabled ? <ToggleRight className="w-14 h-14" /> : <ToggleLeft className="w-14 h-14" />}
-                  </button>
-                </div>
+             
               </div>
             </GlassCard>
           )}

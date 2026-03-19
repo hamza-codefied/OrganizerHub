@@ -36,7 +36,7 @@ const BookingsPage = () => {
       accessor: (b: any) => (
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2 group/home-owner">
-            <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[10px] font-black text-emerald-600 shadow-sm group-hover/home-owner:bg-emerald-500 group-hover/home-owner:text-white transition-all">
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[10px] font-black text-emerald-600 shadow-sm">
                <User className="w-3.5 h-3.5" />
             </div>
             <div className="flex flex-col">
@@ -45,7 +45,7 @@ const BookingsPage = () => {
             </div>
           </div>
           <div className="flex items-center gap-2 group/org">
-            <div className="w-7 h-7 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-center text-[10px] font-black text-primary shadow-sm group-hover/org:bg-primary group-hover/org:text-white transition-all">
+            <div className="w-7 h-7 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-center text-[10px] font-black text-primary shadow-sm">
                <Briefcase className="w-3.5 h-3.5" />
             </div>
             <div className="flex flex-col">
