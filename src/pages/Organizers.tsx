@@ -8,7 +8,7 @@ import { cn } from '../lib/utils';
 import DetailsDialog from '../components/DetailsDialog';
 import { 
   BadgeCheck, Ban, Star, Briefcase, ShieldCheck, UserPlus,
-  Clock, Eye, ChevronRight, CheckCircle2, XCircle, Power
+  Clock, Eye, CheckCircle2, XCircle, Power
 } from 'lucide-react';
 
 const OrganizersPage = () => {
@@ -27,19 +27,38 @@ const OrganizersPage = () => {
   const filteredOrgs = statusFilter === 'all' ? organizers : organizers.filter(o => o.status === statusFilter);
 
   const columns = [
+    {
+      header: "Business name",
+      accessor: (org: typeof ORGANIZERS[0]) => <span className="font-black text-slate-800">{org.businessName}</span>
+    },
     { 
       header: "Organizer", 
       accessor: (org: typeof ORGANIZERS[0]) => (
-        <div className="flex items-center gap-4 cursor-pointer group">
-          <div className="w-12 h-12 rounded-2xl bg-slate-100 border-2 border-white shadow-xl overflow-hidden p-0.5 group-hover:shadow-2xl transition-all">
-             <img src={org.avatar} alt={org.name} className="w-full h-full object-cover rounded-[14px]" />
-          </div>
-          <div>
-            <p className="font-black text-slate-800 leading-tight tracking-tight group-hover:text-primary transition-colors">{org.name}</p>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{org.email}</p>
-          </div>
+        <div className="cursor-pointer group">
+          <p className="font-black text-slate-800 leading-tight tracking-tight group-hover:text-primary transition-colors">{org.name}</p>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{org.email}</p>
         </div>
       )
+    },
+    {
+      header: "Nationality",
+      accessor: (org: typeof ORGANIZERS[0]) => <span className="text-xs font-black text-slate-500 uppercase">{org.nationality}</span>
+    },
+    {
+      header: "Phone",
+      accessor: (org: typeof ORGANIZERS[0]) => <span className="text-xs font-bold text-slate-600">{org.phone}</span>
+    },
+    {
+      header: "Documents",
+      accessor: (org: typeof ORGANIZERS[0]) => <span className="text-xs font-bold text-slate-600">{org.documents.length}</span>
+    },
+    {
+      header: "Location",
+      accessor: (org: typeof ORGANIZERS[0]) => <span className="text-xs font-bold text-slate-600">{org.location}</span>
+    },
+    {
+      header: "Join date",
+      accessor: (org: typeof ORGANIZERS[0]) => <span className="text-xs font-bold text-slate-600">{org.joinedDate}</span>
     },
     { 
       header: "Services", 
@@ -64,18 +83,6 @@ const OrganizersPage = () => {
       )
     },
     { 
-      header: "Rating", 
-      accessor: (org: typeof ORGANIZERS[0]) => (
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 px-2 py-1 bg-white border border-slate-100 rounded-lg shadow-sm">
-            <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-            <span className="text-xs font-black text-slate-800">{org.rating}</span>
-          </div>
-          <span className="text-[10px] font-bold text-slate-400">{org.totalReviews} reviews</span>
-        </div>
-      )
-    },
-    { 
       header: "Status", 
       accessor: (org: typeof ORGANIZERS[0]) => (
         <div className={cn(
@@ -92,21 +99,10 @@ const OrganizersPage = () => {
         </div>
       )
     },
-    {
-      header: "Profile",
-      accessor: (org: typeof ORGANIZERS[0]) => (
-        <button 
-          onClick={() => navigate(`/users/organizers/${org.id}`)}
-          className="flex items-center gap-1.5 text-[10px] font-black text-primary uppercase tracking-widest hover:bg-primary/5 px-3 py-1.5 rounded-lg transition-all"
-        >
-          <Eye className="w-3.5 h-3.5" /> View <ChevronRight className="w-3 h-3" />
-        </button>
-      )
-    },
   ];
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
+    <div className="space-y-10">
       <PageHeader 
         title="Organizers"
         description="Manage organizer profiles and check their status."
@@ -183,7 +179,7 @@ const OrganizersPage = () => {
       {showOnboardModal && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-9999 flex items-center justify-center p-4" aria-modal="true" role="dialog">
           <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-md" onClick={() => setShowOnboardModal(false)} aria-hidden />
-          <div className="relative glass-premium p-8 rounded-[2rem] border border-white/60 shadow-2xl max-w-lg w-full animate-in zoom-in-95 duration-200">
+          <div className="relative glass-premium p-8 rounded-[2rem] border border-white/60 shadow-2xl max-w-lg w-full">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-black text-slate-800 tracking-tight">Onboard Pro</h3>
               <button

@@ -8,7 +8,6 @@ import {
   DollarSign, Activity, XCircle, RotateCcw,
   User, Briefcase, Tag, Percent
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import DetailsDialog from '../components/DetailsDialog';
 
 const BookingsPage = () => {
@@ -108,7 +107,7 @@ const BookingsPage = () => {
   ];
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
+    <div className="space-y-10">
       <PageHeader 
         title="Bookings" 
         description="View booking requests and their status. Check who booked and for what service."

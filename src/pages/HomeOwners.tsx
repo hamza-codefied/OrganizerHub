@@ -7,7 +7,7 @@ import { cn } from '../lib/utils';
 import DetailsDialog from '../components/DetailsDialog';
 import { 
   BadgeCheck, Ban, Users, UserCheck, UserPlus, Download,
-  Eye, ShieldAlert, ChevronRight
+  Eye, ShieldAlert
 } from 'lucide-react';
 
 const HomeOwnersPage = () => {
@@ -22,23 +22,23 @@ const HomeOwnersPage = () => {
     { 
       header: "Home owner", 
       accessor: (homeOwner: typeof HOME_OWNERS[0]) => (
-        <div className="flex items-center gap-4 cursor-pointer group">
-          <div className="w-10 h-10 rounded-xl bg-slate-100 border-2 border-white shadow-sm overflow-hidden group-hover:shadow-lg transition-all">
-             <img src={homeOwner.avatar} alt={homeOwner.name} className="w-full h-full object-cover" />
-          </div>
-          <div>
-            <p className="font-black text-slate-800 leading-tight tracking-tight group-hover:text-primary transition-colors">{homeOwner.name}</p>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{homeOwner.email}</p>
-          </div>
+        <div className="cursor-pointer group">
+          <p className="font-black text-slate-800 leading-tight tracking-tight group-hover:text-primary transition-colors">{homeOwner.name}</p>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{homeOwner.email}</p>
         </div>
       )
     },
+    { header: "Phone", accessor: (homeOwner: typeof HOME_OWNERS[0]) => <span className="text-xs font-bold text-slate-600">{homeOwner.phone}</span> },
+    { header: "DOB", accessor: (homeOwner: typeof HOME_OWNERS[0]) => <span className="text-xs font-bold text-slate-600">{homeOwner.dob}</span> },
+    { header: "Gender", accessor: (homeOwner: typeof HOME_OWNERS[0]) => <span className="text-xs font-black text-slate-500 uppercase">{homeOwner.gender}</span> },
+    { header: "Location", accessor: (homeOwner: typeof HOME_OWNERS[0]) => <span className="text-xs font-bold text-slate-600">{homeOwner.location}</span> },
+    { header: "Join date", accessor: (homeOwner: typeof HOME_OWNERS[0]) => <span className="text-xs font-bold text-slate-600">{homeOwner.joinedDate}</span> },
     { 
       header: "Activity", 
       accessor: (homeOwner: typeof HOME_OWNERS[0]) => (
         <div className="flex flex-col gap-0.5">
           <span className="text-sm font-black text-primary">{homeOwner.totalBookings} bookings</span>
-          <span className="text-[10px] font-bold text-slate-400">{homeOwner.reviewsGiven} reviews • {homeOwner.favorites} favorites</span>
+          <span className="text-[10px] font-bold text-slate-400">{homeOwner.reviewsGiven} reviews - {homeOwner.favorites} favorites</span>
         </div>
       )
     },
@@ -56,21 +56,10 @@ const HomeOwnersPage = () => {
         </div>
       )
     },
-    {
-      header: "Profile",
-      accessor: (homeOwner: typeof HOME_OWNERS[0]) => (
-        <button 
-          onClick={() => navigate(`/users/home-owners/${homeOwner.id}`)}
-          className="flex items-center gap-1.5 text-[10px] font-black text-primary uppercase tracking-widest hover:bg-primary/5 px-3 py-1.5 rounded-lg transition-all"
-        >
-          <Eye className="w-3.5 h-3.5" /> View <ChevronRight className="w-3 h-3" />
-        </button>
-      )
-    },
   ];
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
+    <div className="space-y-10">
       <PageHeader 
         title="Home owners"
         description="Browse home owners, view their profiles, and manage their access."

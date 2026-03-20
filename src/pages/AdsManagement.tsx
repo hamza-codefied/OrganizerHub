@@ -12,7 +12,6 @@ import {
   Pause, Play, BarChart3, DollarSign,
   MapPin, Globe, Activity
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const TARGETING_OPTIONS = ['Home Owners, UAE', 'Corporate HR, KSA', 'Events Sector, UAE', 'Luxury Market, Qatar'];
 
@@ -94,7 +93,7 @@ const AdsManagementPage = () => {
   ];
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
+    <div className="space-y-10">
       <PageHeader 
         title="Ad Command" 
         description="Optimize platform visibility through premium featured slots and strategic campaign management."
@@ -119,7 +118,7 @@ const AdsManagementPage = () => {
       />
 
       {activeTab === 'campaigns' && (
-        <div className="space-y-10 animate-in slide-in-from-bottom-4 duration-500">
+        <div className="space-y-10">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <StatCard title="Active Protocols" value={String(ads.filter(a => a.status === 'Active').length)} icon={Activity} color="emerald" />
             <StatCard title="Global Impressions" value="450.8k" icon={Eye} color="blue" />
@@ -174,7 +173,7 @@ const AdsManagementPage = () => {
       )}
 
       {activeTab === 'revenue' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 animate-in slide-in-from-bottom-4 duration-500">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
            <GlassCard className="lg:col-span-4" title="Yield Distribution">
               <div className="space-y-8 mt-8">
                   {[
@@ -190,8 +189,8 @@ const AdsManagementPage = () => {
                           </div>
                           <span className="text-slate-800">{item.val}% Yield</span>
                        </div>
-                       <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden border border-white">
-                          <motion.div initial={{ width: 0 }} animate={{ width: `${item.val}%` }} transition={{ duration: 1.5, delay: i * 0.2 }} className={cn("h-full rounded-full shadow-inner", item.color)}></motion.div>
+                       <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                          <div style={{ width: `${item.val}%` }} className={cn("h-full rounded-full", item.color)} />
                        </div>
                     </div>
                   ))}
@@ -233,19 +232,13 @@ const AdsManagementPage = () => {
       {/* Deploy Campaign modal */}
       {showDeployModal && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 z-9999 flex items-center justify-center p-4" aria-modal="true" role="dialog">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => setShowDeployModal(false)}
-              className="absolute inset-0 bg-slate-900/50 backdrop-blur-md"
+              className="absolute inset-0 bg-slate-900/40"
               aria-hidden
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl border border-white overflow-hidden p-8"
+            <div
+              className="relative w-full max-w-lg bg-white rounded-lg border border-slate-200 shadow-sm p-8"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-8">
@@ -335,12 +328,12 @@ const AdsManagementPage = () => {
                     ]);
                     setShowDeployModal(false);
                   }}
-                  className="flex-1 py-4 primary-gradient text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-4 bg-primary text-white text-[11px] font-semibold uppercase tracking-wide rounded-md flex items-center justify-center gap-2"
                 >
                   <Target className="w-4 h-4" /> Deploy
                 </button>
               </div>
-            </motion.div>
+            </div>
           </div>,
           document.body
         )}

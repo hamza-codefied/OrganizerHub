@@ -1,12 +1,25 @@
 const homeOwnerNames = ["John Doe", "Jane Smith", "Michael Brown", "Emily Davis", "James Wilson", "Jessica Taylor", "Robert Anderson", "Amanda Harris"];
 const orgNames = ["Sarah Green", "David White", "Emma Wilson", "Chris Johnson", "Rachel Clark", "Daniel Lewis"];
 const locations = ["Dubai, UAE", "Abu Dhabi, UAE", "Sharjah, UAE", "Ajman, UAE", "Riyadh, KSA"];
+const nationalities = ["UAE", "Saudi Arabia", "India", "Pakistan", "Egypt", "Jordan", "Philippines", "Lebanon"];
+const genders = ["Male", "Female"];
 
-export const HOME_OWNERS = Array.from({ length: 25 }).map((_, i) => ({
+export const HOME_OWNERS = Array.from({ length: 25 }).map((_, i) => {
+  const fullName = homeOwnerNames[i % homeOwnerNames.length];
+  const [firstName, lastName = ""] = fullName.split(" ");
+  const dobYear = 1985 + (i % 15);
+  const dobMonth = String((i % 12) + 1).padStart(2, "0");
+  const dobDay = String(((i * 3) % 28) + 1).padStart(2, "0");
+
+  return {
   id: `homeowner-${i + 1}`,
-  name: homeOwnerNames[i % homeOwnerNames.length],
+  firstName,
+  lastName,
+  name: fullName,
   email: `homeowner${i + 1}@example.com`,
   phone: `+971 5${Math.floor(Math.random() * 9)}${Math.floor(Math.random() * 10000000).toString().padStart(7, '0')}`,
+  dob: `${dobYear}-${dobMonth}-${dobDay}`,
+  gender: genders[i % genders.length],
   location: locations[i % locations.length],
   totalBookings: Math.floor(Math.random() * 20) + 1,
   totalSpent: Math.floor(Math.random() * 5000) + 200,
@@ -24,13 +37,54 @@ export const HOME_OWNERS = Array.from({ length: 25 }).map((_, i) => ({
     amount: Math.floor(Math.random() * 400) + 80,
     status: j % 3 === 0 ? "Completed" : j % 3 === 1 ? "Pending" : "Cancelled",
   })),
-}));
+  };
+});
 
-export const ORGANIZERS = Array.from({ length: 22 }).map((_, i) => ({
+export const ORGANIZERS = Array.from({ length: 22 }).map((_, i) => {
+  const ownerName = orgNames[i % orgNames.length];
+  const tradeSlug = ownerName.split(" ")[0].toLowerCase();
+  const city = locations[i % locations.length].split(",")[0];
+  return {
   id: `org-${i + 1}`,
-  name: orgNames[i % orgNames.length],
+  ownerName,
+  businessName: `${ownerName.split(" ")[0]} Organizing Studio`,
+  tradeName: `${ownerName.split(" ")[0]} Organizing & Planning LLC`,
+  name: ownerName,
+  fullAddress: `Office ${120 + i}, Tower ${(i % 8) + 1}, Business Bay, ${locations[i % locations.length]}, United Arab Emirates`,
+  businessTimings: [
+    "Mon–Fri 9:00 AM – 6:00 PM • Sat 10:00 AM – 2:00 PM • Sun closed",
+    "Daily 8:00 AM – 8:00 PM",
+    "Mon–Thu 10:00 AM – 7:00 PM • Fri 10:00 AM – 5:00 PM • Sat–Sun closed",
+  ][i % 3],
+  website: `https://www.${tradeSlug}-organizing.ae`,
+  description: [
+    "Full-service home and office organizing. We handle decluttering, storage planning, and sustainable disposal with a dedicated project lead for every client.",
+    "Corporate and residential organizing with certified consultants. Notes: preferred contact via email for quotes; rush jobs subject to availability.",
+    "Specializing in eco-friendly organizing and moving support. Additional services include digital file audits and seasonal wardrobe rotation.",
+  ][i % 3],
+  companyBannerUrl: [
+    "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&h=360&fit=crop",
+    "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=360&fit=crop",
+    "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=1200&h=360&fit=crop",
+  ][i % 3],
+  businessLicenseDocument: "Business_License_2024.pdf",
+  tradeRegistrationDocument: "Trade_Name_Certificate.pdf",
+  businessLicenseFileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+  tradeRegistrationFileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+  serviceAreas: [
+    [`${city} — Marina`, `${city} — Downtown`, `${city} — Jumeirah`, "Sharjah — Al Majaz"],
+    [`${city} — Business Bay`, `${city} — DIFC`, "Abu Dhabi — Al Reem Island"],
+    [`${city} — full emirate`, "Ajman", "Ras Al Khaimah — city center"],
+  ][i % 3],
   email: `org${i + 1}@example.com`,
+  nationality: nationalities[i % nationalities.length],
   phone: `+971 5${Math.floor(Math.random() * 9)}${Math.floor(Math.random() * 10000000).toString().padStart(7, '0')}`,
+  documents: [
+    "Trade License.pdf",
+    "ID Verification.pdf",
+    "Address Proof.pdf",
+  ].slice(0, (i % 3) + 1),
+  location: locations[i % locations.length],
   services: [
     ["Home Organizing", "Closet Audit", "Kitchen Detox"],
     ["Event Planning", "Office Declutter", "Moving Support"],
@@ -64,24 +118,162 @@ export const ORGANIZERS = Array.from({ length: 22 }).map((_, i) => ({
   ][i % 3],
   joinedDate: `2023-${String((i % 12) + 1).padStart(2, '0')}-${String((i % 28) + 1).padStart(2, '0')}`,
   lastActive: i % 2 === 0 ? "Online Now" : `${Math.floor(Math.random() * 24) + 1}h ago`,
-}));
+  };
+});
+
+export type OrganizerTransaction = {
+  id: string;
+  organizerId: string;
+  date: string;
+  reference: string;
+  type: 'Booking payment' | 'Refund' | 'Subscription' | 'Payout adjustment';
+  description: string;
+  grossAmount: number;
+  platformFee: number;
+  netToOrganizer: number;
+  status: 'Completed' | 'Pending';
+};
+
+export const ORGANIZER_TRANSACTIONS: OrganizerTransaction[] = ORGANIZERS.flatMap((org, i) => {
+  const count = 6 + (i % 7);
+  return Array.from({ length: count }, (_, j) => {
+    const typeRoll = (i * 7 + j * 5) % 10;
+    let type: OrganizerTransaction['type'];
+    let gross: number;
+    let platformFee: number;
+    const descBooking = [
+      `Home organizing — ${org.services[0] ?? 'Service'}`,
+      `Closet audit — ${org.businessName}`,
+      `Office session — ${org.services[1] ?? 'Service'}`,
+      `Kitchen deep clean package`,
+    ];
+    if (typeRoll <= 5) {
+      type = 'Booking payment';
+      gross = 220 + ((i * 31 + j * 17) % 980);
+      platformFee = Math.round(gross * 0.12 * 100) / 100;
+    } else if (typeRoll <= 7) {
+      type = 'Refund';
+      gross = -(60 + ((i + j * 3) % 320));
+      platformFee = Math.round(gross * 0.12 * 100) / 100;
+    } else if (typeRoll === 8) {
+      type = 'Subscription';
+      gross = 49 + (i % 4) * 25;
+      platformFee = Math.round(gross * 0.15 * 100) / 100;
+    } else {
+      type = 'Payout adjustment';
+      gross = ((i + j) % 2 === 0 ? 1 : -1) * (15 + ((i * j) % 40));
+      platformFee = 0;
+    }
+    const netToOrganizer = Math.round((gross - platformFee) * 100) / 100;
+    const day = ((i * 3 + j * 2) % 27) + 1;
+    const month = String(((j + i) % 12) + 1).padStart(2, '0');
+    const description =
+      type === 'Booking payment'
+        ? descBooking[j % descBooking.length]
+        : type === 'Refund'
+          ? 'Customer refund — booking cancelled'
+          : type === 'Subscription'
+            ? `${org.subscriptionPlan} plan — monthly platform fee`
+            : 'Manual balance adjustment';
+
+    return {
+      id: `txn-${org.id}-${j}`,
+      organizerId: org.id,
+      date: `2024-${month}-${String(day).padStart(2, '0')}`,
+      reference: `REF-${String(10000 + i * 100 + j)}`,
+      type,
+      description,
+      grossAmount: gross,
+      platformFee,
+      netToOrganizer,
+      status: j % 13 === 0 ? 'Pending' : 'Completed',
+    };
+  });
+});
 
 export const SERVICES = [
-  { id: "s1", name: "Home Organizing", category: "Home Organization", tags: ["eco-friendly", "minimalism", "essential"] },
-  { id: "s2", name: "Closet Audit", category: "Home Organization", tags: ["fashion", "women-owned", "personal"] },
-  { id: "s3", name: "Wedding Planning", category: "Event Planning", tags: ["luxury", "women-owned", "design"] },
-  { id: "s4", name: "Corporate Event", category: "Event Planning", tags: ["corporate", "strategic"] },
-  { id: "s5", name: "Business Model Design", category: "Business Planning", tags: ["efficiency", "core"] },
-  { id: "s6", name: "Lifestyle Design", category: "Lifestyle Planning", tags: ["health", "eco-friendly"] },
-  { id: "s7", name: "Kitchen Detox", category: "Home Organization", tags: ["sustainable", "health"] },
-  { id: "s8", name: "Office Declutter", category: "Business Planning", tags: ["productivity", "workspace"] },
+  // Home & Lifestyle Organizers
+  { id: "s1", name: "Lifestyle Decluttering & Sustainable Organizers", category: "Home & Lifestyle Organizers", tags: ["lifestyle", "decluttering", "sustainable"] },
+  { id: "s2", name: "Storage Solution Consultants", category: "Home & Lifestyle Organizers", tags: ["storage", "home", "consulting"] },
+
+  // Business & Professional Planning
+  { id: "s3", name: "Office & Workspace Organizers", category: "Business & Professional Planning", tags: ["office", "workspace", "organization"] },
+  { id: "s4", name: "Digital File Organizers (cloud & device storage)", category: "Business & Professional Planning", tags: ["digital", "files", "cloud"] },
+  { id: "s5", name: "Project Planners (freelancers, small businesses)", category: "Business & Professional Planning", tags: ["project", "planning", "business"] },
+  { id: "s6", name: "Corporate Admin Support (document workflows, scheduling)", category: "Business & Professional Planning", tags: ["admin", "scheduling", "corporate"] },
+  { id: "s7", name: "HR & Compliance File Organizers", category: "Business & Professional Planning", tags: ["hr", "compliance", "files"] },
+  { id: "s8", name: "Financial Organizers (personal budgeting & business planning)", category: "Business & Professional Planning", tags: ["finance", "budgeting", "planning"] },
+  { id: "s9", name: "Productivity Coaches (workflow optimization)", category: "Business & Professional Planning", tags: ["productivity", "workflow", "coaching"] },
+  { id: "s10", name: "Virtual Assistants (remote planning & task management)", category: "Business & Professional Planning", tags: ["virtual-assistant", "tasks", "remote"] },
+  { id: "s11", name: "Trade Show & Expo Planners", category: "Business & Professional Planning", tags: ["expo", "trade-show", "events"] },
+  { id: "s12", name: "Startup Launch & Pitch Planners", category: "Business & Professional Planning", tags: ["startup", "launch", "pitch"] },
+
+  // Event & Party Planning
+  { id: "s13", name: "Event Planners (general)", category: "Event & Party Planning", tags: ["event", "planning", "general"] },
+  { id: "s14", name: "Wedding Planners", category: "Event & Party Planning", tags: ["wedding", "event", "planning"] },
+  { id: "s15", name: "Party Planners (birthday, anniversary, milestone events)", category: "Event & Party Planning", tags: ["party", "birthday", "anniversary"] },
+  { id: "s16", name: "Corporate Event Planners", category: "Event & Party Planning", tags: ["corporate", "event", "planning"] },
+  { id: "s17", name: "Conference & Meeting Planners", category: "Event & Party Planning", tags: ["conference", "meeting", "planning"] },
+  { id: "s18", name: "Festival & Community Event Planners", category: "Event & Party Planning", tags: ["festival", "community", "event"] },
+  { id: "s19", name: "Seasonal/Holiday Event Planners (Christmas, Halloween, etc.)", category: "Event & Party Planning", tags: ["holiday", "seasonal", "event"] },
+  { id: "s20", name: "Destination Wedding & Travel Event Planners", category: "Event & Party Planning", tags: ["destination", "wedding", "travel"] },
+
+  // Personal & Lifestyle Planning
+  { id: "s21", name: "Daily Life Planners (time & task management)", category: "Personal & Lifestyle Planning", tags: ["daily-life", "time", "tasks"] },
+  { id: "s22", name: "Study/Academic Planners (student-focused)", category: "Personal & Lifestyle Planning", tags: ["study", "academic", "students"] },
+  { id: "s23", name: "Travel Planners & Itinerary Designers", category: "Personal & Lifestyle Planning", tags: ["travel", "itinerary", "planning"] },
+  { id: "s24", name: "Family & Parenting Planners (kids' schedules, family activities)", category: "Personal & Lifestyle Planning", tags: ["family", "parenting", "schedules"] },
+  { id: "s25", name: "Senior Care Planners (appointments, routines)", category: "Personal & Lifestyle Planning", tags: ["senior-care", "appointments", "routines"] },
+  { id: "s26", name: "Concierge & Personal Assistant Services", category: "Personal & Lifestyle Planning", tags: ["concierge", "assistant", "personal"] },
+  { id: "s27", name: "Meal Planners & Nutrition Organizers", category: "Personal & Lifestyle Planning", tags: ["meal", "nutrition", "planning"] },
+  { id: "s28", name: "Fitness & Wellness Planners", category: "Personal & Lifestyle Planning", tags: ["fitness", "wellness", "planning"] },
+
+  // Home Organization Services
+  { id: "s29", name: "General Home Organizing (decluttering, space optimization)", category: "Home Organization Services", tags: ["home", "decluttering", "space"] },
+  { id: "s30", name: "Closet & Wardrobe Organizing", category: "Home Organization Services", tags: ["closet", "wardrobe", "home"] },
+  { id: "s31", name: "Kitchen & Pantry Organization", category: "Home Organization Services", tags: ["kitchen", "pantry", "organization"] },
+  { id: "s32", name: "Garage & Basement Organization", category: "Home Organization Services", tags: ["garage", "basement", "storage"] },
+  { id: "s33", name: "Attic & Storage Room Organization", category: "Home Organization Services", tags: ["attic", "storage", "home"] },
+  { id: "s34", name: "Kids' Room & Playroom Organization", category: "Home Organization Services", tags: ["kids", "playroom", "organization"] },
+
+  // Document & Paper Management
+  { id: "s35", name: "Paperwork Sorting & Filing", category: "Document & Paper Management", tags: ["paperwork", "filing", "documents"] },
+  { id: "s36", name: "Home Office Document Organization", category: "Document & Paper Management", tags: ["home-office", "documents", "organization"] },
+  { id: "s37", name: "Bills, Records, and Receipts Organizing", category: "Document & Paper Management", tags: ["bills", "receipts", "records"] },
+
+  // Photo & Memory Organization
+  { id: "s38", name: "Physical Photo Album Organization", category: "Photo & Memory Organization", tags: ["photo", "album", "memory"] },
+  { id: "s39", name: "Digital Photo Library Organizing", category: "Photo & Memory Organization", tags: ["digital", "photo", "library"] },
+  { id: "s40", name: "Scrapbooking & Memory Preservation", category: "Photo & Memory Organization", tags: ["scrapbooking", "memory", "preservation"] },
+
+  // Relocation & Life Transitions
+  { id: "s41", name: "Packing & Unpacking Services", category: "Relocation & Life Transitions", tags: ["packing", "unpacking", "moving"] },
+  { id: "s42", name: "Moving-In / Move-Out Setup", category: "Relocation & Life Transitions", tags: ["move-in", "move-out", "setup"] },
+  { id: "s43", name: "Downsizing Support (for smaller homes, seniors)", category: "Relocation & Life Transitions", tags: ["downsizing", "senior", "support"] },
+  { id: "s44", name: "Estate Clean-Out & Organization", category: "Relocation & Life Transitions", tags: ["estate", "clean-out", "organization"] },
+
+  // Inventory & Cataloging
+  { id: "s45", name: "Personal Inventory Organizers (insurance documentation, estate planning)", category: "Inventory & Cataloging", tags: ["inventory", "insurance", "estate"] },
+  { id: "s46", name: "Household Item Cataloging", category: "Inventory & Cataloging", tags: ["household", "cataloging", "items"] },
+  { id: "s47", name: "Collections Organizing (books, antiques, hobby items)", category: "Inventory & Cataloging", tags: ["collections", "antiques", "hobby"] },
+
+  // Eco-Friendly & Lifestyle Organizing
+  { id: "s48", name: "Sustainable Decluttering Solutions", category: "Eco-Friendly & Lifestyle Organizing", tags: ["sustainable", "decluttering", "eco-friendly"] },
+  { id: "s49", name: "Recycling & Donation Coordination", category: "Eco-Friendly & Lifestyle Organizing", tags: ["recycling", "donation", "coordination"] },
+  { id: "s50", name: "Minimalist Living Support", category: "Eco-Friendly & Lifestyle Organizing", tags: ["minimalist", "lifestyle", "support"] },
 ];
 
 export const CATEGORIES = [
-  { id: "cat1", name: "Home Organization", parent: null, children: ["Closet organizing", "Kitchen detox", "Garage cleanup"] },
-  { id: "cat2", name: "Event Planning", parent: null, children: ["Wedding planning", "Corporate events", "Launch parties"] },
-  { id: "cat3", name: "Business Planning", parent: null, children: ["Business model", "Operational strategy", "Financial planning"] },
-  { id: "cat4", name: "Lifestyle Planning", parent: null, children: ["Wellness routines", "Travel planning", "Personal habits"] },
+  { id: "cat1", name: "Home & Lifestyle Organizers", parent: null, children: ["Lifestyle Decluttering & Sustainable Organizers", "Storage Solution Consultants"] },
+  { id: "cat2", name: "Business & Professional Planning", parent: null, children: ["Office & Workspace Organizers", "Digital File Organizers (cloud & device storage)", "Project Planners (freelancers, small businesses)"] },
+  { id: "cat3", name: "Event & Party Planning", parent: null, children: ["Event Planners (general)", "Wedding Planners", "Party Planners (birthday, anniversary, milestone events)"] },
+  { id: "cat4", name: "Personal & Lifestyle Planning", parent: null, children: ["Daily Life Planners (time & task management)", "Travel Planners & Itinerary Designers", "Fitness & Wellness Planners"] },
+  { id: "cat5", name: "Home Organization Services", parent: null, children: ["General Home Organizing (decluttering, space optimization)", "Closet & Wardrobe Organizing", "Kitchen & Pantry Organization"] },
+  { id: "cat6", name: "Document & Paper Management", parent: null, children: ["Paperwork Sorting & Filing", "Home Office Document Organization", "Bills, Records, and Receipts Organizing"] },
+  { id: "cat7", name: "Photo & Memory Organization", parent: null, children: ["Physical Photo Album Organization", "Digital Photo Library Organizing", "Scrapbooking & Memory Preservation"] },
+  { id: "cat8", name: "Relocation & Life Transitions", parent: null, children: ["Packing & Unpacking Services", "Moving-In / Move-Out Setup", "Downsizing Support (for smaller homes, seniors)"] },
+  { id: "cat9", name: "Inventory & Cataloging", parent: null, children: ["Personal Inventory Organizers (insurance documentation, estate planning)", "Household Item Cataloging", "Collections Organizing (books, antiques, hobby items)"] },
+  { id: "cat10", name: "Eco-Friendly & Lifestyle Organizing", parent: null, children: ["Sustainable Decluttering Solutions", "Recycling & Donation Coordination", "Minimalist Living Support"] },
 ];
 
 export const SUBSCRIPTION_PLANS = [

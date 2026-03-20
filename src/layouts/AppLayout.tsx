@@ -7,7 +7,6 @@ import {
   Headphones, FileText, BarChart3, Presentation, Search as SearchIcon
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { PremiumBackground } from '../components/UI';
 import { useAuth } from '../contexts/AuthContext';
 
 type LucideIcon = React.ComponentType<{ className?: string }>;
@@ -40,14 +39,11 @@ const menuItems: { group: string; items: MenuItem[] }[] = [
   ]},
   { group: "Strategy", items: [
     { name: "Promotions", icon: Megaphone, path: "/promotions" },
-    // { name: "Ads Management", icon: Presentation, path: "/ads" },
-    // { name: "Analytics", icon: BarChart3, path: "/analytics" },
   ]},
   { group: "System", items: [
     { name: "Support", icon: Headphones, path: "/support" },
-    // { name: "CMS", icon: FileText, path: "/cms" },
     { name: "Notifications", icon: Bell, path: "/notifications" },
-    { name: "Settings", icon: Settings, path: "/settings" },
+    { name: "Controller", icon: Settings, path: "/settings" },
   ]}
 ];
 
@@ -71,66 +67,67 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed
 
   return (
     <div className={cn(
-      "h-screen transition-all duration-500 ease-in-out glass-premium flex flex-col fixed left-0 top-0 z-50 border-r border-white/40",
-      collapsed ? "w-20" : "w-72"
+      "h-screen bg-white flex flex-col fixed left-0 top-0 z-50 border-r border-slate-200",
+      collapsed ? "w-20" : "w-64"
     )}>
-      <div className="p-6 flex  mb-4">
+      <div className="p-4 flex mb-2">
         <NavLink to="/" className="flex items-start justify-center focus:outline-none">
           <img
             src="/logo.png"
             alt="OrganizerHub"
-            className={cn("object-contain", collapsed ? "w-10 h-10" : "h-10 w-auto max-w-[180px]")}
+            className={cn("object-contain", collapsed ? "w-10 h-10" : "h-9 w-auto max-w-[160px]")}
           />
         </NavLink>
       </div>
 
-      <div className="flex-1 overflow-y-auto premium-scrollbar px-4 space-y-7 pb-10">
+      <div className="flex-1 overflow-y-auto premium-scrollbar px-3 space-y-6 pb-8">
         {menuItems.map((group, idx) => (
-          <div key={idx} className="space-y-2">
+          <div key={idx} className="space-y-1">
             {!collapsed && (
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em] mb-3 px-4 opacity-70">
+              <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wide mb-2 px-3">
                 {group.group}
               </p>
             )}
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {group.items.map((item) => (
                 <div key={item.name}>
                   {item.subItems ? (
                     <>
                       <button
+                        type="button"
                         onClick={() => toggleExpand(item.name)}
                         className={cn(
-                          "w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 group relative",
+                          "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm",
                           isSubActive(item)
-                            ? "bg-primary/5 text-primary" 
-                            : "text-slate-500 hover:bg-slate-100/40 hover:text-primary"
+                            ? "bg-primary/10 text-primary"
+                            : "text-slate-600 hover:bg-slate-50"
                         )}
                       >
                         <item.icon className={cn("w-5 h-5 shrink-0", collapsed && "mx-auto")} />
-                        {!collapsed && <span className="text-[13px] font-bold tracking-tight">{item.name}</span>}
+                        {!collapsed && <span className="font-medium">{item.name}</span>}
                         {!collapsed && (
-                          <div className="ml-auto opacity-40 group-hover:opacity-100 transition-all">
+                          <div className="ml-auto text-slate-400">
                             {expandedMenus.includes(item.name) 
-                              ? <ChevronDown className="w-3.5 h-3.5" /> 
-                              : <ChevronRight className="w-3.5 h-3.5" />
+                              ? <ChevronDown className="w-4 h-4" /> 
+                              : <ChevronRight className="w-4 h-4" />
                             }
                           </div>
                         )}
                       </button>
                       {!collapsed && expandedMenus.includes(item.name) && (
-                        <div className="ml-6 mt-1 space-y-1 border-l border-slate-200 pl-4 py-1">
+                        <div className="ml-4 mt-1 space-y-0.5 border-l border-slate-200 pl-3 py-1">
                           {item.subItems.map((sub: MenuSubItem) => (
                             <NavLink
                               key={sub.name}
                               to={sub.path}
                               className={({ isActive }) => cn(
-                                "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 text-[12px] font-bold",
+                                "flex items-center gap-2 px-2 py-1.5 rounded text-sm",
                                 isActive 
-                                  ? "text-primary bg-primary/5" 
-                                  : "text-slate-400 hover:text-primary"
+                                  ? "text-primary font-medium bg-primary/5" 
+                                  : "text-slate-500 hover:text-slate-800"
                               )}
                             >
-                              <sub.icon className="w-3.5 h-3.5" />
+                              <sub.icon className="w-4 h-4" />
                               {sub.name}
                             </NavLink>
                           ))}
@@ -142,18 +139,18 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed
                       to={item.path}
                       end={item.path === "/"}
                       className={({ isActive }) => cn(
-                        "flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 group relative",
+                        "relative flex items-center gap-3 px-3 py-2 rounded-md text-sm",
                         isActive 
-                          ? "nav-active-item" 
-                          : "text-slate-500 hover:bg-slate-100/40 hover:text-primary"
+                          ? "nav-active-item font-medium" 
+                          : "text-slate-600 hover:bg-slate-50"
                       )}
                     >
                       {({ isActive }) => (
                         <>
                           <item.icon className={cn("w-5 h-5 shrink-0", collapsed && "mx-auto")} />
-                          {!collapsed && <span className="text-[13px] font-bold tracking-tight">{item.name}</span>}
+                          {!collapsed && <span className="font-medium">{item.name}</span>}
                           {isActive && !collapsed && (
-                            <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-white shadow-sm" />
+                            <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-white/90" />
                           )}
                         </>
                       )}
@@ -167,10 +164,12 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed
       </div>
 
       <button 
+        type="button"
         onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-4 top-10 w-8 h-8 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-lg text-slate-400 hover:text-primary transition-all hover:scale-110 active:scale-90 z-60"
+        className="absolute -right-3 top-8 w-7 h-7 rounded border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-slate-800 z-60"
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
-        <ChevronRight className={cn("w-4 h-4 transition-transform duration-500", !collapsed && "rotate-180")} />
+        <ChevronRight className={cn("w-4 h-4", !collapsed && "rotate-180")} />
       </button>
     </div>
   );
@@ -182,46 +181,41 @@ const Navbar = () => {
   const { logout } = useAuth();
 
   return (
-    <nav className="h-20 glass-premium px-8 flex items-center justify-between border-b border-white/40 sticky top-4 rounded-3xl z-60 mb-8 backdrop-blur-xl">
-      <div className="flex-1 max-w-xl">
-        <div className="relative group">
+    <nav className="h-14 bg-white px-4 md:px-6 flex items-center justify-between border-b border-slate-200 sticky top-0 z-40 mb-6">
+      <div className="flex-1 max-w-md">
+        <div className="relative">
           <input 
             type="text" 
             placeholder="Search resources..." 
-            className="w-full bg-slate-100/50 border border-transparent rounded-2xl py-2.5 pl-11 pr-4 focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none font-medium text-sm"
+            className="w-full bg-white border border-slate-200 rounded-md py-2 pl-9 pr-3 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm"
           />
-          <SearchIcon className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" />
+          <SearchIcon className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
         </div>
       </div>
 
-      <div className="flex items-center gap-5">
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => navigate('/notifications')}
-            aria-label="Go to notifications"
-            className="p-2.5 rounded-2xl hover:bg-white/80 relative text-slate-500 hover:text-primary transition-all"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-secondary rounded-full border-2 border-white animate-pulse"></span>
-          </button>
-          {/* <button className="p-2.5 rounded-2xl hover:bg-white/80 text-slate-500 hover:text-primary transition-all">
-            <Settings className="w-5 h-5" />
-          </button> */}
-        </div>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => navigate('/notifications')}
+          aria-label="Go to notifications"
+          className="p-2 rounded-md hover:bg-slate-100 text-slate-600 relative"
+        >
+          <Bell className="w-5 h-5" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-secondary rounded-full border border-white" />
+        </button>
         
-        <div className="h-8 w-[1.5px] bg-slate-200/50 rounded-full mx-1"></div>
+        <div className="h-6 w-px bg-slate-200" />
 
         <div className="relative">
           <button 
+            type="button"
             onClick={() => setShowDropdown(!showDropdown)}
-            className="flex items-center gap-3 group outline-none"
+            className="flex items-center gap-2 outline-none"
           >
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-black text-slate-800 leading-none group-hover:text-primary transition-colors">Admin</p>
-              {/* <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-widest leading-none">Global Executive</p> */}
+              <p className="text-sm font-medium text-slate-800">Admin</p>
             </div>
-            <div className="w-10 h-10 rounded-xl border-2 border-white shadow-xl overflow-hidden group-hover:scale-105 transition-all duration-300">
+            <div className="w-9 h-9 rounded-md border border-slate-200 overflow-hidden bg-slate-50">
               <img 
                 src="https://api.dicebear.com/7.x/avataaars/svg?seed=executive" 
                 alt="Avatar" 
@@ -232,31 +226,33 @@ const Navbar = () => {
 
           {showDropdown && (
               <>
-                <div className="fixed inset-0 z-[-1]" onClick={() => setShowDropdown(false)} />
+                <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)} aria-hidden />
                 <div 
-                  className="absolute right-0 mt-3 w-56 bg-white p-2 rounded-2xl border border-slate-100 shadow-[0_20px_70px_-10px_rgba(0,0,0,0.15)] z-100 animate-in fade-in zoom-in-95 duration-200"
+                  className="absolute right-0 mt-2 w-52 bg-white py-1 rounded-md border border-slate-200 shadow-md z-50"
                 >
                   <button 
+                    type="button"
                     onClick={() => {
                       setShowDropdown(false);
                       navigate('/profile');
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-primary/5 hover:text-primary transition-all text-xs font-black uppercase tracking-widest"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 text-left"
                   >
                     <UserRound className="w-4 h-4" />
                     View Profile
                   </button>
-                  <div className="h-px bg-slate-100 my-1 mx-2" />
+                  <div className="h-px bg-slate-100 my-1" />
                   <button 
+                    type="button"
                     onClick={() => {
                       setShowDropdown(false);
                       logout();
                       navigate('/login', { replace: true });
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-rose-500 hover:bg-rose-50 transition-all text-xs font-black uppercase tracking-widest"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 text-left"
                   >
                     <LogOut className="w-4 h-4" />
-                    Logout Profile
+                    Logout
                   </button>
                 </div>
               </>
@@ -271,16 +267,15 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#FAFAFB] overflow-x-hidden">
-      <PremiumBackground />
+    <div className="min-h-screen bg-slate-50 overflow-x-hidden">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       <div className={cn(
-        "transition-all duration-500 ease-in-out min-h-screen pb-12 flex flex-col",
-        collapsed ? "ml-20" : "ml-72"
+        "min-h-screen pb-8 flex flex-col",
+        collapsed ? "ml-20" : "ml-64"
       )}>
-        <div className="px-4 md:px-8 pt-4">
+        <div className="px-4 md:px-6 pt-4">
           <Navbar />
-          <main className="relative z-10 w-full">
+          <main className="relative w-full">
             {children}
           </main>
         </div>

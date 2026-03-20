@@ -10,7 +10,6 @@ import {
   Smartphone, Newspaper,
   ArrowUpRight, Trash2, CheckCircle2, Zap
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const CMSPage = () => {
   const [activeTab, setActiveTab] = useState<'visuals' | 'static' | 'articles'>('visuals');
@@ -165,7 +164,7 @@ const CMSPage = () => {
   };
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700">
+    <div className="space-y-12">
       <PageHeader 
         title="Content Command" 
         description="Strategic oversight of platform narrative. Manage assets, static deployments, and metadata."
@@ -181,13 +180,8 @@ const CMSPage = () => {
         />
       </PageHeader>
 
-      <AnimatePresence mode="wait">
         {activeTab === 'visuals' && (
-          <motion.div 
-            key="visuals"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+          <div
             className="grid grid-cols-1 lg:grid-cols-2 gap-10"
           >
             <GlassCard title="Hero Velocity" subtitle="Strategic visual assets for the global landing interface.">
@@ -302,15 +296,11 @@ const CMSPage = () => {
                   </button>
                </div>
             </GlassCard>
-          </motion.div>
+          </div>
         )}
 
         {activeTab === 'static' && (
-          <motion.div 
-            key="static"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+          <div
             className="grid grid-cols-1 lg:grid-cols-1 gap-10"
           >
             <GlassCard title="Global Static Registry" subtitle="Legal frameworks, corporate narrative, and aid architecture.">
@@ -323,10 +313,9 @@ const CMSPage = () => {
                    { name: 'Help & Operations Center', updated: 'Today', icon: Layers, sector: 'Support' },
                    { name: 'Community Standards', updated: 'Yesterday', icon: Smartphone, sector: 'Rules' },
                  ].map((page, i) => (
-                   <motion.div 
+                   <div 
                      key={i} 
-                     whileHover={{ x: 10 }}
-                     className="flex items-center justify-between p-6 rounded-[2rem] bg-slate-50/50 border border-slate-100 cursor-pointer group hover:bg-white hover:shadow-2xl hover:border-primary/10"
+                     className="flex items-center justify-between p-6 rounded-md bg-slate-50 border border-slate-200 cursor-pointer group hover:bg-white"
                     onClick={() => openView('Static Registry Item (mock)', page)}
                    >
                       <div className="flex items-center gap-5">
@@ -342,19 +331,15 @@ const CMSPage = () => {
                          </div>
                       </div>
                       <ArrowUpRight className="w-5 h-5 text-slate-200 group-hover:text-primary transition-all" />
-                   </motion.div>
+                   </div>
                  ))}
               </div>
             </GlassCard>
-          </motion.div>
+          </div>
         )}
 
         {activeTab === 'articles' && (
-          <motion.div 
-            key="articles"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+          <div
             className="space-y-10"
           >
              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -422,9 +407,8 @@ const CMSPage = () => {
              >
                <Newspaper className="w-5 h-5" /> Initialize New Narrative Payload
              </button>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 border-t border-slate-100 pt-12">
          <GlassCard className="p-10 border-blue-500/10 bg-blue-500/[0.02] hover:bg-blue-500/[0.05] transition-all cursor-pointer group">

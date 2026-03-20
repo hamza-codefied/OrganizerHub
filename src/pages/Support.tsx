@@ -9,13 +9,13 @@ import {
   LifeBuoy, UserPlus, Reply, Trash2, 
   HelpCircle, Plus, Edit3, Lock, X
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import ConfirmationDialog from '../components/ConfirmationDialog';
 import DetailsDialog from '../components/DetailsDialog';
 
 const MOCK_TICKETS = Array.from({ length: 15 }).map((_, i) => ({
   id: `TK-${1000 + i}`,
   user: i % 2 === 0 ? "John Doe" : "Sarah Green",
+  userType: i % 2 === 0 ? ("home_owner" as const) : ("organizer" as const),
   subject: i % 3 === 0 ? "Strategic Payment conflict on session #123" : i % 3 === 1 ? "Partner verification protocol" : "Incident Report: Platform Violation",
   status: i % 4 === 0 ? "Resolved" : i % 4 === 1 ? "In Progress" : "Pending",
   priority: i % 3 === 0 ? "High" : "Medium",
@@ -31,9 +31,11 @@ const MOCK_FAQS = [
 
 const SupportPage = () => {
   const [activeTab, setActiveTab] = useState<'tickets' | 'faq'>('tickets');
+  const [ticketAudience, setTicketAudience] = useState<'home_owner' | 'organizer'>('home_owner');
   type Ticket = typeof MOCK_TICKETS[0];
   type Faq = typeof MOCK_FAQS[0];
   const [tickets, setTickets] = useState<Ticket[]>(MOCK_TICKETS as Ticket[]);
+  const ticketsForTable = tickets.filter((t) => t.userType === ticketAudience);
   const [faqs, setFaqs] = useState<Faq[]>(MOCK_FAQS as Faq[]);
 
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -111,7 +113,7 @@ const SupportPage = () => {
 
   return (
     <>
-      <div className="space-y-12 animate-in fade-in duration-700">
+      <div className="space-y-12">
       <PageHeader 
         title="Support" 
         description="Manage tickets and FAQs."
@@ -135,13 +137,24 @@ const SupportPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
          <div className="lg:col-span-12">
-            <AnimatePresence mode="wait">
-               {activeTab === 'tickets' ? (
-                 <motion.div key="tickets" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.4 }}>
+            {activeTab === 'tickets' ? (
+                 <div key="tickets">
                     <DataTable 
+                      key={ticketAudience}
                       columns={ticketColumns} 
-                      data={tickets} 
+                      data={ticketsForTable} 
                       searchPlaceholder="Search by user or ticket ID..." 
+                      belowSearch={
+                        <PremiumTabs
+                          tabs={[
+                            { id: 'home_owner', label: 'Home owners' },
+                            { id: 'organizer', label: 'Organizers' },
+                          ]}
+                          activeTab={ticketAudience}
+                          onChange={(id) => setTicketAudience(id as 'home_owner' | 'organizer')}
+                          className="w-full sm:w-fit"
+                        />
+                      }
                       rowActions={[
                         {
                           label: 'Reply',
@@ -175,9 +188,9 @@ const SupportPage = () => {
                         },
                       ]}
                     />
-                 </motion.div>
+                 </div>
                ) : (
-                 <motion.div key="faq" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.4 }} className="space-y-6">
+                 <div key="faq" className="space-y-6">
                     <div className="flex justify-between items-center mb-4">
                        <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-3">
                           <HelpCircle className="w-5 h-5 text-primary" />
@@ -220,9 +233,8 @@ const SupportPage = () => {
                         },
                       ]}
                     />
-                 </motion.div>
+                 </div>
                )}
-            </AnimatePresence>
          </div>
       </div>
     </div>
@@ -323,20 +335,14 @@ const SupportPage = () => {
       {/* Create FAQ modal */}
       {isCreateFaqOpen && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 z-9999 flex items-center justify-center p-4" aria-modal="true" role="dialog">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => setIsCreateFaqOpen(false)}
-              className="absolute inset-0 bg-slate-900/50 backdrop-blur-md"
+              className="absolute inset-0 bg-slate-900/40"
               aria-hidden
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            <div
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl border border-white overflow-hidden p-8"
+              className="relative w-full max-w-lg bg-white rounded-lg border border-slate-200 shadow-lg p-6"
             >
               <div className="flex items-center justify-between mb-8">
                 <div>
@@ -432,7 +438,7 @@ const SupportPage = () => {
                   Create FAQ
                 </button>
               </div>
-            </motion.div>
+            </div>
           </div>,
           document.body
         )}

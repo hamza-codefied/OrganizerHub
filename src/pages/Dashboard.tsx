@@ -14,9 +14,9 @@ const COLORS = ['#288E66', '#DD647F', '#4FD1C5', '#F6AD55'];
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="glass-premium p-4 rounded-2xl border border-white/50 shadow-2xl">
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-        <p className="text-sm font-black text-primary">
+      <div className="bg-white p-3 rounded-md border border-slate-200 shadow-sm text-sm">
+        <p className="text-xs text-slate-500 mb-1">{label}</p>
+        <p className="font-medium text-primary">
           {formatCurrency(payload[0].value)}
         </p>
       </div>
@@ -100,19 +100,19 @@ const Dashboard = () => {
                   ))}
                 </Pie>
                 <Tooltip 
-                   contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(10px)', borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
+                   contentStyle={{ backgroundColor: '#fff', borderRadius: '6px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
           <div className="space-y-3 mt-8">
             {TOP_SERVICES.map((s, i) => (
-              <div key={i} className="flex items-center justify-between group cursor-default">
+              <div key={i} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{backgroundColor: COLORS[i % COLORS.length]}}></div>
-                  <span className="text-xs font-bold text-slate-600 group-hover:text-primary transition-colors">{s.name}</span>
+                  <div className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: COLORS[i % COLORS.length]}} />
+                  <span className="text-xs text-slate-600">{s.name}</span>
                 </div>
-                <span className="text-xs font-black text-slate-800">{s.value}%</span>
+                <span className="text-xs font-medium text-slate-800">{s.value}%</span>
               </div>
             ))}
           </div>
@@ -125,35 +125,35 @@ const Dashboard = () => {
             {BOOKINGS.slice(0, 5).map((booking) => (
               <div 
                 key={booking.id} 
-                className="flex items-center justify-between p-5 rounded-[2rem] hover:bg-white/60 transition-all border border-transparent hover:border-white/80 hover:shadow-xl hover:shadow-primary/5 group"
+                className="flex items-center justify-between p-4 rounded-md border border-slate-100 bg-white"
               >
-                <div className="flex items-center gap-5">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center border border-white shadow-inner">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-md bg-slate-100 flex items-center justify-center border border-slate-200">
                     <img 
                       src={`https://api.dicebear.com/7.x/initials/svg?seed=${booking.homeOwner.name}`} 
-                      className="w-10 h-10 rounded-xl"
+                      className="w-9 h-9 rounded"
                       alt="Avatar"
                     />
                   </div>
                   <div>
-                    <h4 className="font-black text-slate-800 text-sm group-hover:text-primary transition-colors tracking-tight">{booking.homeOwner.name}</h4>
-                    <p className="text-[11px] font-bold text-slate-400 mt-0.5 uppercase tracking-wider">{booking.service} • {booking.date}</p>
+                    <h4 className="font-medium text-slate-800 text-sm">{booking.homeOwner.name}</h4>
+                    <p className="text-xs text-slate-500 mt-0.5">{booking.service} • {booking.date}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className={cn(
-                    "text-[10px] font-black uppercase px-3 py-1 rounded-full border shadow-sm",
-                    booking.status === 'Completed' ? "bg-emerald-50/50 text-emerald-600 border-emerald-100" :
-                    booking.status === 'Pending' ? "bg-amber-50/50 text-amber-600 border-amber-100" : "bg-rose-50/50 text-rose-600 border-rose-100"
+                    "text-xs px-2 py-0.5 rounded border inline-block",
+                    booking.status === 'Completed' ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
+                    booking.status === 'Pending' ? "bg-amber-50 text-amber-700 border-amber-100" : "bg-rose-50 text-rose-700 border-rose-100"
                   )}>
                     {booking.status}
                   </div>
-                  <p className="text-base font-black mt-2 text-slate-800 tracking-tighter">{formatCurrency(booking.amount)}</p>
+                  <p className="text-sm font-medium mt-2 text-slate-800">{formatCurrency(booking.amount)}</p>
                 </div>
               </div>
             ))}
           </div>
-          <button className="w-full mt-8 py-4 text-xs font-black text-slate-500 hover:text-primary hover:bg-white/80 rounded-2xl transition-all border border-transparent hover:border-white/60 hover:shadow-premium tracking-[0.2em] uppercase">
+          <button type="button" className="w-full mt-6 py-2.5 text-sm text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50">
             View all bookings
           </button>
         </GlassCard>
@@ -167,7 +167,7 @@ const Dashboard = () => {
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 700}} />
                 <Tooltip 
                    cursor={{fill: 'rgba(221, 100, 127, 0.05)'}}
-                   contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(10px)', borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
+                   contentStyle={{ backgroundColor: '#fff', borderRadius: '6px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
                 />
                 <Bar 
                   dataKey="value" 

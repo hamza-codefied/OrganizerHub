@@ -1,25 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { PageHeader, GlassCard, StatCard, PremiumTabs } from '../components/UI';
+import { PageHeader, GlassCard, PremiumTabs } from '../components/UI';
 import { DataTable } from '../components/DataTable';
 import { FEATURE_REQUESTS, ORGANIZERS } from '../data/mockData';
 import CustomSelect from '../components/CustomSelect';
 import DetailsDialog from '../components/DetailsDialog';
 import { formatCurrency, cn } from '../lib/utils';
 import { 
-  Megaphone, Star, Flame, Trophy, Zap, Plus, ArrowRight,
-  CheckCircle2, XCircle, Clock, Eye, BarChart3, Calendar,
-  MousePointer2, Home
+  Flame, Zap, Plus,
+  CheckCircle2, XCircle, Clock, Eye, Calendar,
+  Home
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const SPOTLIGHT_TYPES = ['Homepage Spotlight', 'Highlight Listing'] as const;
 
 const PromotionsPage = () => {
   const [activeTab, setActiveTab] = useState<'inventory' | 'requests'>('inventory');
   const navigate = useNavigate();
-  const [requests, setRequests] = useState(FEATURE_REQUESTS);
+  const [requests, setRequests] = useState(
+    FEATURE_REQUESTS.map((request) => ({ ...request, status: 'Active' }))
+  );
   const [showDeployModal, setShowDeployModal] = useState(false);
   const [deployForm, setDeployForm] = useState({ organizerId: '', type: 'Homepage Spotlight' as string, duration: '1 week' });
 
@@ -42,17 +43,58 @@ const PromotionsPage = () => {
     };
   }, [showDeployModal]);
 
+  const organizerCell = (req: { organizer: string }) => (
+    <div className="flex items-center gap-3">
+      <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
+        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${req.organizer}`} alt="" className="w-full h-full object-cover" />
+      </div>
+      <span className="font-black text-slate-800 text-xs tracking-tight">{req.organizer}</span>
+    </div>
+  );
+
+  const activePromotionsColumns = [
+    { header: "Organizer", accessor: (req: any) => organizerCell(req) },
+    {
+      header: "Type",
+      accessor: (req: any) => (
+        <span
+          className={cn(
+            "px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border",
+            req.type === "Homepage Spotlight"
+              ? "bg-amber-50 text-amber-600 border-amber-100"
+              : "bg-blue-50 text-blue-600 border-blue-100",
+          )}
+        >
+          {req.type}
+        </span>
+      ),
+    },
+    {
+      header: "Price",
+      accessor: (req: any) => (
+        <span className="font-black text-slate-800 text-xs tracking-tighter">
+          {formatCurrency(req.price)} <span className="text-[9px] text-slate-400">/ {req.duration}</span>
+        </span>
+      ),
+    },
+    {
+      header: "Impressions",
+      accessor: (req: any) => (
+        <span className="font-black text-slate-800 text-xs tabular-nums">{req.performance?.impressions ?? 0}</span>
+      ),
+    },
+    {
+      header: "Ends",
+      accessor: (req: any) => (
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{req.placementDate}</span>
+      ),
+    },
+  ];
+
   const columns = [
     { 
       header: "Organizer", 
-      accessor: (req: any) => (
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden">
-             <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${req.organizer}`} alt="" className="w-full h-full object-cover" />
-          </div>
-          <span className="font-black text-slate-800 text-xs tracking-tight">{req.organizer}</span>
-        </div>
-      )
+      accessor: (req: any) => organizerCell(req)
     },
     { 
       header: "Type", 
@@ -88,7 +130,7 @@ const PromotionsPage = () => {
   ];
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700">
+    <div className="space-y-12">
       <PageHeader 
         title="Promotions" 
         description="Create and manage your spotlight promotions."
@@ -114,15 +156,15 @@ const PromotionsPage = () => {
       </PageHeader>
 
       {activeTab === 'inventory' && (
-        <div className="space-y-12 animate-in slide-in-from-bottom-4 duration-500">
+        <div className="space-y-12">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
              {[
                { name: 'Homepage Spotlight', price: 25, period: 'week', icon: Home, color: 'text-amber-500', bg: 'bg-amber-50' },
                { name: 'Highlight Listing', price: 15, period: 'week', icon: Flame, color: 'text-rose-500', bg: 'bg-rose-50' },
           
              ].map((pkg, i) => (
-               <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-                 <GlassCard className="text-center p-10 group border-white/60 shadow-2xl hover:scale-[1.02] transition-all duration-500">
+               <div key={i}>
+                 <GlassCard className="text-center p-8 border-slate-200">
                     <div className={cn("w-20 h-20 rounded-3xl mx-auto flex items-center justify-center mb-8 border-2 border-white shadow-xl transition-all duration-500 group-hover:rotate-12", pkg.bg, pkg.color)}>
                        <pkg.icon className="w-10 h-10" />
                     </div>
@@ -134,7 +176,7 @@ const PromotionsPage = () => {
                     </div>
                    
                  </GlassCard>
-               </motion.div>
+               </div>
              ))}
           </div>
 
@@ -143,49 +185,37 @@ const PromotionsPage = () => {
                <Zap className="w-5 h-5 text-primary" />
                Active promotions
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {requests.filter((r) => r.status === 'Active').map((req, i) => (
-                <motion.div key={i} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4 + (i * 0.1) }}>
-                  <GlassCard className="p-0 overflow-hidden group border-white/60 shadow-xl hover:-translate-y-2 transition-all duration-500">
-                     <div className="h-24 bg-slate-50 relative overflow-hidden">
-                        <div className="absolute top-3 right-3 px-3 py-1 bg-white/90 backdrop-blur-md rounded-xl text-[8px] font-black uppercase tracking-widest shadow-lg border border-white">
-                           {req.type}
-                        </div>
-                        <div className="p-4 flex gap-4">
-                           <div className="w-12 h-12 rounded-2xl border-2 border-white shadow-xl overflow-hidden bg-white">
-                              <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${req.organizer}`} alt="" className="w-full h-full object-cover" />
-                           </div>
-                           <div className="pt-2">
-                              <h4 className="font-black text-slate-800 text-xs tracking-tight">{req.organizer}</h4>
-                              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Active</p>
-                           </div>
-                        </div>
-                     </div>
-                     <div className="p-6">
-                        <div className="grid grid-cols-2 gap-4">
-                         
-                           <div className="space-y-1">
-                              <div className="flex items-center gap-1.5 text-emerald-500">
-                                 <MousePointer2 className="w-3 h-3" /> <span className="text-[11px] font-black tracking-tighter">{req.performance.clicks}</span>
-                              </div>
-                              <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Clicks</p>
-                           </div>
-                        </div>
-                        <div className="mt-6 pt-6 border-t border-slate-50 flex items-center justify-between">
-                           <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ends on <span className="text-secondary">{req.placementDate}</span></div>
-                           <button className="p-2 hover:bg-slate-50 rounded-lg text-slate-300 hover:text-primary transition-all"><BarChart3 className="w-3.5 h-3.5" /></button>
-                        </div>
-                     </div>
-                  </GlassCard>
-                </motion.div>
-              ))}
-            </div>
+            <DataTable
+              columns={activePromotionsColumns}
+              data={requests.filter((r) => r.status === "Active")}
+              searchPlaceholder="Search by organizer, type, or date..."
+              rowActions={[
+                {
+                  label: "View profile",
+                  icon: Eye,
+                  onClick: (req: any) => {
+                    const organizer = ORGANIZERS.find((o) => o.name === req.organizer);
+                    if (organizer) navigate(`/users/organizers/${organizer.id}`);
+                  },
+                },
+                {
+                  label: "Update date",
+                  icon: Calendar,
+                  onClick: (req: any) => {
+                    const nextDate = new Date();
+                    nextDate.setDate(nextDate.getDate() + 7);
+                    const iso = nextDate.toISOString().slice(0, 10);
+                    setRequests((prev) => prev.map((r) => (r.id === req.id ? { ...r, placementDate: iso } : r)));
+                  },
+                },
+              ]}
+            />
           </div>
         </div>
       )}
 
       {activeTab === 'requests' && (
-        <div className="animate-in slide-in-from-bottom-4 duration-500">
+        <div>
            <DataTable 
              columns={columns} 
              data={requests} 
@@ -198,18 +228,6 @@ const PromotionsPage = () => {
                    const organizer = ORGANIZERS.find((o) => o.name === req.organizer);
                    if (organizer) navigate(`/users/organizers/${organizer.id}`);
                  },
-               },
-               {
-                 label: 'Approve',
-                 icon: CheckCircle2,
-                 onClick: (req: any) => setRequests((prev) => prev.map((r) => (r.id === req.id ? { ...r, status: 'Active' } : r))),
-                 variant: 'success',
-               },
-               {
-                 label: 'Reject',
-                 icon: XCircle,
-                 onClick: (req: any) => setRequests((prev) => prev.map((r) => (r.id === req.id ? { ...r, status: 'Pending' } : r))),
-                 variant: 'danger',
                },
                {
                  label: 'Update date',
@@ -229,19 +247,13 @@ const PromotionsPage = () => {
       {/* Deploy Spotlight modal */}
       {showDeployModal && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 z-9999 flex items-center justify-center p-4" aria-modal="true" role="dialog">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => setShowDeployModal(false)}
-              className="absolute inset-0 bg-slate-900/50 backdrop-blur-md"
+              className="absolute inset-0 bg-slate-900/40"
               aria-hidden
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl border border-white overflow-hidden p-8 flex flex-col max-h-[calc(100vh-2rem)]"
+            <div
+              className="relative w-full max-w-lg bg-white rounded-lg border border-slate-200 shadow-lg p-6 flex flex-col max-h-[calc(100vh-2rem)]"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-8 shrink-0">
@@ -337,7 +349,7 @@ const PromotionsPage = () => {
                   <Zap className="w-4 h-4" /> Deploy
                 </button>
               </div>
-            </motion.div>
+            </div>
           </div>,
           document.body
         )}

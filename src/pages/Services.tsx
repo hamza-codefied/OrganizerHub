@@ -8,7 +8,6 @@ import {
   Plus, FolderOpen, Tag, Edit3, Trash2,
   Home, Briefcase, Sparkles, Layers, X, Save
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 type Service = typeof INITIAL_SERVICES[0];
 
@@ -123,7 +122,7 @@ const ServicesPage = () => {
   };
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
+    <div className="space-y-10">
       <PageHeader 
         title="Service" 
         description="Define and refine the structural backbone of the OrganizeHub marketplace."
@@ -147,12 +146,9 @@ const ServicesPage = () => {
              </h3>
           </div>
           <div className="space-y-3">
-            {categories.map((cat, i) => (
-              <motion.div
+            {categories.map((cat) => (
+              <div
                 key={cat.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 }}
                 className="cursor-pointer"
                 onClick={() => setActiveCategoryId(cat.id)}
               >
@@ -192,7 +188,7 @@ const ServicesPage = () => {
                   
                   {/* Sidebar categories are intentionally simple (no sub-sectors). */}
                 </GlassCard>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -223,16 +219,10 @@ const ServicesPage = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  <AnimatePresence mode='popLayout'>
-                    {filteredServices.map((service, idx) => (
-                      <motion.tr 
+                    {filteredServices.map((service) => (
+                      <tr 
                         key={service.id} 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ delay: idx * 0.05 }}
-                        layout
-                        className="hover:bg-white/60 transition-colors group"
+                        className="hover:bg-slate-50 transition-colors group"
                       >
                         <td className="px-8 py-5">
                           <span className="font-black text-slate-800 text-sm tracking-tight">{service.name}</span>
@@ -257,9 +247,8 @@ const ServicesPage = () => {
                             </button>
                           </div>
                         </td>
-                      </motion.tr>
+                      </tr>
                     ))}
-                  </AnimatePresence>
                   {filteredServices.length === 0 && (
                     <tr>
                       <td colSpan={2} className="px-8 py-20 text-center">
@@ -280,19 +269,13 @@ const ServicesPage = () => {
       {/* Category Modal */}
       {isCategoryModalOpen && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" aria-modal="true" role="dialog">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => setIsCategoryModalOpen(false)}
-              className="absolute inset-0 bg-slate-900/50 backdrop-blur-md"
+              className="absolute inset-0 bg-slate-900/40"
               aria-hidden
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl border border-white overflow-hidden p-8"
+            <div
+              className="relative w-full max-w-lg bg-white rounded-lg border border-slate-200 shadow-lg p-6"
             >
               <div className="flex items-center justify-between mb-8">
                 <div>
@@ -337,7 +320,7 @@ const ServicesPage = () => {
                   <Save className="w-4 h-4" /> Save Configuration
                 </button>
               </div>
-            </motion.div>
+            </div>
           </div>,
           document.body
         )}
@@ -345,19 +328,13 @@ const ServicesPage = () => {
       {/* Service Create/Edit Modal */}
       {isServiceModalOpen && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" aria-modal="true" role="dialog">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => setIsServiceModalOpen(false)}
-              className="absolute inset-0 bg-slate-900/50 backdrop-blur-md"
+              className="absolute inset-0 bg-slate-900/40"
               aria-hidden
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl border border-white overflow-hidden p-8"
+            <div
+              className="relative w-full max-w-lg bg-white rounded-lg border border-slate-200 shadow-lg p-6"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-8">
@@ -412,7 +389,7 @@ const ServicesPage = () => {
                   <Save className="w-4 h-4" /> {currentService ? 'Save Changes' : 'Create Service'}
                 </button>
               </div>
-            </motion.div>
+            </div>
           </div>,
           document.body
         )}
@@ -420,19 +397,13 @@ const ServicesPage = () => {
       {/* Delete Service Confirmation */}
       {serviceToDelete && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" aria-modal="true" role="dialog">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => setServiceToDelete(null)}
-              className="absolute inset-0 bg-slate-900/50 backdrop-blur-md"
+              className="absolute inset-0 bg-slate-900/40"
               aria-hidden
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl border border-white overflow-hidden p-8"
+            <div
+              className="relative w-full max-w-md bg-white rounded-lg border border-slate-200 shadow-lg p-6"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="text-center mb-8">
@@ -460,7 +431,7 @@ const ServicesPage = () => {
                   Delete
                 </button>
               </div>
-            </motion.div>
+            </div>
           </div>,
           document.body
         )}

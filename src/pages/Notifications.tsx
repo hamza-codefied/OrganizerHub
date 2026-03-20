@@ -14,7 +14,6 @@ import {
   Radio,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { motion } from 'framer-motion';
 import CustomSelect from '../components/CustomSelect';
 import DetailsDialog from '../components/DetailsDialog';
 import ConfirmationDialog from '../components/ConfirmationDialog';
@@ -151,7 +150,7 @@ const NotificationsPage = () => {
   };
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700">
+    <div className="space-y-12">
       <PageHeader 
         title="Notifications" 
         description="Send push notifications and alerts to home owners or organizers."
@@ -257,13 +256,8 @@ const NotificationsPage = () => {
                {filteredNotifications.map((log, i) => {
                  const Icon = typeToIcon[log.type];
                  return (
-                   <motion.div
-                     key={log.id}
-                     initial={{ opacity: 0, y: 20 }}
-                     animate={{ opacity: 1, y: 0 }}
-                     transition={{ delay: i * 0.1 }}
-                   >
-                     <GlassCard className="p-6 flex items-center justify-between group cursor-pointer hover:border-primary/20 border-white/60 shadow-xl transition-all duration-500">
+                   <div key={log.id}>
+                     <GlassCard className="p-6 flex items-center justify-between border-slate-200">
                         <div className="flex items-center gap-6">
                           <div
                             className={cn(
@@ -303,7 +297,7 @@ const NotificationsPage = () => {
                           </button>
                         </div>
                      </GlassCard>
-                   </motion.div>
+                   </div>
                  );
                })}
             </div>
@@ -343,7 +337,7 @@ const NotificationsPage = () => {
               onChange={(value) => setCreateForm((p) => ({ ...p, target: value as TargetCluster }))}
               options={[
                 { value: 'All Home Owners', label: 'All Home Owners' },
-                { value: 'Partners', label: 'Partners' },
+                { value: 'Organizers', label: 'Organizers' },
               ]}
               placeholder="Select target"
             />
@@ -399,7 +393,7 @@ const NotificationsPage = () => {
               onClick={createNotification}
               className="flex-1 py-4 primary-gradient text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all"
             >
-              Create
+              Send
             </button>
           </div>
         </div>

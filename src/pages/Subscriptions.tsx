@@ -8,7 +8,6 @@ import {
   TrendingUp, Plus, Edit3, Trash2, X, Archive, RotateCcw,
   BarChart, Megaphone, ArrowUpCircle, Settings
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const SubscriptionsPage = () => {
   const [plans, setPlans] = useState(INITIAL_PLANS);
@@ -55,7 +54,7 @@ const SubscriptionsPage = () => {
   };
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700">
+    <div className="space-y-12">
       <PageHeader 
         title="Subscriptions" 
         description="Manage subscription plans and see who is subscribed."
@@ -80,16 +79,11 @@ const SubscriptionsPage = () => {
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-        {plans.map((plan, idx) => (
-          <motion.div
-            key={plan.id}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: idx * 0.15 }}
-          >
+        {plans.map((plan) => (
+          <div key={plan.id}>
             <GlassCard className={cn(
-              "relative overflow-hidden group p-10 h-full border-white/60 shadow-2xl transition-all duration-500 hover:scale-[1.02]",
-              plan.name === 'Premium' ? "border-primary/20 bg-emerald-50/5 shadow-primary/5" : ""
+              "relative overflow-hidden group p-10 h-full border border-slate-200 shadow-sm",
+              plan.name === 'Premium' ? "border-primary/30 bg-slate-50/50" : ""
             )}>
               <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                  <button onClick={() => handleOpenPlanModal(plan)} className="p-2 hover:bg-white rounded-xl text-slate-400 hover:text-primary shadow-sm border border-slate-100 bg-white/50 transition-all">
@@ -141,7 +135,7 @@ const SubscriptionsPage = () => {
                 ))}
               </ul>
             </GlassCard>
-          </motion.div>
+          </div>
         ))}
       </div>
 
@@ -170,13 +164,10 @@ const SubscriptionsPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {ORGANIZERS.slice(0, 10).map((org, i) => (
-                  <motion.tr 
+                {ORGANIZERS.slice(0, 10).map((org) => (
+                  <tr 
                     key={org.id} 
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5 + (i * 0.05) }}
-                    className="hover:bg-white/60 transition-colors group"
+                    className="hover:bg-slate-50 transition-colors group"
                   >
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-4">
@@ -215,7 +206,7 @@ const SubscriptionsPage = () => {
                          <button className="text-[9px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100 transition-all">Cancel</button>
                       </div>
                     </td>
-                  </motion.tr>
+                  </tr>
                 ))}
               </tbody>
             </table>
@@ -229,8 +220,8 @@ const SubscriptionsPage = () => {
       {/* Plan Modal */}
       {isPlanModalOpen && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 z-9999 flex items-center justify-center p-4" aria-modal="true" role="dialog">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsPlanModalOpen(false)} className="absolute inset-0 bg-slate-900/50 backdrop-blur-md" aria-hidden />
-            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl border border-white overflow-hidden p-10">
+            <div onClick={() => setIsPlanModalOpen(false)} className="absolute inset-0 bg-slate-900/40" aria-hidden />
+            <div className="relative w-full max-w-2xl bg-white rounded-lg border border-slate-200 shadow-lg p-8">
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h2 className="text-3xl font-black text-slate-800 tracking-tighter">
@@ -295,7 +286,7 @@ const SubscriptionsPage = () => {
                    Save plan
                 </button>
               </div>
-            </motion.div>
+            </div>
           </div>,
           document.body
         )}

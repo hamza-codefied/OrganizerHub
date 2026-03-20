@@ -4,7 +4,6 @@ import { DataTable } from '../components/DataTable';
 import { REVIEWS, RATING_TRENDS } from '../data/mockData';
 import { cn } from '../lib/utils';
 import { Star, Flag, Trash2, MessageSquare, ShieldAlert, CheckCircle2, TrendingUp, Filter, Eye } from 'lucide-react';
-import { motion } from 'framer-motion';
 import ConfirmationDialog from '../components/ConfirmationDialog';
 import DetailsDialog from '../components/DetailsDialog';
 
@@ -81,7 +80,7 @@ const ReviewsPage = () => {
 
   return (
     <>
-      <div className="space-y-12 animate-in fade-in duration-700">
+      <div className="space-y-12">
       <PageHeader 
         title="Reviews" 
         description="Review customer feedback. Flag issues, verify entries, or delete reviews."

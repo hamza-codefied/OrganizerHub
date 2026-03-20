@@ -16,14 +16,13 @@ import {
   Briefcase, CreditCard, DollarSign,
   Download, FileSpreadsheet, MapPin
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 const AnalyticsPage = () => {
   const COLORS = ['#288E66', '#DD647F', '#3B82F6', '#F59E0B', '#8B5CF6'];
   const [activeTab, setActiveTab] = useState<'overview' | 'intelligence'>('overview');
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700">
+    <div className="space-y-12">
       <PageHeader 
         title="Predictive Analytics" 
         description="Deep learning insights into platform growth, churn, and strategic market capture."
@@ -151,13 +150,11 @@ const AnalyticsPage = () => {
                       </div>
                       <span className="text-sm font-black text-slate-400 group-hover:text-primary transition-colors">{loc.value}</span>
                    </div>
-                   <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden border border-white shadow-inner">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(loc.value / 850) * 100}%` }}
-                        transition={{ duration: 1.5, delay: i * 0.1 }}
-                        className={cn("h-full rounded-full shadow-lg", i === 0 ? "bg-primary" : "bg-slate-300")}
-                      ></motion.div>
+                   <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div 
+                        style={{ width: `${(loc.value / 850) * 100}%` }}
+                        className={cn("h-full rounded-full", i === 0 ? "bg-primary" : "bg-slate-300")}
+                      />
                    </div>
                 </div>
               ))}

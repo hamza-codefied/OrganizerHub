@@ -8,13 +8,12 @@ import {
   ShoppingBag, Clock, ShieldAlert, ShieldOff, ShieldCheck,
   ChevronLeft, ExternalLink
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 const HomeOwnerDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const homeOwner = HOME_OWNERS.find(h => h.id === id);
-  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'reviews' | 'favorites'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'favorites'>('overview');
 
   if (!homeOwner) {
     return (
@@ -27,7 +26,7 @@ const HomeOwnerDetails = () => {
   }
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
+    <div className="space-y-10">
       <div className="flex items-center gap-4 mb-2">
         <button 
           onClick={() => navigate('/users/home-owners')}
@@ -47,10 +46,6 @@ const HomeOwnerDetails = () => {
           <GlassCard className="p-0 overflow-hidden">
             <div className="h-32 primary-gradient opacity-10 blur-3xl -mb-16"></div>
             <div className="p-8 pt-0 flex flex-col items-center text-center">
-              <div className="w-32 h-32 rounded-[2.5rem] bg-white border-4 border-white shadow-2xl overflow-hidden mb-6 relative">
-                 <img src={homeOwner.avatar} alt={homeOwner.name} className="w-full h-full object-cover" />
-                 <div className="absolute bottom-2 right-2 w-6 h-6 bg-emerald-500 border-4 border-white rounded-full"></div>
-              </div>
               <h1 className="text-3xl font-black text-slate-800 tracking-tighter">{homeOwner.name}</h1>
               <p className="text-sm font-bold text-slate-400 mt-2 uppercase tracking-widest">Premium home owner</p>
               
@@ -65,6 +60,16 @@ const HomeOwnerDetails = () => {
               </div>
 
               <div className="w-full space-y-4 mt-10 text-left pt-8 border-t border-slate-100">
+                 <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">First name</p>
+                      <p className="text-sm font-bold text-slate-800">{homeOwner.firstName}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Last name</p>
+                      <p className="text-sm font-bold text-slate-800">{homeOwner.lastName}</p>
+                    </div>
+                 </div>
                  <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
                        <Mail className="w-4 h-4" />
@@ -91,6 +96,20 @@ const HomeOwnerDetails = () => {
                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Location</p>
                        <p className="text-sm font-bold text-slate-800">{homeOwner.location}</p>
                     </div>
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">DOB</p>
+                      <p className="text-sm font-bold text-slate-800">{homeOwner.dob}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Gender</p>
+                      <p className="text-sm font-bold text-slate-800">{homeOwner.gender}</p>
+                    </div>
+                 </div>
+                 <div>
+                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Join date</p>
+                   <p className="text-sm font-bold text-slate-800">{homeOwner.joinedDate}</p>
                  </div>
               </div>
             </div>
@@ -131,7 +150,6 @@ const HomeOwnerDetails = () => {
              tabs={[
                { id: 'overview', label: 'Overview' },
                { id: 'bookings', label: 'Bookings' },
-               { id: 'reviews', label: 'Reviews' },
                { id: 'favorites', label: 'Favorites' },
              ]}
              activeTab={activeTab}
@@ -145,7 +163,6 @@ const HomeOwnerDetails = () => {
                       {[
                         { label: 'Bookings', value: homeOwner.totalBookings, icon: ShoppingBag, color: 'primary' },
                         { label: 'Total spending', value: formatCurrency(homeOwner.totalSpent), icon: Star, color: 'blue' },
-                        { label: 'Reviews', value: homeOwner.reviewsGiven, icon: ShieldCheck, color: 'orange' },
                         { label: 'Favorites', value: homeOwner.favorites, icon: Heart, color: 'secondary' },
                       ].map((stat, i) => (
                         <GlassCard key={i} className="flex items-center gap-6 p-6">
@@ -220,32 +237,6 @@ const HomeOwnerDetails = () => {
                           booking.status === 'Pending' ? "bg-amber-50 text-amber-600 border-amber-100" :
                           "bg-rose-50 text-rose-600 border-rose-100"
                         )}>{booking.status}</div>
-                      </div>
-                    </GlassCard>
-                  ))}
-                </div>
-              )}
-
-              {activeTab === 'reviews' && (
-                <div className="space-y-4">
-                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] px-2 mb-2">{homeOwner.reviewsGiven} reviews submitted</p>
-                  {Array.from({ length: Math.min(homeOwner.reviewsGiven, 5) }).map((_, i) => (
-                    <GlassCard key={i} className="p-8">
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-2">
-                           <div className="flex bg-amber-50 p-2 rounded-xl border border-amber-100 gap-1">
-                              {Array.from({ length: 5 }).map((_, j) => (
-                                <Star key={j} className={cn("w-4 h-4", j < (4 + (i % 2)) ? "fill-amber-400 text-amber-400" : "text-slate-200")} />
-                              ))}
-                           </div>
-                           <span className="text-sm font-black text-slate-800 ml-2">{(4 + (i % 2)).toFixed(1)} rating</span>
-                        </div>
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Review date: 2024.0{(i % 9) + 1}.{String((i % 28) + 1).padStart(2, '0')}</span>
-                      </div>
-                      <p className="text-lg font-bold text-slate-600 italic leading-snug">"Great experience (mock review)."</p>
-                      <div className="flex items-center gap-3 mt-8 pt-6 border-t border-slate-50">
-                         <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-primary font-black border border-slate-100 shadow-inner">P</div>
-                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Organizer: <span className="text-primary">Sarah Green</span></p>
                       </div>
                     </GlassCard>
                   ))}

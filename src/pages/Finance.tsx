@@ -11,7 +11,6 @@ import {
   CheckCircle2, XCircle, RotateCcw,
   ArrowUpRight, Activity, Download, Briefcase
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import DetailsDialog from '../components/DetailsDialog';
 
 const FinancePage = () => {
@@ -81,7 +80,7 @@ const FinancePage = () => {
 
   return (
     <>
-      <div className="space-y-10 animate-in fade-in duration-700">
+      <div className="space-y-10">
       <PageHeader 
         title="Finance" 
         description="Track payments, fees, and payouts in one place."
@@ -115,7 +114,7 @@ const FinancePage = () => {
       />
 
       {activeTab === 'ledgers' && (
-        <div className="animate-in slide-in-from-bottom-4 duration-500">
+        <div>
            <DataTable 
              columns={transactionColumns} 
              data={transactions} 
@@ -151,15 +150,15 @@ const FinancePage = () => {
       )}
 
       {activeTab === 'reports' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-in slide-in-from-bottom-4 duration-500">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           <GlassCard title="Last 7 Days" subtitle="Commission and revenue overview.">
               <div className="mt-8 space-y-6">
                  {REVENUE_REPORTS.daily.map((day, i) => (
                    <div key={i} className="flex items-center gap-6 group">
                       <div className="w-10 text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-primary transition-colors">{day.name}</div>
-                      <div className="flex-1 h-3 bg-slate-50 rounded-full overflow-hidden border border-slate-100 flex shadow-inner">
-                         <motion.div initial={{ width: 0 }} animate={{ width: `${(day.revenue / 5000) * 100}%` }} transition={{ duration: 1, delay: i * 0.1 }} className="h-full bg-slate-200 group-hover:bg-slate-300 transition-colors" />
-                         <motion.div initial={{ width: 0 }} animate={{ width: `${(day.commission / 5000) * 100}%` }} transition={{ duration: 1, delay: i * 0.1 + 0.5 }} className="h-full primary-gradient shadow-[0_0_15px_rgba(0,0,0,0.1)]" />
+                      <div className="flex-1 h-3 bg-slate-50 rounded-full overflow-hidden border border-slate-100 flex">
+                         <div style={{ width: `${(day.revenue / 5000) * 100}%` }} className="h-full bg-slate-200" />
+                         <div style={{ width: `${(day.commission / 5000) * 100}%` }} className="h-full bg-primary" />
                       </div>
                       <div className="w-24 text-right">
                          <p className="text-xs font-black text-slate-800 tracking-tighter">{formatCurrency(day.revenue)}</p>

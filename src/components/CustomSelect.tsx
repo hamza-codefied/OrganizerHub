@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '../lib/utils';
 
 export type SelectOption = {
@@ -60,9 +59,9 @@ export default function CustomSelect({
         disabled={disabled}
         onClick={() => !disabled && setOpen((v) => !v)}
         className={cn(
-          'w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none',
-          'focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all',
-          'flex items-center justify-between gap-3',
+          'w-full bg-white border border-slate-200 rounded-md py-2.5 px-3 text-sm outline-none',
+          'focus:border-primary focus:ring-1 focus:ring-primary/20',
+          'flex items-center justify-between gap-2',
           disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer',
         )}
         role="combobox"
@@ -71,54 +70,43 @@ export default function CustomSelect({
         <span className={cn(!selectedLabel && 'text-slate-400', selectedLabel && 'text-slate-800', 'truncate')}>
           {display}
         </span>
-        <ChevronDown className={cn('w-4 h-4 text-slate-400 transition-transform', open && 'rotate-180')} />
+        <ChevronDown className={cn('w-4 h-4 text-slate-400 shrink-0', open && 'rotate-180')} />
       </button>
 
-      <AnimatePresence>
-        {open && !disabled && (
-          <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.98 }}
-            transition={{ duration: 0.15 }}
-            className="absolute z-[200] mt-2 w-full bg-white/90 backdrop-blur-md border border-slate-100 rounded-[1.5rem] shadow-2xl overflow-hidden"
-          >
-            <div className="max-h-64 overflow-auto">
-              {options.length === 0 ? (
-                <div className="px-4 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                  No options
-                </div>
-              ) : (
-                options.map((opt) => {
-                  const isSelected = opt.value === value;
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      disabled={opt.disabled}
-                      onClick={() => {
-                        if (opt.disabled) return;
-                        onChange(opt.value);
-                        setOpen(false);
-                      }}
-                      className={cn(
-                        'w-full text-left px-5 py-3 text-sm font-bold transition-colors',
-                        opt.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
-                        isSelected
-                          ? 'bg-primary/10 text-primary'
-                          : 'bg-transparent text-slate-700 hover:bg-slate-50',
-                      )}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {open && !disabled && (
+        <div className="absolute z-[200] mt-1 w-full bg-white border border-slate-200 rounded-md shadow-md overflow-hidden">
+          <div className="max-h-64 overflow-auto">
+            {options.length === 0 ? (
+              <div className="px-3 py-2 text-sm text-slate-400">No options</div>
+            ) : (
+              options.map((opt) => {
+                const isSelected = opt.value === value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    disabled={opt.disabled}
+                    onClick={() => {
+                      if (opt.disabled) return;
+                      onChange(opt.value);
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      'w-full text-left px-3 py-2 text-sm',
+                      opt.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+                      isSelected
+                        ? 'bg-primary/10 text-primary font-medium'
+                        : 'text-slate-700 hover:bg-slate-50',
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

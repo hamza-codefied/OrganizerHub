@@ -6,7 +6,6 @@ import {
   Lock, Key, Zap, ShieldCheck
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { motion } from 'framer-motion';
 import ConfirmationDialog from '../components/ConfirmationDialog';
 import DetailsDialog from '../components/DetailsDialog';
 
@@ -75,7 +74,7 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700">
+    <div className="space-y-12">
       <PageHeader 
         title="Settings" 
         description="Manage platform rules, fees, and security."
@@ -93,23 +92,20 @@ const SettingsPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         <div className="lg:col-span-3 space-y-3">
            {tabs.map((tab, i) => (
-             <motion.button
+             <button
                key={tab.key}
                type="button"
-               initial={{ opacity: 0, x: -20 }}
-               animate={{ opacity: 1, x: 0 }}
-               transition={{ delay: i * 0.05 }}
                onClick={() => setActiveTab(tab.key)}
                className={cn(
-                 "w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all",
+                 "w-full flex items-center gap-4 px-4 py-3 rounded-md text-sm font-medium text-left",
                  activeTab === tab.key
                    ? "nav-active-item"
-                   : "text-slate-400 hover:bg-white/60 hover:text-primary hover:shadow-lg border border-transparent"
+                   : "text-slate-600 hover:bg-slate-50 border border-transparent"
                )}
              >
                <tab.icon className="w-5 h-5 shrink-0" />
                {tab.name}
-             </motion.button>
+             </button>
            ))}
            
           
@@ -154,7 +150,7 @@ const SettingsPage = () => {
                 </div>
 
                 <div className="pt-10 border-t border-slate-100 space-y-8">
-                  <div className="flex items-center justify-between group">
+                  {/* <div className="flex items-center justify-between group">
                     <div className="max-w-md">
                       <p className="font-black text-slate-800 text-base tracking-tight leading-none group-hover:text-primary transition-colors">
                         Fast payouts
@@ -176,7 +172,7 @@ const SettingsPage = () => {
                     >
                       {settings.acceleratedPayouts ? <ToggleRight className="w-12 h-12" /> : <ToggleLeft className="w-12 h-12" />}
                     </button>
-                  </div>
+                  </div> */}
                   <div className="flex items-center justify-between group">
                     <div className="max-w-md">
                       <p className="font-black text-slate-800 text-base tracking-tight leading-none group-hover:text-secondary transition-colors">
