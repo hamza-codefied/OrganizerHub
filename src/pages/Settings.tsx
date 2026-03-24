@@ -10,7 +10,7 @@ import ConfirmationDialog from '../components/ConfirmationDialog';
 import DetailsDialog from '../components/DetailsDialog';
 
 const SettingsPage = () => {
-  type TabKey = 'core' | 'security' | 'financial' | 'team' | 'lexicon';
+  type TabKey = 'core' | 'security' | 'financial';
 
   type SettingsState = {
     commissionFactor: number;
@@ -22,8 +22,6 @@ const SettingsPage = () => {
     financialTierCap: number;
     maxPropagationBatch: number;
     emergencyActionsAllowed: boolean;
-    teamLead: string;
-    globalTagline: string;
   };
 
   const [activeTab, setActiveTab] = useState<TabKey>('core');
@@ -37,8 +35,6 @@ const SettingsPage = () => {
     financialTierCap: 20,
     maxPropagationBatch: 25,
     emergencyActionsAllowed: false,
-    teamLead: 'Ops Lead',
-    globalTagline: 'Your events, simplified.',
   });
 
   const [syncConfirmOpen, setSyncConfirmOpen] = useState(false);
@@ -52,8 +48,6 @@ const SettingsPage = () => {
         { key: 'core' as const, name: 'General', icon: SettingsIcon },
         { key: 'security' as const, name: 'Security', icon: Shield },
         { key: 'financial' as const, name: 'Payments', icon: CreditCard },
-        { key: 'team' as const, name: 'Team', icon: Users },
-        { key: 'lexicon' as const, name: 'Branding', icon: Globe },
       ] as const,
     [],
   );
@@ -227,38 +221,6 @@ const SettingsPage = () => {
                     />
                     <div className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 font-black">%</div>
                   </div>
-                </div>
-              </div>
-            </GlassCard>
-          )}
-
-          {activeTab === 'team' && (
-            <GlassCard title="Team" subtitle="Ops & Permissions">
-              <div className="mt-6 space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Team Lead</label>
-                  <input
-                    type="text"
-                    value={settings.teamLead}
-                    onChange={(e) => setSettings((prev) => ({ ...prev, teamLead: e.target.value }))}
-                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-800 outline-none focus:bg-white focus:border-primary/20 transition-all shadow-inner"
-                  />
-                </div>
-              </div>
-            </GlassCard>
-          )}
-
-          {activeTab === 'lexicon' && (
-            <GlassCard title="Branding" subtitle="Platform Messaging">
-              <div className="mt-6 space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tagline</label>
-                  <input
-                    type="text"
-                    value={settings.globalTagline}
-                    onChange={(e) => setSettings((prev) => ({ ...prev, globalTagline: e.target.value }))}
-                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-800 outline-none focus:bg-white focus:border-primary/20 transition-all shadow-inner"
-                  />
                 </div>
               </div>
             </GlassCard>

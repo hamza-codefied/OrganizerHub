@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { cn } from '../lib/utils';
-import { ChevronLeft, ChevronRight, MoreHorizontal, Search, SlidersHorizontal, Eye, Edit3, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MoreHorizontal, Search, X, Eye, Edit3, Trash2 } from 'lucide-react';
 
 interface Column<T> {
   header: string;
@@ -9,10 +9,10 @@ interface Column<T> {
 }
 
 export interface RowAction<T> {
-  label: string;
+  label: string | ((item: T) => string);
   icon: React.ComponentType<{ className?: string }>;
   onClick: (item: T) => void;
-  variant?: 'default' | 'danger' | 'success';
+  variant?: 'default' | 'danger' | 'success' | ((item: T) => 'default' | 'danger' | 'success');
 }
 
 interface DataTableProps<T> {
@@ -53,24 +53,29 @@ function ActionDropdown<T>({ item, actions }: { item: T; actions: RowAction<T>[]
       </button>
       {open && (
         <div className="absolute right-0 top-full mt-1 bg-white rounded-md border border-slate-200 shadow-md z-50 py-1 min-w-[160px]">
-          {actions.map((action, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={(e) => { e.stopPropagation(); action.onClick(item); setOpen(false); }}
-              className={cn(
-                "w-full flex items-center gap-2 px-3 py-2 text-sm text-left",
-                action.variant === 'danger' 
-                  ? "text-rose-600 hover:bg-rose-50" 
-                  : action.variant === 'success'
-                  ? "text-emerald-700 hover:bg-emerald-50" 
-                  : "text-slate-700 hover:bg-slate-50"
-              )}
-            >
-              <action.icon className="w-4 h-4 shrink-0" />
-              {action.label}
-            </button>
-          ))}
+          {actions.map((action, i) => {
+            const label = typeof action.label === 'function' ? action.label(item) : action.label;
+            const variant = typeof action.variant === 'function' ? action.variant(item) : action.variant;
+            
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); action.onClick(item); setOpen(false); }}
+                className={cn(
+                  "w-full flex items-center gap-2 px-3 py-2 text-sm text-left",
+                  variant === 'danger' 
+                    ? "text-rose-600 hover:bg-rose-50" 
+                    : variant === 'success'
+                    ? "text-emerald-700 hover:bg-emerald-50" 
+                    : "text-slate-700 hover:bg-slate-50"
+                )}
+              >
+                <action.icon className="w-4 h-4 shrink-0" />
+                {label}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
@@ -150,7 +155,7 @@ export function DataTable<T extends { id: string | number }>({
           }}
           className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-md text-sm text-slate-600 hover:bg-slate-50 w-full sm:w-auto justify-center"
         >
-          <SlidersHorizontal className="w-4 h-4" />
+          <X className="w-4 h-4" />
           Clear search
         </button>
       </div>

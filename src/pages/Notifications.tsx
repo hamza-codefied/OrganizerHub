@@ -153,177 +153,141 @@ const NotificationsPage = () => {
     <div className="space-y-12">
       <PageHeader 
         title="Notifications" 
-        description="Send push notifications and alerts to home owners or organizers."
-      />
+        description="Broadcast platform-wide updates or targeted alerts."
+      >
+        <button
+           type="button"
+           onClick={() => setCreateOpen(true)}
+           className="flex items-center justify-center gap-2 primary-gradient text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all outline-none"
+        >
+           <Send className="w-4 h-4" />
+           New Notification
+        </button>
+      </PageHeader>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        <div className="lg:col-span-12">
-          <GlassCard title="Send notification" subtitle="Create and send a new message to your audience.">
-            <div className="space-y-8 mt-6">
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Audience</label>
-                <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setClusterTarget('All Home Owners')}
-                    className={cn(
-                      'flex flex-col gap-2 items-center justify-center py-5 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all border-white shadow-xl',
-                      clusterTarget === 'All Home Owners'
-                        ? 'border-primary/20 bg-primary/5 text-primary hover:bg-primary/10'
-                        : 'border-slate-100 bg-white/0 text-slate-400 hover:bg-slate-50',
-                    )}
-                  >
-                    <Users className="w-5 h-5 shrink-0" />
-                    <span>All Home Owners</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setClusterTarget('Partners')}
-                    className={cn(
-                      'flex flex-col gap-2 items-center justify-center py-5 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all border-white shadow-xl',
-                      clusterTarget === 'Partners'
-                        ? 'border-secondary/20 bg-secondary/5 text-secondary hover:bg-secondary/10'
-                        : 'border-slate-100 bg-white/0 text-slate-400 hover:bg-slate-50',
-                    )}
-                  >
-                    <Briefcase className="w-5 h-5 shrink-0" />
-                    <span>Organizers</span>
-                  </button>
-                </div>
-              </div>
-
-              <button
+      <div className="space-y-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-2">
+           <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+              <History className="w-5 h-5 text-primary" />
+              History
+           </h3>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+             <div className="relative group flex-1 sm:flex-none">
+                <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" />
+                <input
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  type="text"
+                  placeholder="Search..."
+                  className="w-full sm:w-64 bg-white border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-xs font-bold outline-none focus:bg-white focus:border-primary/20 transition-all shadow-sm"
+                />
+             </div>
+             <button
                 type="button"
-                onClick={openCreate}
-                className="w-full sm:w-[280px] mx-auto py-4 sm:py-5 primary-gradient text-white rounded-xl sm:rounded-[2rem] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all active:scale-95 group"
-              >
-                <Send className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                New Notification
-              </button>
-            </div>
-          </GlassCard>
+                onClick={() => setShowTypeFilter((v) => !v)}
+                className={cn(
+                  'p-2.5 border border-slate-200 bg-white rounded-xl hover:bg-slate-50 transition-all shadow-sm',
+                  showTypeFilter && 'border-primary/30 bg-primary/5',
+                )}
+                aria-label="Filter by type"
+             >
+                <Filter className="w-4 h-4 text-slate-400" />
+             </button>
+          </div>
         </div>
 
-        {/* Sent notifications section (commented out) */}
-        {/*
-          <div className="lg:col-span-8">
-            <div className="flex items-center justify-between mb-8 px-2">
-               <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                  <History className="w-5 h-5 text-primary" />
-                  Sent notifications
-               </h3>
-              <div className="flex gap-3">
-                 <div className="relative group">
-                    <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" />
-                    <input
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      type="text"
-                      placeholder="Search notifications..."
-                      className="bg-white/40 border border-white/60 rounded-xl py-2 pl-10 pr-4 text-xs font-bold outline-none w-48 focus:bg-white transition-all shadow-sm"
-                    />
-                 </div>
-                 <button
-                    type="button"
-                    onClick={() => setShowTypeFilter((v) => !v)}
-                    className={cn(
-                      'p-2.5 border border-white/60 bg-white/40 backdrop-blur-md rounded-xl hover:bg-white transition-all shadow-sm',
-                      showTypeFilter && 'border-primary/30 bg-primary/5',
-                    )}
-                    aria-label="Filter by type"
-                 >
-                    <Filter className="w-4 h-4 text-slate-400" />
-                 </button>
-              </div>
-            </div>
-
-            {showTypeFilter && (
-              <div className="mb-6 px-2">
-                <CustomSelect
-                  value={typeFilter}
-                  onChange={(value) => setTypeFilter(value as 'all' | NotificationType)}
-                  options={[
-                    { value: 'all', label: 'All Types' },
-                    { value: 'System', label: 'System' },
-                    { value: 'Finance', label: 'Finance' },
-                    { value: 'Marketing', label: 'Marketing' },
-                    { value: 'Legal', label: 'Legal' },
-                  ]}
-                  placeholder="Filter by type"
-                />
-              </div>
-            )}
-
-            <div className="space-y-4">
-               {filteredNotifications.map((log, i) => {
-                 const Icon = typeToIcon[log.type];
-                 return (
-                   <div key={log.id}>
-                     <GlassCard className="p-6 flex items-center justify-between border-slate-200">
-                        <div className="flex items-center gap-6">
-                          <div
-                            className={cn(
-                              'w-12 h-12 rounded-2xl flex items-center justify-center border border-white shadow-lg transition-all duration-500 group-hover:rotate-6',
-                              log.type === 'Marketing'
-                                ? 'bg-amber-50 text-amber-600'
-                                : log.type === 'Finance'
-                                  ? 'bg-emerald-50 text-emerald-600'
-                                  : log.type === 'Legal'
-                                    ? 'bg-rose-50 text-rose-600'
-                                    : 'bg-blue-50 text-blue-600',
-                            )}
-                          >
-                            <Icon className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <h4 className="font-black text-slate-800 text-base tracking-tight leading-none group-hover:text-primary transition-colors">{log.title}</h4>
-                            <div className="flex items-center gap-3 text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2 px-1">
-                               <span className="flex items-center gap-1.5"><Users className="w-3 h-3" /> {log.target}</span>
-                               <span className="text-slate-200">|</span>
-                               <span>{log.date}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-10">
-                          <div className="text-right hidden sm:block">
-                            <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] mb-1">Reach</p>
-                            <p className="font-black text-lg text-primary tracking-tighter">{log.reach}</p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setDeleteTargetId(log.id)}
-                            className="p-3 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all border border-transparent hover:border-rose-100"
-                            aria-label="Delete notification"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                     </GlassCard>
-                   </div>
-                 );
-               })}
-            </div>
-            
-            <button
-              type="button"
-              onClick={() => {
-                const newLog: NotificationLog = {
-                  id: `notif-${Date.now()}`,
-                  title: 'Older notifications synced',
-                  target: clusterTarget,
-                  date: 'Just Now',
-                  reach: '0.0k',
-                  type: 'System',
-                  payload: 'Mock sync action: legacy propagation log has been re-indexed.',
-                };
-                setNotifications((prev) => [newLog, ...prev]);
-              }}
-              className="w-full mt-10 py-5 border-2 border-dashed border-slate-200 rounded-[2rem] text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-all"
-            >
-              Load older notifications
-            </button>
+        {showTypeFilter && (
+          <div className="px-2 max-w-xs transition-all animate-in fade-in slide-in-from-top-2 duration-300">
+            <CustomSelect
+              value={typeFilter}
+              onChange={(value) => setTypeFilter(value as 'all' | NotificationType)}
+              options={[
+                { value: 'all', label: 'All Types' },
+                { value: 'System', label: 'System' },
+                { value: 'Finance', label: 'Finance' },
+                { value: 'Marketing', label: 'Marketing' },
+                { value: 'Legal', label: 'Legal' },
+              ]}
+              placeholder="Filter by type"
+            />
           </div>
-        */}
+        )}
+
+        <div className="grid grid-cols-1 gap-4">
+           {filteredNotifications.map((log) => {
+             const Icon = typeToIcon[log.type];
+             return (
+               <div key={log.id} className="group">
+                 <GlassCard className="p-4 sm:p-6 flex items-center justify-between border-slate-200 hover:border-primary/20 transition-all">
+                    <div className="flex items-center gap-4 sm:gap-6">
+                      <div
+                        className={cn(
+                          'w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center border border-white shadow-lg transition-all duration-500 group-hover:scale-110',
+                          log.type === 'Marketing'
+                            ? 'bg-amber-50 text-amber-600'
+                            : log.type === 'Finance'
+                              ? 'bg-emerald-50 text-emerald-600'
+                              : log.type === 'Legal'
+                                ? 'bg-rose-50 text-rose-600'
+                                : 'bg-blue-50 text-blue-600',
+                        )}
+                      >
+                        <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-black text-slate-800 text-sm sm:text-base tracking-tight leading-none group-hover:text-primary transition-colors">{log.title}</h4>
+                        <div className="flex items-center gap-3 text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2">
+                           <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {log.target}</span>
+                           <span className="text-slate-200">|</span>
+                           <span>{log.date}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 sm:gap-10">
+                      <div className="text-right hidden sm:block">
+                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] mb-1">Reach</p>
+                        <p className="font-black text-lg text-primary tracking-tighter">{log.reach}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTargetId(log.id)}
+                        className="p-3 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all border border-transparent hover:border-rose-100"
+                        aria-label="Delete notification"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                 </GlassCard>
+               </div>
+             );
+           })}
+
+           {filteredNotifications.length === 0 && (
+             <div className="text-center py-20 bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-slate-100">
+               <Bell className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+               <p className="text-xs font-black text-slate-400 uppercase tracking-widest">No notifications found</p>
+             </div>
+           )}
+        </div>
+        
+        <button
+          type="button"
+          onClick={() => {
+            const newLog: NotificationLog = {
+              id: `notif-${Date.now()}`,
+              title: 'Legacy data synced',
+              target: 'All Home Owners',
+              date: 'Just Now',
+              reach: '0.0k',
+              type: 'System',
+              payload: 'Mock sync action: legacy propagation log has been re-indexed.',
+            };
+            setNotifications((prev) => [newLog, ...prev]);
+          }}
+          className="w-full mt-4 py-5 border-2 border-dashed border-slate-200 rounded-[2rem] text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-all outline-none"
+        >
+          Load older logs
+        </button>
       </div>
 
       <DetailsDialog
