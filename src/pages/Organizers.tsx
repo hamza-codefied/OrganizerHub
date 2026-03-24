@@ -28,56 +28,45 @@ const OrganizersPage = () => {
 
   const columns = [
     {
-      header: "Business name",
-      accessor: (org: typeof ORGANIZERS[0]) => <span className="font-black text-slate-800">{org.businessName}</span>
+      header: "Business",
+      className: "hidden sm:table-cell",
+      accessor: (org: typeof ORGANIZERS[0]) => <span className="font-black text-slate-800 text-xs sm:text-sm">{org.businessName}</span>
     },
     { 
       header: "Organizer", 
       accessor: (org: typeof ORGANIZERS[0]) => (
-        <div className="cursor-pointer group">
-          <p className="font-black text-slate-800 leading-tight tracking-tight group-hover:text-primary transition-colors">{org.name}</p>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{org.email}</p>
+        <div className="cursor-pointer group py-1">
+          <p className="font-black text-slate-800 leading-tight tracking-tight text-xs sm:text-sm group-hover:text-primary transition-colors truncate max-w-[120px] xs:max-w-none">{org.name}</p>
+          <p className="text-[9px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{org.email}</p>
         </div>
       )
     },
     {
       header: "Nationality",
+      className: "hidden xl:table-cell",
       accessor: (org: typeof ORGANIZERS[0]) => <span className="text-xs font-black text-slate-500 uppercase">{org.nationality}</span>
     },
     {
       header: "Phone",
+      className: "hidden lg:table-cell",
       accessor: (org: typeof ORGANIZERS[0]) => <span className="text-xs font-bold text-slate-600">{org.phone}</span>
     },
     {
-      header: "Documents",
+      header: "Docs",
+      className: "hidden md:table-cell",
       accessor: (org: typeof ORGANIZERS[0]) => <span className="text-xs font-bold text-slate-600">{org.documents.length}</span>
     },
     {
       header: "Location",
+      className: "hidden lg:table-cell",
       accessor: (org: typeof ORGANIZERS[0]) => <span className="text-xs font-bold text-slate-600">{org.location}</span>
     },
     {
-      header: "Join date",
-      accessor: (org: typeof ORGANIZERS[0]) => <span className="text-xs font-bold text-slate-600">{org.joinedDate}</span>
-    },
-    { 
-      header: "Services", 
-      accessor: (org: typeof ORGANIZERS[0]) => (
-        <div className="flex flex-wrap gap-1.5">
-          {org.services.slice(0, 2).map((s, i) => (
-            <span key={i} className="px-2 py-0.5 bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest rounded-md border border-primary/10">
-              {s}
-            </span>
-          ))}
-          {org.services.length > 2 && <span className="text-[10px] font-black text-slate-400">+{org.services.length - 2}</span>}
-        </div>
-      )
-    },
-    { 
       header: "Plan", 
+      className: "hidden xs:table-cell",
       accessor: (org: typeof ORGANIZERS[0]) => (
         <span className={cn(
-          "px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm",
+          "px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border shadow-sm",
           org.subscriptionPlan === 'Premium' ? "bg-amber-50/50 text-amber-600 border-amber-100" : "bg-slate-50 text-slate-400 border-slate-100"
         )}>{org.subscriptionPlan}</span>
       )
@@ -86,35 +75,34 @@ const OrganizersPage = () => {
       header: "Status", 
       accessor: (org: typeof ORGANIZERS[0]) => (
         <div className={cn(
-          "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
+          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
           org.status === 'Active' ? "bg-emerald-50/50 text-emerald-600 border-emerald-100" :
           org.status === 'Pending' ? "bg-amber-50/50 text-amber-600 border-amber-100" :
           org.status === 'Rejected' ? "bg-rose-50/50 text-rose-600 border-rose-100" :
           "bg-slate-50 text-slate-400 border-slate-200"
         )}>
-           {org.status === 'Active' ? <ShieldCheck className="w-3.5 h-3.5" /> :
-            org.status === 'Pending' ? <Clock className="w-3.5 h-3.5" /> :
-            <Ban className="w-3.5 h-3.5" />}
-           {org.status}
+           {org.status === 'Active' ? <ShieldCheck className="w-3 h-3" /> :
+            org.status === 'Pending' ? <Clock className="w-3 h-3" /> :
+            <Ban className="w-3 h-3" />}
+           <span className="hidden xs:inline">{org.status}</span>
+           <span className="xs:hidden">{org.status.charAt(0)}</span>
         </div>
       )
     },
   ];
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 sm:space-y-10">
       <PageHeader 
         title="Organizers"
-        description="Manage organizer profiles and check their status."
+        description="Manage organizer profiles and status."
       >
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
           <PremiumTabs 
             tabs={[
               { id: 'all', label: 'All' },
               { id: 'Active', label: 'Active' },
               { id: 'Pending', label: 'Pending' },
-              { id: 'Rejected', label: 'Rejected' },
-              { id: 'Deactivated', label: 'Deactivated' },
             ]}
             activeTab={statusFilter}
             onChange={setStatusFilter}
@@ -122,29 +110,25 @@ const OrganizersPage = () => {
           <button
             type="button"
             onClick={() => setShowOnboardModal(true)}
-            className="flex items-center gap-2 primary-gradient text-white px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+            className="flex items-center justify-center gap-2 primary-gradient text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-105 transition-all whitespace-nowrap"
           >
-            <UserPlus className="w-4 h-4" /> Onboard Pro
+            <UserPlus className="w-4 h-4" /> Onboard
           </button>
         </div>
       </PageHeader>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
         <StatCard
-          title="Total organizers"
+          title="Total"
           value={String(organizers.length)}
-          change={4.2}
           icon={Briefcase}
           color="primary"
-          trend="up"
         />
         <StatCard
           title="Active"
           value={String(organizers.filter((o) => o.status === 'Active').length)}
-          change={6.8}
           icon={ShieldCheck}
           color="blue"
-          trend="up"
         />
         <StatCard
           title="Pending"
@@ -153,27 +137,26 @@ const OrganizersPage = () => {
           color="orange"
         />
         <StatCard
-          title="Average rating"
+          title="Rating"
           value={String((organizers.reduce((acc, o) => acc + parseFloat(o.rating as any), 0) / Math.max(1, organizers.length)).toFixed(2))}
-          change={2.1}
           icon={Star}
           color="secondary"
-          trend="up"
         />
       </div>
 
-      <DataTable 
-        columns={columns} 
-        data={filteredOrgs} 
-        searchPlaceholder="Search by name, service, or status..."
-        onRowClick={(org) => navigate(`/users/organizers/${org.id}`)}
-        rowActions={[
-          { label: 'View', icon: Eye, onClick: (org: any) => navigate(`/users/organizers/${org.id}`) },
-          { label: 'Approve', icon: CheckCircle2, onClick: (org: Organizer) => setOrganizers((prev) => prev.map((o) => (o.id === org.id ? { ...o, status: 'Active' } : o))), variant: 'success' as const },
-          { label: 'Reject', icon: XCircle, onClick: (org: Organizer) => setOrganizers((prev) => prev.map((o) => (o.id === org.id ? { ...o, status: 'Rejected' } : o))), variant: 'danger' as const },
-          { label: 'Deactivate', icon: Power, onClick: (org: Organizer) => setOrganizers((prev) => prev.map((o) => (o.id === org.id ? { ...o, status: 'Deactivated' } : o))), variant: 'danger' as const },
-        ]}
-      />
+      <div className="mt-8 overflow-hidden">
+        <DataTable 
+          columns={columns} 
+          data={filteredOrgs} 
+          searchPlaceholder="Search organizers..."
+          onRowClick={(org) => navigate(`/users/organizers/${org.id}`)}
+          rowActions={[
+            { label: 'View Profile', icon: Eye, onClick: (org: any) => navigate(`/users/organizers/${org.id}`) },
+            { label: 'Approve', icon: CheckCircle2, onClick: (org: Organizer) => setOrganizers((prev) => prev.map((o) => (o.id === org.id ? { ...o, status: 'Active' } : o))), variant: 'success' as const },
+            { label: 'Reject', icon: XCircle, onClick: (org: Organizer) => setOrganizers((prev) => prev.map((o) => (o.id === org.id ? { ...o, status: 'Rejected' } : o))), variant: 'danger' as const },
+          ]}
+        />
+      </div>
 
       {/* Onboard Pro modal */}
       {showOnboardModal && typeof document !== 'undefined' && createPortal(

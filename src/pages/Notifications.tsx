@@ -162,7 +162,7 @@ const NotificationsPage = () => {
             <div className="space-y-8 mt-6">
               <div className="space-y-3">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Audience</label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setClusterTarget('All Home Owners')}
@@ -173,7 +173,8 @@ const NotificationsPage = () => {
                         : 'border-slate-100 bg-white/0 text-slate-400 hover:bg-slate-50',
                     )}
                   >
-                    <Users className="w-5 h-5" /> All Home Owners
+                    <Users className="w-5 h-5 shrink-0" />
+                    <span>All Home Owners</span>
                   </button>
                   <button
                     type="button"
@@ -185,7 +186,8 @@ const NotificationsPage = () => {
                         : 'border-slate-100 bg-white/0 text-slate-400 hover:bg-slate-50',
                     )}
                   >
-                    <Briefcase className="w-5 h-5" /> Organizers
+                    <Briefcase className="w-5 h-5 shrink-0" />
+                    <span>Organizers</span>
                   </button>
                 </div>
               </div>
@@ -193,10 +195,10 @@ const NotificationsPage = () => {
               <button
                 type="button"
                 onClick={openCreate}
-                className="w-[30%] mx-auto py-5 primary-gradient text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all active:scale-95 group"
+                className="w-full sm:w-[280px] mx-auto py-4 sm:py-5 primary-gradient text-white rounded-xl sm:rounded-[2rem] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all active:scale-95 group"
               >
                 <Send className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                New notification
+                New Notification
               </button>
             </div>
           </GlassCard>

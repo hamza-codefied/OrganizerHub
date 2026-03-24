@@ -182,38 +182,36 @@ const CMSPage = () => {
 
         {activeTab === 'visuals' && (
           <div
-            className="grid grid-cols-1 lg:grid-cols-2 gap-10"
+            className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10"
           >
-            <GlassCard title="Hero Velocity" subtitle="Strategic visual assets for the global landing interface.">
-              <div className="space-y-6 mt-6">
+            <GlassCard title="Hero Velocity" subtitle="Landing assets.">
+              <div className="space-y-4 sm:space-y-6 mt-6">
                  {heroSlides.map((slide, i) => (
-                   <div key={slide.id} className="group relative rounded-[2.5rem] overflow-hidden border border-white shadow-2xl">
-                      <img src={slide.img} alt="" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-1000" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent p-8 flex flex-col justify-end">
+                   <div key={slide.id} className="group relative rounded-3xl sm:rounded-[2.5rem] overflow-hidden border border-white shadow-xl">
+                      <img src={slide.img} alt="" className="w-full h-32 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-1000" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent p-4 sm:p-8 flex flex-col justify-end">
                          <div className="flex justify-between items-end">
-                            <div className="space-y-1">
-                               <div className="flex items-center gap-2 mb-1">
-                                  <span className="px-2 py-0.5 bg-primary rounded text-[7px] font-black text-white uppercase tracking-widest">{slide.type}</span>
-                                  <span className="text-white/40 text-[7px] font-black uppercase tracking-widest">{slide.status}</span>
+                            <div className="space-y-0.5 sm:space-y-1">
+                               <div className="flex items-center gap-2 mb-0.5 sm:mb-1">
+                                  <span className="px-1.5 py-0.5 bg-primary rounded text-[6px] sm:text-[7px] font-black text-white uppercase tracking-widest">{slide.type}</span>
+                                  <span className="text-white/40 text-[6px] sm:text-[7px] font-black uppercase tracking-widest">{slide.status}</span>
                                </div>
-                               <p className="text-white font-black text-xl tracking-tight leading-none">{slide.title}</p>
+                               <p className="text-white font-black text-sm sm:text-xl tracking-tight leading-tight">{slide.title}</p>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-1.5 sm:gap-2">
                                <button
                                  type="button"
                                  onClick={() => openEditSlide(slide)}
-                                 className="p-3 bg-white/10 hover:bg-primary text-white rounded-xl backdrop-blur-xl transition-all border border-white/20"
-                                 aria-label="Edit hero slide"
+                                 className="p-2 sm:p-3 bg-white/10 hover:bg-primary text-white rounded-lg sm:rounded-xl backdrop-blur-xl transition-all border border-white/20"
                                >
-                                 <Edit3 className="w-4 h-4" />
+                                 <Edit3 className="w-3.5 h-3.5 sm:w-4 h-4" />
                                </button>
                                <button
                                  type="button"
-                                 onClick={() => openView('Hero Slide Details', slide)}
-                                 className="p-3 bg-white/10 hover:bg-white text-slate-800 rounded-xl backdrop-blur-xl transition-all border border-white/20"
-                                 aria-label="View hero slide"
+                                 onClick={() => openView('Hero Details', slide)}
+                                 className="p-2 sm:p-3 bg-white/10 hover:bg-white text-slate-800 rounded-lg sm:rounded-xl backdrop-blur-xl transition-all border border-white/20"
                                >
-                                 <Eye className="w-4 h-4" />
+                                 <Eye className="w-3.5 h-3.5 sm:w-4 h-4" />
                                </button>
                             </div>
                          </div>
@@ -232,15 +230,15 @@ const CMSPage = () => {
                      };
                      setHeroSlides((prev) => [newSlide, ...prev]);
                    }}
-                   className="w-full py-6 border-2 border-dashed border-slate-200 rounded-[2.5rem] text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-all outline-none"
+                   className="w-full py-4 sm:py-6 border-2 border-dashed border-slate-200 rounded-3xl sm:rounded-[2.5rem] text-slate-400 text-[8px] sm:text-[10px] font-black uppercase tracking-widest hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-all outline-none"
                  >
-                   + Initialized New Hero Node
+                   + Add Hero Node
                  </button>
               </div>
             </GlassCard>
 
-            <GlassCard title="Featured Segments" subtitle="Curated homepage sections highlighting top-tier results.">
-               <div className="space-y-4 mt-6">
+            <GlassCard title="Segments" subtitle="Curated homepage sections.">
+               <div className="space-y-3 sm:space-y-4 mt-6">
                   {segments.map((section, i) => (
                     <div key={i} className="flex items-center justify-between p-6 bg-slate-50/50 rounded-3xl border border-slate-100 group transition-all hover:bg-white hover:shadow-xl hover:border-primary/10">
                        <div className="flex items-center gap-5">

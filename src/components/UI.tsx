@@ -14,11 +14,11 @@ interface StatCardProps {
 
 export const GlassCard: React.FC<{ children: React.ReactNode; className?: string; title?: string; subtitle?: string }> = ({ children, className, title, subtitle }) => {
   return (
-    <div className={cn("glass-card-premium p-6", className)}>
+    <div className={cn("glass-card-premium p-4 sm:p-6", className)}>
       {(title || subtitle) && (
-        <div className="mb-8">
-          {title && <h3 className="text-lg font-semibold text-slate-800">{title}</h3>}
-          {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
+        <div className="mb-4 sm:mb-8">
+          {title && <h3 className="text-base sm:text-lg font-semibold text-slate-800">{title}</h3>}
+          {subtitle && <p className="text-xs sm:text-sm text-slate-500 mt-1">{subtitle}</p>}
         </div>
       )}
       {children}
@@ -36,17 +36,17 @@ export const StatCard: React.FC<StatCardProps> = ({ title, value, change, icon: 
   };
 
   return (
-    <div className={cn("glass-card-premium p-6 flex flex-col justify-between h-full", className)}>
+    <div className={cn("glass-card-premium p-4 sm:p-6 flex flex-col justify-between h-full", className)}>
       <div className="flex justify-between items-start">
         <div className={cn(
-          "w-10 h-10 rounded-md flex items-center justify-center border",
+          "w-9 h-9 sm:w-10 sm:h-10 rounded-md flex items-center justify-center border",
           colorMap[color]
         )}>
           <Icon className="w-5 h-5" />
         </div>
         {change !== undefined && (
           <div className={cn(
-            "flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded border",
+            "flex items-center gap-1 text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded border",
             trend === 'up'
               ? "bg-emerald-50 text-emerald-700 border-emerald-100"
               : "bg-rose-50 text-rose-700 border-rose-100"
@@ -57,9 +57,9 @@ export const StatCard: React.FC<StatCardProps> = ({ title, value, change, icon: 
         )}
       </div>
 
-      <div className="mt-6">
-        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{title}</p>
-        <h2 className="text-2xl font-semibold mt-1 text-slate-900">{value}</h2>
+      <div className="mt-4 sm:mt-6">
+        <p className="text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wide">{title}</p>
+        <h2 className="text-xl sm:text-2xl font-semibold mt-1 text-slate-900">{value}</h2>
       </div>
     </div>
   );
@@ -89,7 +89,7 @@ export const PremiumTabs: React.FC<{
   className?: string;
 }> = ({ tabs, activeTab, onChange, className }) => {
   return (
-    <div className={cn("flex flex-wrap gap-0 border-b border-slate-200 w-fit max-w-full", className)}>
+    <div className={cn("flex flex-nowrap overflow-x-auto overflow-y-hidden scrollbar-none gap-0 border-b border-slate-200 w-full sm:w-fit max-w-full pb-px", className)}>
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (

@@ -55,14 +55,9 @@ const SupportPage = () => {
     { 
       header: "User", 
       accessor: (t: any) => (
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center border border-white shadow-sm overflow-hidden p-0.5">
-             <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${t.user}`} className="w-full h-full" alt="User" />
-          </div>
-          <div>
-            <p className="font-black text-slate-800 text-sm tracking-tight">{t.user}</p>
-            <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Agent: {t.agent}</p>
-          </div>
+        <div className="py-1">
+          <p className="font-black text-slate-800 text-sm tracking-tight">{t.user}</p>
+          <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Agent: {t.agent}</p>
         </div>
       )
     },
@@ -128,11 +123,11 @@ const SupportPage = () => {
         />
       </PageHeader>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        <StatCard title="Priority alerts" value="4" icon={ShieldAlert} color="secondary" trend="up" />
-        <StatCard title="Avg response time" value="14m" icon={Clock} color="blue" />
-        <StatCard title="Total FAQs" value="1,240" icon={HelpCircle} color="primary" />
-        <StatCard title="Open tickets" value="24" icon={MessageSquare} color="orange" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
+        <StatCard title="Alerts" value="4" icon={ShieldAlert} color="secondary" />
+        <StatCard title="Avg Time" value="14m" icon={Clock} color="blue" />
+        <StatCard title="Total FAQs" value="1.2k" icon={HelpCircle} color="primary" className="hidden sm:flex" />
+        <StatCard title="Open" value="24" icon={MessageSquare} color="orange" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">

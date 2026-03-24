@@ -95,11 +95,11 @@ const ReviewsPage = () => {
         />
       </PageHeader>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        <StatCard title="Average rating" value="4.9" change={2.1} icon={Star} color="primary" trend="up" />
-        <StatCard title="Total reviews" value="1,240" change={14} icon={MessageSquare} color="blue" trend="up" />
-        <StatCard title="Flagged reviews" value="12" change={5} icon={Flag} color="secondary" trend="down" />
-        <StatCard title="Trust score" value="98%" icon={ShieldAlert} color="emerald" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
+        <StatCard title="Avg Rating" value="4.9" icon={Star} color="primary" />
+        <StatCard title="Total" value="1.2k" icon={MessageSquare} color="blue" />
+        <StatCard title="Flagged" value="12" icon={Flag} color="secondary" />
+        <StatCard title="Trust" value="98%" icon={ShieldAlert} color="emerald" />
       </div>
 
       <div className="grid grid-cols-1 gap-10">
