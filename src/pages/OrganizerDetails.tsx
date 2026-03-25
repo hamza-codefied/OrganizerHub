@@ -1,17 +1,17 @@
-import { useState, useEffect, useMemo, type ChangeEvent } from 'react';
-import { createPortal } from 'react-dom';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { PageHeader, StatCard, GlassCard, PremiumTabs } from '../components/UI';
-import CustomSelect from '../components/CustomSelect';
-import { ORGANIZERS, ORGANIZER_TRANSACTIONS, REVIEWS } from '../data/mockData';
+import { GlassCard, PremiumTabs } from '../components/UI';
 import { cn, formatCurrency } from '../lib/utils';
+import { adminDeactivateProfile } from '../lib/edgeFunctions';
+import { ORGANIZERS, ORGANIZER_TRANSACTIONS, REVIEWS, ORGANIZER_PACKAGES, ORGANIZER_PROMOTIONS } from '../data/mockData';
 import { 
   BadgeCheck, Ban, Star, Briefcase, ShieldCheck, Zap,
-  X, MapPin, Mail, Phone, Calendar, Award, Image as ImageIcon,
-  Clock, Eye, ChevronLeft, CheckCircle2, XCircle, Power,
-  TrendingUp, BarChart3, CreditCard, Target, ExternalLink,
-  ChevronRight, ArrowUpRight, Users, UserPlus, Download,
-  Globe, FileText, Wallet, Receipt
+  MapPin, Mail, Phone, Calendar, Award,
+  Clock, Eye, ChevronLeft, CheckCircle2, Power,
+  TrendingUp, BarChart3, Target, ExternalLink,
+  Users,
+  Globe, FileText, Wallet, Receipt, ArrowUpRight, Download,
+  Tag, Percent, Megaphone
 } from 'lucide-react';
 
 type OrganizerStatus = 'Active' | 'Deactivated';
@@ -48,21 +48,19 @@ const TEAM_MEMBER_SKILLS = [
 ];
 
 const NATIONALITY_OPTIONS = [
-  'United Arab Emirates',
-  'Saudi Arabia',
-  'Qatar',
-  'Kuwait',
-  'Bahrain',
-  'Oman',
-  'India',
-  'Pakistan',
-  'Philippines',
-  'Egypt',
-  'Jordan',
-  'Lebanon',
-  'United Kingdom',
   'United States',
   'Canada',
+  'Mexico',
+  'United Kingdom',
+  'Germany',
+  'France',
+  'Spain',
+  'Italy',
+  'Brazil',
+  'Australia',
+  'Japan',
+  'China',
+  'India',
   'Other',
 ];
 
@@ -72,8 +70,10 @@ const OrganizerDetails = () => {
   const foundOrg = ORGANIZERS.find(o => o.id === id);
   const normalizedOrg = foundOrg ? { ...foundOrg, status: foundOrg.status === 'Active' ? 'Active' : ('Deactivated' as OrganizerStatus) } : null;
   const [org, setOrg] = useState<any>(normalizedOrg);
-  const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'reviews' | 'team' | 'transactions' | 'gallery' | 'performance'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'packages' | 'promo' | 'reviews' | 'team' | 'transactions' | 'gallery' | 'performance'>('overview');
   const [teamMembersByOrg, setTeamMembersByOrg] = useState<Record<string, TeamMember[]>>({});
+  const [apiMessage, setApiMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   useEffect(() => {
     if (foundOrg) setOrg(foundOrg);
     else setOrg(null);
@@ -94,8 +94,30 @@ const OrganizerDetails = () => {
     [orgTransactions],
   );
 
-  const updateStatus = (status: OrganizerStatus) => {
-    if (org) setOrg({ ...org, status });
+  const updateStatus = async (status: OrganizerStatus) => {
+    if (!org) return;
+    if (status === 'Active') {
+      setOrg({ ...org, status });
+      return;
+    }
+
+    const reason = window.prompt('Reason for deactivation:', 'Admin action');
+    if (!reason) return;
+
+    setIsSubmitting(true);
+    setApiMessage('');
+    try {
+      await adminDeactivateProfile({
+        target_profile_id: String(org.id),
+        reason,
+      });
+      setOrg({ ...org, status });
+      setApiMessage('Organizer deactivated successfully.');
+    } catch (error: any) {
+      setApiMessage(error?.message || 'Failed to deactivate organizer.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const currentTeamMembers = org ? teamMembersByOrg[org.id] ?? [] : [];
@@ -170,7 +192,7 @@ const OrganizerDetails = () => {
                   {org.status === 'Active' ? (
                     <button
                       type="button"
-                      onClick={() => updateStatus('Deactivated')}
+                      onClick={() => void updateStatus('Deactivated')}
                       className="w-full flex items-center justify-between p-4 bg-rose-100/40 hover:bg-rose-100/60 rounded-2xl border border-rose-200 transition-all text-rose-600"
                     >
                       <span className="text-xs font-black uppercase tracking-widest">Deactivate Account</span>
@@ -179,7 +201,7 @@ const OrganizerDetails = () => {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => updateStatus('Active')}
+                      onClick={() => void updateStatus('Active')}
                       className="w-full flex items-center justify-between p-4 primary-gradient rounded-2xl text-white transition-all shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity"
                     >
                       <span className="text-xs font-black uppercase tracking-widest">Activate Account</span>
@@ -193,6 +215,9 @@ const OrganizerDetails = () => {
                         )}>{org.status}</span>
                      </p>
                      <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-1">Last active: {org.lastActive}</p>
+                     {apiMessage ? (
+                       <p className="text-xs font-medium text-slate-600 mt-3">{apiMessage}</p>
+                     ) : null}
                   </div>
                </div>
             </GlassCard>
@@ -204,6 +229,8 @@ const OrganizerDetails = () => {
              tabs={[
                { id: 'overview', label: 'Overview' },
                { id: 'services', label: 'Services' },
+               { id: 'packages', label: 'Packages' },
+               { id: 'promo', label: 'Promo' },
                { id: 'reviews', label: 'Reviews' },
                { id: 'team', label: 'Team members' },
                { id: 'transactions', label: 'Transaction history' },
@@ -399,6 +426,94 @@ const OrganizerDetails = () => {
                       </GlassCard>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {activeTab === 'packages' && (
+                <div className="space-y-6 sm:space-y-8">
+                   <div className="flex items-center justify-between px-2">
+                      <p className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest">Active Packages & Deals</p>
+                   </div>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {ORGANIZER_PACKAGES.filter(p => p.organizerId === org.id).map(pkg => (
+                        <GlassCard key={pkg.id} className="p-6 relative overflow-hidden group border-white/60">
+                           <div className="absolute top-0 right-0 p-4">
+                              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-rose-500 text-white text-[10px] font-black rounded-lg shadow-lg border border-rose-400/20">
+                                 <Percent className="w-3 h-3" />
+                                 {pkg.discount}% OFF
+                              </div>
+                           </div>
+                           <h3 className="text-xl font-black text-slate-800 tracking-tighter mb-2 group-hover:text-primary transition-colors">{pkg.name}</h3>
+                           <p className="text-xs text-slate-500 font-bold mb-8 leading-relaxed italic pr-12">"{pkg.description}"</p>
+                           <div className="flex items-center justify-between mt-auto pt-6 border-t border-slate-50/50">
+                              <div className="flex items-end gap-2.5">
+                                 <span className="text-3xl font-black text-slate-800 tracking-tighter">${pkg.price}</span>
+                                 <span className="text-sm font-bold text-slate-400 line-through mb-1.5">${pkg.originalPrice}</span>
+                              </div>
+                              <div className={cn("px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border", 
+                                 pkg.active ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100"
+                              )}>
+                                 {pkg.active ? "Live" : "Inactive"}
+                              </div>
+                           </div>
+                        </GlassCard>
+                      ))}
+                      {ORGANIZER_PACKAGES.filter(p => p.organizerId === org.id).length === 0 && (
+                        <GlassCard className="col-span-full py-12 text-center border-dashed border-slate-200">
+                           <Tag className="w-10 h-10 text-slate-200 mx-auto mb-4" />
+                           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No active packages found</p>
+                        </GlassCard>
+                      )}
+                   </div>
+                </div>
+              )}
+
+              {activeTab === 'promo' && (
+                <div className="space-y-6 sm:space-y-8">
+                   <div className="flex items-center justify-between px-2">
+                      <p className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest">Promotion & Marketing Performance</p>
+                   </div>
+                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {ORGANIZER_PROMOTIONS.filter(p => p.organizerId === org.id).map(promo => (
+                         <GlassCard key={promo.id} className="p-6 border-white/60 hover:border-primary/20 transition-all">
+                            <div className="flex items-center justify-between mb-6">
+                               <div className={cn("px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
+                                  promo.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 
+                                  promo.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                  'bg-slate-50 text-slate-400 border-slate-100'
+                               )}>
+                                  {promo.status}
+                               </div>
+                               <Megaphone className="w-4 h-4 text-slate-300" />
+                            </div>
+                            <h4 className="text-lg font-black text-slate-800 tracking-tighter leading-none mb-1">{promo.name}</h4>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest pb-6">{promo.startDate} — {promo.endDate}</p>
+                            
+                            <div className="grid grid-cols-2 gap-4 border-t border-slate-50 pt-5">
+                               <div className="space-y-0.5">
+                                  <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Impressions</p>
+                                  <p className="text-sm font-black text-slate-800">{promo.impressions.toLocaleString()}</p>
+                               </div>
+                               <div className="space-y-0.5">
+                                  <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">CLICKS</p>
+                                  <p className="text-sm font-black text-primary">{promo.clicks.toLocaleString()}</p>
+                               </div>
+                               <div className="col-span-2 pt-2">
+                                  <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Cost</span>
+                                     <span className="text-sm font-black text-slate-700">${promo.cost.toFixed(2)}</span>
+                                  </div>
+                               </div>
+                            </div>
+                         </GlassCard>
+                      ))}
+                      {ORGANIZER_PROMOTIONS.filter(p => p.organizerId === org.id).length === 0 && (
+                        <GlassCard className="col-span-full py-12 text-center border-dashed border-slate-200">
+                           <Megaphone className="w-10 h-10 text-slate-200 mx-auto mb-4" />
+                           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No promotions currently active</p>
+                        </GlassCard>
+                      )}
+                   </div>
                 </div>
               )}
 

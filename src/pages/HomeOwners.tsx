@@ -48,8 +48,7 @@ const HomeOwnersPage = () => {
         <div className={cn(
           "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm",
           homeOwner.status === 'Active' ? "bg-emerald-50/50 text-emerald-600 border-emerald-100" :
-          homeOwner.status === 'Suspended' ? "bg-amber-50/50 text-amber-600 border-amber-100" :
-          "bg-rose-50/50 text-rose-600 border-rose-100"
+          "bg-amber-50/50 text-amber-600 border-amber-100"
         )}>
            {homeOwner.status === 'Active' ? <BadgeCheck className="w-3 h-3" /> : <Ban className="w-3 h-3" />}
            <span className="hidden xs:inline">{homeOwner.status}</span>

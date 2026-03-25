@@ -24,7 +24,8 @@ import LoginPage from './pages/Login';
 import ProfilePage from './pages/Profile';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return null;
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -32,7 +33,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return null;
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }

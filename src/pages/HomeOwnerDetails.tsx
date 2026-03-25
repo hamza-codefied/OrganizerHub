@@ -12,7 +12,7 @@ import {
 const HomeOwnerDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const homeOwner = HOME_OWNERS.find(h => h.id === id);
+  const [homeOwner, setHomeOwner] = useState<typeof HOME_OWNERS[0] | undefined>(() => HOME_OWNERS.find(h => h.id === id));
   const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'favorites'>('overview');
 
   if (!homeOwner) {
@@ -52,8 +52,7 @@ const HomeOwnerDetails = () => {
               <div className={cn(
                 "mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] border shadow-sm",
                 homeOwner.status === 'Active' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
-                homeOwner.status === 'Suspended' ? "bg-amber-50 text-amber-600 border-amber-100" :
-                "bg-rose-50 text-rose-600 border-rose-100"
+                "bg-amber-50 text-amber-600 border-amber-100"
               )}>
                 {homeOwner.status === 'Active' ? <BadgeCheck className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
                 {homeOwner.status} account
@@ -115,25 +114,23 @@ const HomeOwnerDetails = () => {
             </div>
           </GlassCard>
 
-          {/* <GlassCard title="Account security" subtitle="Control access and restrictions.">
+          <GlassCard title="Account security" subtitle="Control access and restrictions.">
              <div className="space-y-4 mt-6">
                 {homeOwner.status === 'Active' ? (
-                  <>
-                    <button className="w-full flex items-center justify-between p-4 bg-amber-50/50 hover:bg-amber-50 rounded-2xl border border-amber-100 transition-all group">
-                       <div className="flex items-center gap-3">
-                          <ShieldAlert className="w-5 h-5 text-amber-500" />
-                          <span className="text-xs font-black text-amber-600 uppercase tracking-widest">Suspend access</span>
-                       </div>
-                    </button>
-                    <button className="w-full flex items-center justify-between p-4 bg-rose-50/50 hover:bg-rose-50 rounded-2xl border border-rose-100 transition-all group">
-                       <div className="flex items-center gap-3">
-                          <ShieldOff className="w-5 h-5 text-rose-500" />
-                          <span className="text-xs font-black text-rose-600 uppercase tracking-widest">Block permanently</span>
-                       </div>
-                    </button>
-                  </>
+                  <button 
+                    onClick={() => setHomeOwner(prev => prev ? { ...prev, status: 'Suspended' as const } : prev)}
+                    className="w-full flex items-center justify-between p-4 bg-amber-50/50 hover:bg-amber-50 rounded-2xl border border-amber-100 transition-all group"
+                  >
+                     <div className="flex items-center gap-3">
+                        <ShieldAlert className="w-5 h-5 text-amber-500" />
+                        <span className="text-xs font-black text-amber-600 uppercase tracking-widest">Suspend access</span>
+                     </div>
+                  </button>
                 ) : (
-                  <button className="w-full flex items-center justify-between p-4 primary-gradient rounded-2xl text-white transition-all group shadow-lg shadow-primary/20">
+                  <button 
+                    onClick={() => setHomeOwner(prev => prev ? { ...prev, status: 'Active' as const } : prev)}
+                    className="w-full flex items-center justify-between p-4 primary-gradient rounded-2xl text-white transition-all group shadow-lg shadow-primary/20"
+                  >
                      <div className="flex items-center gap-3">
                         <ShieldCheck className="w-5 h-5" />
                         <span className="text-xs font-black uppercase tracking-widest">Restore access</span>
@@ -141,7 +138,7 @@ const HomeOwnerDetails = () => {
                   </button>
                 )}
              </div>
-          </GlassCard> */}
+          </GlassCard>
         </div>
 
         {/* Main Content */}

@@ -7,6 +7,7 @@ import { FEATURE_REQUESTS, ORGANIZERS } from '../data/mockData';
 import CustomSelect from '../components/CustomSelect';
 import DetailsDialog from '../components/DetailsDialog';
 import { formatCurrency, cn } from '../lib/utils';
+import { organizerActivateBoost } from '../lib/edgeFunctions';
 import { 
   Flame, Zap, Plus,
   CheckCircle2, XCircle, Clock, Eye, Calendar,
@@ -19,10 +20,15 @@ const PromotionsPage = () => {
   const [activeTab, setActiveTab] = useState<'inventory' | 'requests'>('inventory');
   const navigate = useNavigate();
   const [requests, setRequests] = useState(
-    FEATURE_REQUESTS.map((request) => ({ ...request, status: 'Active' }))
+    FEATURE_REQUESTS.map((request, i) => ({ 
+       ...request, 
+       status: i % 4 === 0 ? 'Completed' : i % 4 === 1 ? 'In Progress' : 'Active' 
+    }))
   );
   const [showDeployModal, setShowDeployModal] = useState(false);
   const [deployForm, setDeployForm] = useState({ organizerId: '', type: 'Homepage Spotlight' as string, duration: '1 week' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiMessage, setApiMessage] = useState('');
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -119,11 +125,12 @@ const PromotionsPage = () => {
       header: "Status", 
       accessor: (req: any) => (
         <div className={cn(
-          "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-widest border shadow-sm",
-          req.status === 'Active' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-amber-50 text-amber-600 border-amber-100"
+          "inline-flex items-center px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm",
+          req.status === 'Completed' ? "bg-slate-50 text-slate-500 border-slate-200" :
+          req.status === 'Active' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+          "bg-amber-50 text-amber-600 border-amber-100"
         )}>
-          {req.status === 'Active' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-          <span className="hidden xs:inline">{req.status}</span>
+          <span>{req.status}</span>
         </div>
       )
     },
@@ -297,6 +304,7 @@ const PromotionsPage = () => {
                 </button>
                 <button
                   type="button"
+                  disabled={isSubmitting}
                   onClick={() => {
                     const organizer = ORGANIZERS.find((o) => o.id === deployForm.organizerId);
                     if (!organizer) return;
@@ -309,25 +317,40 @@ const PromotionsPage = () => {
                     const nextDate = new Date();
                     nextDate.setDate(nextDate.getDate() + 1);
                     const iso = nextDate.toISOString().slice(0, 10);
+                    const boostCode =
+                      deployForm.type === 'Homepage Spotlight' ? 'featured_post' : 'highlight_listing';
 
-                    setRequests((prev) => [
-                      {
-                        id: `feat-${Date.now()}`,
-                        organizer: organizer.name,
-                        type: deployForm.type,
-                        price,
-                        duration: deployForm.duration,
-                        status: 'Active',
-                        placementDate: iso,
-                        performance: {
-                          clicks: Math.floor(Math.random() * 200),
-                          impressions: Math.floor(Math.random() * 2000),
-                        },
-                      },
-                      ...prev,
-                    ]);
-
-                    setShowDeployModal(false);
+                    setIsSubmitting(true);
+                    setApiMessage('');
+                    void organizerActivateBoost({
+                      organization_id: organizer.id,
+                      boost_code: boostCode,
+                      source: 'admin',
+                    })
+                      .then(() => {
+                        setRequests((prev) => [
+                          {
+                            id: `feat-${Date.now()}`,
+                            organizer: organizer.name,
+                            type: deployForm.type,
+                            price,
+                            duration: deployForm.duration,
+                            status: 'Active',
+                            placementDate: iso,
+                            performance: {
+                              clicks: Math.floor(Math.random() * 200),
+                              impressions: Math.floor(Math.random() * 2000),
+                            },
+                          },
+                          ...prev,
+                        ]);
+                        setShowDeployModal(false);
+                        setApiMessage(`Boost activated for ${organizer.name}.`);
+                      })
+                      .catch((error: any) =>
+                        setApiMessage(error?.message || 'Failed to activate boost.'),
+                      )
+                      .finally(() => setIsSubmitting(false));
                   }}
                   className="flex-1 py-4 primary-gradient text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
                 >
@@ -338,6 +361,9 @@ const PromotionsPage = () => {
           </div>,
           document.body
         )}
+      {apiMessage ? (
+        <p className="text-xs text-slate-600 font-medium">{apiMessage}</p>
+      ) : null}
     </div>
   );
 };

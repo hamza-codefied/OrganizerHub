@@ -10,16 +10,22 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const logoSrc = '/logo.png';
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
-      login();
+    setErrorMessage('');
+    try {
+      await login(email, password);
       navigate('/', { replace: true });
-    }, 1500);
+    } catch (error: any) {
+      setErrorMessage(error?.message || 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -87,6 +93,9 @@ const LoginPage = () => {
                 </>
               )}
             </button>
+            {errorMessage ? (
+              <p className="text-xs text-rose-600 font-medium">{errorMessage}</p>
+            ) : null}
           </form>
         </div>
 

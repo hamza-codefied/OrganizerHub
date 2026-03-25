@@ -13,7 +13,7 @@ import {
   MapPin, Globe, Activity
 } from 'lucide-react';
 
-const TARGETING_OPTIONS = ['Home Owners, UAE', 'Corporate HR, KSA', 'Events Sector, UAE', 'Luxury Market, Qatar'];
+const TARGETING_OPTIONS = ['Home Owners, USA', 'Businesses, USA', 'New Homeowners, USA', 'Real Estate Market, USA'];
 
 const AdsManagementPage = () => {
   const [activeTab, setActiveTab] = useState<'campaigns' | 'revenue'>('campaigns');

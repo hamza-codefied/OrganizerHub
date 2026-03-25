@@ -198,6 +198,29 @@ const ReviewsPage = () => {
                 “{detailsPayload.comment}”
               </p>
             </div>
+            <div className="pt-4 flex justify-end">
+              <button
+                onClick={() => {
+                  setReviews((prev) => 
+                    prev.map((x) => 
+                      x.id === detailsPayload.id 
+                        ? { ...x, flagged: !x.flagged } 
+                        : x
+                    )
+                  );
+                  setDetailsPayload({ ...detailsPayload, flagged: !detailsPayload.flagged });
+                }}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+                  detailsPayload.flagged 
+                    ? "bg-rose-50 text-rose-600 hover:bg-rose-100" 
+                    : "bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                )}
+              >
+                <Flag className={cn("w-4 h-4", detailsPayload.flagged ? "fill-rose-600" : "")} />
+                {detailsPayload.flagged ? "Unflag review" : "Flag review"}
+              </button>
+            </div>
           </>
         )}
       </div>

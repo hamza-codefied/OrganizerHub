@@ -1,37 +1,36 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { PageHeader, GlassCard, StatCard, PremiumTabs } from "../components/UI";
+import { DataTable } from "../components/DataTable";
+import { DateRangePicker } from "../components/DateRangePicker";
+import type { DateRange } from "react-day-picker";
 import {
   SUBSCRIPTION_PLANS as INITIAL_PLANS,
   ORGANIZERS,
 } from "../data/mockData";
 import { cn, formatCurrency } from "../lib/utils";
+import { organizerActivateSubscription } from "../lib/edgeFunctions";
 import {
   Check,
   Shield,
   Zap,
-  Info,
   Layers,
   Users,
-  CreditCard,
   TrendingUp,
   Plus,
   Edit3,
   Trash2,
   X,
-  Archive,
-  RotateCcw,
   BarChart,
   Megaphone,
   ArrowUpCircle,
-  Settings,
+  Briefcase
 } from "lucide-react";
 
 const SubscriptionsPage = () => {
   const [plans, setPlans] = useState(INITIAL_PLANS);
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
-    "monthly",
-  );
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<any>(null);
   const [planForm, setPlanForm] = useState({
@@ -40,6 +39,8 @@ const SubscriptionsPage = () => {
     features: [] as string[],
   });
   const [newFeature, setNewFeature] = useState("");
+  const [apiMessage, setApiMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleOpenPlanModal = (plan: any = null) => {
     if (plan) {
@@ -85,6 +86,75 @@ const SubscriptionsPage = () => {
     });
   };
 
+  const filteredSubscribers = ORGANIZERS.filter((org) => {
+    if (dateRange?.from && dateRange?.to) {
+      const expiry = new Date(org.subscriptionExpiry);
+      return expiry >= dateRange.from && expiry <= dateRange.to;
+    }
+    return true;
+  });
+
+  const subscriberColumns = [
+    {
+      header: "Organizer",
+      accessor: (org: any) => (
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col min-w-0">
+             <span className="font-black text-slate-800 text-[13px] truncate">{org.name}</span>
+             <span className="text-[10px] font-medium text-slate-500 truncate">{org.email}</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      header: "Company",
+      accessor: (org: any) => (
+         <div className="flex flex-col">
+           <span className="font-bold text-slate-700 text-[12px] truncate max-w-[150px]">
+             {org.businessName || org.tradeName || 'Independent'}
+           </span>
+         </div>
+      )
+    },
+    {
+      header: "Plan",
+      accessor: (org: any) => (
+        <span
+          className={cn(
+            "px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border shadow-sm",
+            org.subscriptionPlan === "Premium"
+              ? "bg-amber-50 text-amber-600 border-amber-100"
+              : "bg-slate-50 text-slate-400 border-slate-100",
+          )}
+        >
+          {org.subscriptionPlan}
+        </span>
+      )
+    },
+    {
+      header: "Auto-renew",
+      className: "hidden md:table-cell",
+      accessor: (org: any) => (
+        <span
+          className={cn(
+            "text-[9px] font-black uppercase tracking-widest",
+            org.autoRenew ? "text-emerald-500" : "text-rose-500",
+          )}
+        >
+          {org.autoRenew ? "Enabled" : "Disabled"}
+        </span>
+      )
+    },
+    {
+      header: "Expires",
+      accessor: (org: any) => (
+        <p className="text-[11px] font-black text-slate-500 tracking-tight">
+          {org.subscriptionExpiry}
+        </p>
+      )
+    }
+  ];
+
   return (
     <div className="space-y-8 sm:space-y-12">
       <PageHeader
@@ -103,7 +173,7 @@ const SubscriptionsPage = () => {
           />
           <button
             onClick={() => handleOpenPlanModal()}
-            className="flex items-center justify-center gap-2 primary-gradient text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-105 transition-all outline-none whitespace-nowrap"
+            className="flex items-center justify-center gap-2 primary-gradient text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all outline-none whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             New plan
@@ -116,7 +186,7 @@ const SubscriptionsPage = () => {
           <div key={plan.id}>
             <GlassCard
               className={cn(
-                "relative overflow-hidden group p-6 sm:p-10 h-full border border-slate-200 shadow-sm",
+                "relative overflow-hidden group p-6 sm:p-10 h-full border border-slate-200 shadow-sm flex flex-col",
                 plan.name === "Premium"
                   ? "border-primary/30 bg-slate-50/50"
                   : "",
@@ -129,7 +199,10 @@ const SubscriptionsPage = () => {
                 >
                   <Edit3 className="w-4 h-4" />
                 </button>
-                <button className="p-2 hover:bg-rose-50 rounded-xl text-slate-400 hover:text-rose-600 shadow-sm border border-slate-100 bg-white/50 transition-all">
+                <button 
+                  onClick={() => setPlans(plans.filter(p => p.id !== plan.id))}
+                  className="p-2 hover:bg-rose-50 rounded-xl text-slate-400 hover:text-rose-600 shadow-sm border border-slate-100 bg-white/50 transition-all"
+                >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -140,7 +213,7 @@ const SubscriptionsPage = () => {
                 </div>
               )}
 
-              <div className="flex items-center gap-4 sm:gap-5 mb-6 sm:mb-10">
+              <div className="flex items-center gap-4 sm:gap-5 mb-6 sm:mb-8">
                 <div
                   className={cn(
                     "w-12 h-12 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl flex items-center justify-center border-2 border-white shadow-xl transition-all duration-500 group-hover:rotate-6",
@@ -165,9 +238,9 @@ const SubscriptionsPage = () => {
                 </div>
               </div>
 
-              <div className="mb-6 sm:mb-10">
+              <div className="mb-6 sm:mb-8 pb-6 border-b border-slate-100/60">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl sm:text-6xl font-black text-slate-800 tracking-tighter">
+                  <span className="text-4xl sm:text-5xl font-black text-slate-800 tracking-tighter">
                     {formatCurrency(
                       billingCycle === "yearly" ? plan.price * 10 : plan.price,
                     ).replace(".00", "")}
@@ -178,15 +251,15 @@ const SubscriptionsPage = () => {
                 </div>
               </div>
 
-              <ul className="space-y-4 sm:space-y-5 mb-8 sm:mb-12">
+              <ul className="space-y-4 sm:space-y-5 mb-8 flex-1">
                 {plan.features.map((feature, i) => (
                   <li
                     key={i}
-                    className="flex items-start gap-3 sm:gap-4 text-xs sm:text-sm font-bold text-slate-600"
+                    className="flex items-center gap-3 sm:gap-4 text-xs sm:text-[13px] font-bold text-slate-600"
                   >
-                    <div className="mt-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                    <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
                       <Check
-                        className="w-2.5 h-2.5 text-emerald-500"
+                        className="w-3 h-3 text-emerald-500"
                         strokeWidth={4}
                       />
                     </div>
@@ -223,84 +296,57 @@ const SubscriptionsPage = () => {
           </div>
         </div>
 
-        <GlassCard className="overflow-hidden p-0 border-white/60 shadow-2xl">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-slate-50/50 backdrop-blur-md border-b border-slate-100">
-                <tr>
-                  <th className="px-5 sm:px-8 py-4 sm:py-6 text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                    Organizer
-                  </th>
-                  <th className="px-5 sm:px-8 py-4 sm:py-6 text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hidden sm:table-cell">
-                    Plan
-                  </th>
-                  <th className="px-5 sm:px-8 py-4 sm:py-6 text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hidden md:table-cell">
-                    Auto-renew
-                  </th>
-                  <th className="px-5 sm:px-8 py-4 sm:py-6 text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] sm:text-right">
-                    Expires
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {ORGANIZERS.slice(0, 10).map((org) => (
-                  <tr
-                    key={org.id}
-                    className="hover:bg-slate-50 transition-colors group"
-                  >
-                    <td className="px-5 sm:px-8 py-4">
-                      <div className="flex items-center gap-3 sm:gap-4">
-                        <div>
-                          <p className="font-black text-slate-800 text-xs sm:text-sm tracking-tight truncate max-w-[100px] xs:max-w-none">
-                            {org.name}
-                          </p>
-                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest sm:hidden">
-                            {org.subscriptionPlan}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-5 sm:px-8 py-4 hidden sm:table-cell">
-                      <span
-                        className={cn(
-                          "px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border shadow-sm",
-                          org.subscriptionPlan === "Premium"
-                            ? "bg-amber-50/50 text-amber-600 border-amber-100"
-                            : "bg-slate-50 text-slate-400 border-slate-100",
-                        )}
-                      >
-                        {org.subscriptionPlan}
-                      </span>
-                    </td>
-                    <td className="px-5 sm:px-8 py-4 hidden md:table-cell">
-                      <span
-                        className={cn(
-                          "text-[9px] font-black uppercase tracking-widest",
-                          org.autoRenew ? "text-emerald-500" : "text-rose-500",
-                        )}
-                      >
-                        {org.autoRenew ? "Enabled" : "Disabled"}
-                      </span>
-                    </td>
-                    <td className="px-5 sm:px-8 py-4 sm:text-right">
-                      <p className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">
-                        {org.subscriptionExpiry}
-                      </p>
-                      <p className="text-[8px] sm:text-[9px] font-bold text-slate-300 uppercase tracking-widest mt-0.5 sm:hidden">
-                        Expires
-                      </p>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="p-4 sm:p-6 bg-slate-50/30 border-t border-slate-100 text-center">
-            <button className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] hover:text-primary transition-colors outline-none">
-              View all subscribers
-            </button>
-          </div>
-        </GlassCard>
+        <div className="mb-4">
+           {apiMessage ? (
+              <div className="px-5 sm:px-8 py-3 rounded-lg border border-primary/20 bg-primary/5 mb-4">
+                <p className="text-xs text-primary font-bold">{apiMessage}</p>
+              </div>
+            ) : null}
+            <DataTable 
+              columns={subscriberColumns} 
+              data={filteredSubscribers} 
+              searchPlaceholder="Search active subscribers..." 
+              belowSearch={
+                <div className="flex items-center gap-2 mt-3 sm:mt-0 w-full xl:w-auto relative z-50">
+                  <DateRangePicker 
+                    range={dateRange}
+                    onRangeChange={setDateRange}
+                    placeholder="Filter by expiry date"
+                  />
+                  {dateRange && (
+                    <button 
+                      onClick={() => setDateRange(undefined)}
+                      className="text-[9px] font-black text-rose-500 uppercase tracking-widest px-2 py-2 hover:bg-rose-50 rounded-lg transition-colors shrink-0 outline-none"
+                    >
+                      Clear dates
+                    </button>
+                  )}
+                </div>
+              }
+              rowActions={[
+                {
+                  label: "Activate Plan",
+                  icon: Layers,
+                  onClick: (org: any) => {
+                     setIsSubmitting(true);
+                     setApiMessage("");
+                     void organizerActivateSubscription({
+                       organization_id: String(org.id),
+                       plan_slug: org.subscriptionPlan === "Premium" ? "premium" : "standard",
+                       billing_cycle: billingCycle,
+                       provider: "manual",
+                       provider_subscription_id: "",
+                     })
+                     .then(() => setApiMessage(`New cycle activated for ${org.name}.`))
+                     .catch((error: any) =>
+                       setApiMessage(error?.message || "Failed to activate subscription."),
+                     )
+                     .finally(() => setIsSubmitting(false));
+                  }
+                }
+              ]}
+            />
+        </div>
       </div>
 
       {/* Plan Modal */}
@@ -308,7 +354,7 @@ const SubscriptionsPage = () => {
         typeof document !== "undefined" &&
         createPortal(
           <div
-            className="fixed inset-0 z-9999 flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
             aria-modal="true"
             role="dialog"
           >
@@ -453,14 +499,14 @@ const SubscriptionsPage = () => {
                 <button
                   type="button"
                   onClick={() => setIsPlanModalOpen(false)}
-                  className="flex-1 py-4.5 sm:py-6 bg-slate-50 text-slate-400 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] rounded-xl sm:rounded-2xl hover:bg-slate-100 transition-all order-2 sm:order-1"
+                  className="flex-1 py-4 flex items-center justify-center bg-slate-50 text-slate-400 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] rounded-xl sm:rounded-2xl hover:bg-slate-100 transition-all order-2 sm:order-1"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleSavePlan}
-                  className="flex-1 py-4.5 sm:py-6 primary-gradient text-white text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] rounded-xl sm:rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2 order-1 sm:order-2"
+                  className="flex-1 py-4 primary-gradient text-white text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] rounded-xl sm:rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2 order-1 sm:order-2"
                 >
                   Save plan
                 </button>

@@ -365,8 +365,9 @@ const Navbar = ({ onMenuClick }: { onMenuClick: () => void }) => {
                   type="button"
                   onClick={() => {
                     setShowDropdown(false);
-                    logout();
-                    navigate("/login", { replace: true });
+                    void logout().finally(() => {
+                      navigate("/login", { replace: true });
+                    });
                   }}
                   className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-rose-600 hover:bg-rose-50 text-left transition-colors"
                 >
