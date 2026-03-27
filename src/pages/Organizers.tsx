@@ -9,6 +9,7 @@ import { adminDeactivateProfile } from "../lib/edgeFunctions";
 import DetailsDialog from "../components/DetailsDialog";
 import CustomSelect from "../components/CustomSelect";
 import {
+  Users,
   BadgeCheck,
   Ban,
   Star,
@@ -20,6 +21,8 @@ import {
   CheckCircle2,
   XCircle,
   Power,
+  AlertCircle,
+  MapPin,
 } from "lucide-react";
 
 const OrganizersPage = () => {
@@ -40,12 +43,15 @@ const OrganizersPage = () => {
   const [organizers, setOrgs] = useState<Organizer[]>(ORGANIZERS);
 
   const [statusFilter, setStatusFilter] = useState<
-    "All" | "Pending" | "Active" | "Suspended"
+    "All" | "Pending" | "Approved" | "Suspended"
   >("All");
   const [categoryFilter, setCategoryFilter] = useState("All Categories");
 
   const filteredOrganizers = organizers.filter((org) => {
-    const matchStatus = statusFilter === "All" || org.status === statusFilter;
+    const matchStatus =
+      statusFilter === "All" ||
+      (statusFilter === "Approved" && org.status === "Active") ||
+      (statusFilter !== "Approved" && org.status === statusFilter);
     const matchCategory =
       categoryFilter === "All Categories" || org.category === categoryFilter;
     return matchStatus && matchCategory;
@@ -55,7 +61,7 @@ const OrganizersPage = () => {
     total: organizers.length,
     pending: organizers.filter((o) => o.status === "Pending").length,
     suspended: organizers.filter((o) => o.status === "Suspended").length,
-    active: organizers.filter((o) => o.status === "Active").length,
+    approved: organizers.filter((o) => o.status === "Active").length,
   };
 
   const setOrganizers = (updater: (prev: Organizer[]) => Organizer[]) => {
@@ -100,57 +106,64 @@ const OrganizersPage = () => {
 
   const columns = [
     {
-      header: "Business",
-      className: "hidden sm:table-cell",
+      header: "Name",
       accessor: (org: Organizer) => (
-        <span className="font-black text-slate-800 text-xs sm:text-sm">
-          {org.businessName}
-        </span>
-      ),
-    },
-    {
-      header: "Organizer",
-      accessor: (org: Organizer) => (
-        <div className="cursor-pointer group py-1">
-          <p className="font-black text-slate-800 leading-tight tracking-tight text-xs sm:text-sm group-hover:text-primary transition-colors truncate max-w-[120px] xs:max-w-none">
-            {org.name}
-          </p>
-          <p className="text-[9px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-            {org.email}
-          </p>
+        <div className="flex items-center gap-3 py-1">
+          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-primary border border-slate-200 shrink-0">
+            {org.name.split(' ').map(n => n[0]).join('')}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="font-bold text-slate-800 text-sm whitespace-nowrap">
+              {org.name}
+            </span>
+            <BadgeCheck className="w-3.5 h-3.5 text-rose-400" />
+          </div>
         </div>
       ),
     },
     {
-      header: "Category",
-      className: "hidden xl:table-cell",
+      header: "Email",
       accessor: (org: Organizer) => (
-        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+        <span className="text-xs font-medium text-slate-500">
+          {org.email}
+        </span>
+      ),
+    },
+    {
+      header: "Category",
+      accessor: (org: Organizer) => (
+        <span className="text-xs font-medium text-slate-600">
           {org.category}
         </span>
       ),
     },
     {
       header: "Location",
-      className: "hidden lg:table-cell",
       accessor: (org: Organizer) => (
-        <span className="text-xs font-bold text-slate-600">{org.location}</span>
+        <div className="flex items-center gap-1.5 text-slate-500">
+          <MapPin className="w-3.5 h-3.5" />
+          <span className="text-xs font-medium">{org.location}</span>
+        </div>
       ),
     },
     {
       header: "Plan",
-      className: "hidden xs:table-cell",
       accessor: (org: Organizer) => (
-        <span
-          className={cn(
-            "px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border shadow-sm",
-            org.subscriptionPlan === "Premium"
-              ? "bg-amber-50/50 text-amber-600 border-amber-100"
-              : "bg-slate-50 text-slate-400 border-slate-100",
+        <div className="flex flex-col items-start gap-1">
+          <span
+            className={cn(
+              "px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border shadow-sm bg-slate-100 text-slate-600 border-slate-200",
+              org.subscriptionPlan === "None" && "bg-transparent border-transparent text-slate-400 shadow-none"
+            )}
+          >
+            {org.subscriptionPlan}
+          </span>
+          {org.subscriptionPlan !== "None" && (
+            <span className="text-[9px] font-bold text-slate-400 ml-0.5">
+              ${org.subscriptionPlan === "Premium" ? "49" : "19"}/mo
+            </span>
           )}
-        >
-          {org.subscriptionPlan}
-        </span>
+        </div>
       ),
     },
     {
@@ -158,23 +171,15 @@ const OrganizersPage = () => {
       accessor: (org: Organizer) => (
         <div
           className={cn(
-            "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
+            "inline-flex items-center px-4 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border",
             org.status === "Active"
-              ? "bg-emerald-50/50 text-emerald-600 border-emerald-100"
+              ? "bg-rose-400 border-rose-400 text-white shadow-sm"
               : org.status === "Pending"
-                ? "bg-amber-50/50 text-amber-600 border-amber-100"
-                : "bg-slate-100 text-slate-400 border-slate-200",
+                ? "bg-slate-100 border-slate-100 text-slate-700"
+                : "bg-rose-500 border-rose-500 text-white shadow-sm",
           )}
         >
-          {org.status === "Active" ? (
-            <ShieldCheck className="w-3 h-3" />
-          ) : org.status === "Pending" ? (
-            <Clock className="w-3 h-3" />
-          ) : (
-            <Ban className="w-3 h-3" />
-          )}
-          <span className="hidden xs:inline">{org.status}</span>
-          <span className="xs:hidden">{org.status.charAt(0)}</span>
+          <span>{org.status === "Active" ? "Approved" : org.status}</span>
         </div>
       ),
     },
@@ -187,8 +192,43 @@ const OrganizersPage = () => {
         description="Manage professional profiles & verification."
       />
 
-      <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-end">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard
+          title="Total Organizers"
+          value={stats.total}
+          icon={Users}
+          color="primary"
+          className="shadow-md"
+        />
+        <StatCard
+          title="Total Pending"
+          value={stats.pending}
+          icon={Clock}
+          color="amber"
+          className="shadow-md"
+        />
+        <StatCard
+          title="Total Suspended"
+          value={stats.suspended}
+          icon={Ban}
+          color="rose"
+          className="shadow-md"
+        />
+      </div>
 
+      <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
+        <div className="w-full lg:flex-1">
+          <PremiumTabs
+            tabs={[
+              { id: "All", label: "All" },
+              { id: "Pending", label: "Pending" },
+              { id: "Approved", label: "Approved" },
+              { id: "Suspended", label: "Suspended" },
+            ]}
+            activeTab={statusFilter}
+            onChange={setStatusFilter}
+          />
+        </div>
         <div className="w-full lg:w-72">
           <CustomSelect
             value={categoryFilter}
@@ -218,7 +258,10 @@ const OrganizersPage = () => {
                 if (org.status === "Pending") return "Approve";
                 return org.status === "Suspended" ? "Activate" : "Suspend";
               },
-              icon: Power,
+              icon: (org: Organizer) => {
+                if (org.status === "Pending") return CheckCircle2;
+                return Power;
+              },
               onClick: (org: Organizer) => {
                 if (org.status !== "Active") {
                   setOrganizers((prev) =>
@@ -238,6 +281,15 @@ const OrganizersPage = () => {
                 org.status === "Active"
                   ? ("danger" as const)
                   : ("success" as const),
+            },
+            {
+              label: "Reject",
+              icon: XCircle,
+              show: (org: Organizer) => org.status === "Pending",
+              onClick: (org: Organizer) => {
+                openDeactivateModal(org);
+              },
+              variant: "danger" as const,
             },
           ]}
           belowSearch={
@@ -342,10 +394,12 @@ const OrganizersPage = () => {
               />
               <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
                 <h2 className="text-lg font-black text-slate-800">
-                  Confirm suspension
+                  {selectedOrganizer?.status === "Pending" ? "Reject Signup" : "Confirm suspension"}
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  This will suspend{" "}
+                  {selectedOrganizer?.status === "Pending" 
+                    ? `Are you sure you want to reject the application from `
+                    : `This will suspend `}
                   <span className="font-semibold text-slate-800">
                     {selectedOrganizer?.name}
                   </span>
@@ -376,7 +430,9 @@ const OrganizersPage = () => {
                     onClick={() => void handleDeactivate()}
                     className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {isSubmitting ? "Suspending..." : "Confirm"}
+                    {isSubmitting 
+                      ? (selectedOrganizer?.status === "Pending" ? "Rejecting..." : "Suspending...") 
+                      : "Confirm"}
                   </button>
                 </div>
               </div>

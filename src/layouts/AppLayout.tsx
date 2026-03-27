@@ -67,7 +67,7 @@ const menuItems: { group: string; items: MenuItem[] }[] = [
     items: [
       { name: "Support", icon: Headphones, path: "/support" },
       { name: "Notifications", icon: Bell, path: "/notifications" },
-      { name: "Controller", icon: Settings, path: "/settings" },
+      { name: "Settings", icon: Settings, path: "/settings" },
     ],
   },
 ];

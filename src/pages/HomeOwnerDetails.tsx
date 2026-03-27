@@ -6,14 +6,19 @@ import { cn, formatCurrency } from '../lib/utils';
 import { 
   BadgeCheck, Ban, MapPin, Mail, Phone, Calendar, Star, Heart,
   ShoppingBag, Clock, ShieldAlert, ShieldOff, ShieldCheck,
-  ChevronLeft, ExternalLink
+  ChevronLeft, ExternalLink, CheckCircle2
 } from 'lucide-react';
+import type { DateRange } from 'react-day-picker';
+import { DateRangePicker } from '../components/DateRangePicker';
+import { TimeFilterTabs } from '../components/UI';
 
 const HomeOwnerDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [homeOwner, setHomeOwner] = useState<typeof HOME_OWNERS[0] | undefined>(() => HOME_OWNERS.find(h => h.id === id));
   const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'favorites'>('overview');
+  const [timeFilter, setTimeFilter] = useState('monthly');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   if (!homeOwner) {
     return (
@@ -155,28 +160,52 @@ const HomeOwnerDetails = () => {
 
            <div className="space-y-8">
               {activeTab === 'overview' && (
-                <div className="space-y-8">
+                <div className="space-y-8 max-w-full">
+                   <div className="flex flex-nowrap overflow-x-auto scrollbar-none items-center gap-2 mb-2 pb-1">
+                      <TimeFilterTabs 
+                        activeTab={timeFilter === 'custom' ? '' : timeFilter} 
+                        onChange={(id) => {
+                          setTimeFilter(id);
+                          if (id !== 'custom') setDateRange(undefined);
+                        }} 
+                      />
+                      <DateRangePicker 
+                        range={dateRange} 
+                        onRangeChange={(range) => {
+                          setDateRange(range);
+                          if (range) setTimeFilter('custom');
+                        }} 
+                      />
+                   </div>
+
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {[
-                        { label: 'Bookings', value: homeOwner.totalBookings, icon: ShoppingBag, color: 'primary' },
-                        { label: 'Total spending', value: formatCurrency(homeOwner.totalSpent), icon: Star, color: 'blue' },
-                        { label: 'Favorites', value: homeOwner.favorites, icon: Heart, color: 'secondary' },
-                      ].map((stat, i) => (
-                        <GlassCard key={i} className="flex items-center gap-6 p-6">
-                           <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center border shadow-sm", 
-                              stat.color === 'primary' ? 'bg-emerald-50 text-emerald-500 border-emerald-100' :
-                              stat.color === 'blue' ? 'bg-blue-50 text-blue-500 border-blue-100' :
-                              stat.color === 'orange' ? 'bg-amber-50 text-amber-500 border-amber-100' :
-                              'bg-rose-50 text-rose-500 border-rose-100'
-                           )}>
-                              <stat.icon className="w-6 h-6" />
-                           </div>
-                           <div>
-                              <p className="text-3xl font-black text-slate-800 tracking-tighter">{stat.value}</p>
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{stat.label}</p>
-                           </div>
-                        </GlassCard>
-                      ))}
+                      {(() => {
+                        const multipliers: Record<string, number> = {
+                          all: 1.0, daily: 0.05, weekly: 0.2, monthly: 0.5, yearly: 0.85, custom: 0.45
+                        };
+                        const m = 0.2 + (multipliers[timeFilter] || 0.5) * 0.8;
+                        
+                        return [
+                          { label: 'Bookings', value: Math.max(1, Math.round(homeOwner.totalBookings * m)), icon: ShoppingBag, color: 'primary' },
+                          { label: 'Total spending', value: formatCurrency(homeOwner.totalSpent * m), icon: Star, color: 'blue' },
+                          { label: 'Favorites', value: Math.max(1, Math.round(homeOwner.favorites * (0.5 + m * 0.5))), icon: Heart, color: 'secondary' },
+                        ].map((stat, i) => (
+                          <GlassCard key={i} className="flex items-center gap-6 p-6">
+                             <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center border shadow-sm", 
+                                stat.color === 'primary' ? 'bg-emerald-50 text-emerald-500 border-emerald-100' :
+                                stat.color === 'blue' ? 'bg-blue-50 text-blue-500 border-blue-100' :
+                                stat.color === 'orange' ? 'bg-amber-50 text-amber-500 border-amber-100' :
+                                'bg-rose-50 text-rose-500 border-rose-100'
+                             )}>
+                                <stat.icon className="w-6 h-6" />
+                             </div>
+                             <div>
+                                <p className="text-3xl font-black text-slate-800 tracking-tighter">{stat.value}</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{stat.label}</p>
+                             </div>
+                          </GlassCard>
+                        ));
+                      })()}
                    </div>
 
                    <GlassCard title="Activity overview" subtitle="Recent activity and verification details.">
@@ -191,14 +220,6 @@ const HomeOwnerDetails = () => {
                                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                                <p className="text-lg font-black text-slate-800 uppercase tracking-widest">Verified</p>
                             </div>
-                         </div>
-                         <div className="space-y-1">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Last active</p>
-                            <p className="text-lg font-black text-slate-800 uppercase tracking-widest">{homeOwner.lastActive}</p>
-                         </div>
-                         <div className="space-y-1">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Account level</p>
-                            <p className="text-lg font-black text-slate-800 uppercase tracking-widest">Level 4</p>
                          </div>
                       </div>
                    </GlassCard>
@@ -274,8 +295,6 @@ const HomeOwnerDetails = () => {
   );
 };
 
-const CheckCircle2 = ({ className }: { className?: string }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
-);
+
 
 export default HomeOwnerDetails;

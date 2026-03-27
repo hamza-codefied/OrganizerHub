@@ -146,6 +146,9 @@ export type OrganizerTransaction = {
   platformFee: number;
   netToOrganizer: number;
   status: 'Completed' | 'Pending';
+  customerName?: string;
+  customerEmail?: string;
+  serviceName?: string;
 };
 
 export const ORGANIZER_TRANSACTIONS: OrganizerTransaction[] = ORGANIZERS.flatMap((org, i) => {
@@ -181,11 +184,17 @@ export const ORGANIZER_TRANSACTIONS: OrganizerTransaction[] = ORGANIZERS.flatMap
     const netToOrganizer = Math.round((gross - platformFee) * 100) / 100;
     const day = ((i * 3 + j * 2) % 27) + 1;
     const month = String(((j + i) % 12) + 1).padStart(2, '0');
+    
+    const customer = HOME_OWNERS[(i + j) % HOME_OWNERS.length];
+    const serviceName = type === 'Booking payment' || type === 'Refund' 
+      ? (org.services[j % org.services.length] || 'Home Organizing') 
+      : undefined;
+
     const description =
       type === 'Booking payment'
-        ? descBooking[j % descBooking.length]
+        ? `${serviceName} — ${customer.name}`
         : type === 'Refund'
-          ? 'Customer refund — booking cancelled'
+          ? `Refund: ${serviceName}`
           : type === 'Subscription'
             ? `${org.subscriptionPlan} plan — monthly platform fee`
             : 'Manual balance adjustment';
@@ -200,7 +209,10 @@ export const ORGANIZER_TRANSACTIONS: OrganizerTransaction[] = ORGANIZERS.flatMap
       grossAmount: gross,
       platformFee,
       netToOrganizer,
-      status: j % 13 === 0 ? 'Pending' : 'Completed',
+      status: j % 10 === 0 ? 'Pending' : 'Completed',
+      customerName: type === 'Booking payment' || type === 'Refund' ? customer.name : undefined,
+      customerEmail: type === 'Booking payment' || type === 'Refund' ? customer.email : undefined,
+      serviceName,
     };
   });
 });

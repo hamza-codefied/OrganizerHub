@@ -6,13 +6,16 @@ import { adminDeactivateProfile } from '../lib/edgeFunctions';
 import { ORGANIZERS, ORGANIZER_TRANSACTIONS, REVIEWS, ORGANIZER_PACKAGES, ORGANIZER_PROMOTIONS } from '../data/mockData';
 import { 
   BadgeCheck, Ban, Star, Briefcase, ShieldCheck, Zap,
-  MapPin, Mail, Phone, Calendar, Award,
+  MapPin, Mail, Phone, Calendar as CalendarIcon, Award,
   Clock, Eye, ChevronLeft, CheckCircle2, Power,
   TrendingUp, BarChart3, Target, ExternalLink,
   Users,
   Globe, FileText, Wallet, Receipt, ArrowUpRight, Download,
-  Tag, Percent, Megaphone
+  Tag, Percent, Megaphone, Search, User
 } from 'lucide-react';
+import { TimeFilterTabs, DashboardStatCard } from '../components/UI';
+import { DateRangePicker } from '../components/DateRangePicker';
+import type { DateRange } from 'react-day-picker';
 
 type OrganizerStatus = 'Active' | 'Deactivated';
 
@@ -74,6 +77,19 @@ const OrganizerDetails = () => {
   const [teamMembersByOrg, setTeamMembersByOrg] = useState<Record<string, TeamMember[]>>({});
   const [apiMessage, setApiMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [timeFilter, setTimeFilter] = useState('all');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+
+  const statsMultiplier = useMemo(() => {
+    switch (timeFilter) {
+      case 'daily': return 0.05;
+      case 'weekly': return 0.25;
+      case 'monthly': return 0.75;
+      case 'yearly': return 1.0;
+      case 'custom': return 0.4;
+      default: return 1.0;
+    }
+  }, [timeFilter]);
   useEffect(() => {
     if (foundOrg) setOrg(foundOrg);
     else setOrg(null);
@@ -657,11 +673,31 @@ const OrganizerDetails = () => {
 
               {activeTab === 'transactions' && (
                 <div className="space-y-6 sm:space-y-8">
+                  <div className="flex flex-nowrap overflow-x-auto scrollbar-none items-center gap-2 mb-2 pb-1">
+                    <TimeFilterTabs 
+                      activeTab={timeFilter === 'custom' ? '' : timeFilter} 
+                      onChange={(id) => {
+                        setTimeFilter(id);
+                        if (id !== 'custom') setDateRange(undefined);
+                      }}
+                    />
+                    
+                    <DateRangePicker 
+                      range={dateRange} 
+                      onRangeChange={(range: DateRange | undefined) => {
+                        setDateRange(range);
+                        if (range) {
+                          setTimeFilter('custom');
+                        }
+                      }} 
+                    />
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                     {[
-                      { label: 'Platform fee', value: totalPlatformContribution, icon: Wallet, color: 'primary', subtitle: 'Contributions' },
-                      { label: 'Gross volume', value: totalGrossVolume, icon: Receipt, color: 'emerald', subtitle: `${orgTransactions.length} items` },
-                      { label: 'Net to org', value: orgTransactions.reduce((s, t) => s + t.netToOrganizer, 0), icon: TrendingUp, color: 'amber', subtitle: 'After fees' },
+                      { label: 'Platform fee', value: totalPlatformContribution * statsMultiplier, icon: Wallet, color: 'primary', subtitle: 'Contributions' },
+                      { label: 'Gross volume', value: totalGrossVolume * statsMultiplier, icon: Receipt, color: 'emerald', subtitle: `${Math.round(orgTransactions.length * statsMultiplier)} items` },
+                      { label: 'Net to org', value: orgTransactions.reduce((s, t) => s + t.netToOrganizer, 0) * statsMultiplier, icon: TrendingUp, color: 'amber', subtitle: 'After fees' },
                     ].map((stat, i) => (
                       <GlassCard key={i} className="p-5 sm:p-6 border-white/40">
                         <div className="flex items-center gap-3 mb-3">
@@ -687,12 +723,12 @@ const OrganizerDetails = () => {
                       <p className="text-sm font-bold text-slate-400 text-center py-12">No transactions recorded.</p>
                     ) : (
                       <div className="mt-4 sm:mt-6 overflow-x-auto -mx-2 sm:mx-0 rounded-2xl border border-slate-100">
-                        <table className="w-full min-w-[800px] text-left">
+                        <table className="w-full min-w-[1000px] text-left">
                           <thead>
                             <tr className="border-b border-slate-100 bg-slate-50/80">
                               <th className="px-4 py-3 text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest">Date</th>
-                              <th className="px-4 py-3 text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest">Reference</th>
-                              <th className="px-4 py-3 text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest">Type</th>
+                              <th className="px-4 py-3 text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest">Customer</th>
+                              <th className="px-4 py-3 text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest">Service</th>
                               <th className="px-4 py-3 text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Gross</th>
                               <th className="px-4 py-3 text-[8px] sm:text-[9px] font-black text-primary uppercase tracking-widest text-right">Fee</th>
                               <th className="px-4 py-3 text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest">Status</th>
@@ -702,8 +738,20 @@ const OrganizerDetails = () => {
                             {orgTransactions.map((tx: any) => (
                               <tr key={tx.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                                 <td className="px-4 py-3 text-[10px] sm:text-xs font-bold text-slate-700 whitespace-nowrap">{tx.date}</td>
-                                <td className="px-4 py-3 text-[10px] sm:text-[11px] font-mono font-bold text-slate-500 whitespace-nowrap">{tx.reference}</td>
-                                <td className="px-4 py-3 text-[9px] sm:text-[10px] font-black text-slate-600 uppercase tracking-widest whitespace-nowrap">{tx.type}</td>
+                                <td className="px-4 py-3">
+                                  <div className="flex flex-col">
+                                    <span className="text-[10px] sm:text-xs font-black text-slate-800 tracking-tight">{tx.customerName || 'Manual Adj'}</span>
+                                    <span className="text-[9px] font-bold text-slate-400">{tx.customerEmail || tx.reference}</span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 min-w-[150px]">
+                                   <div className="flex items-center gap-2">
+                                     <div className="w-6 h-6 rounded-md bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
+                                       <Tag className="w-3 h-3 text-slate-400" />
+                                     </div>
+                                     <span className="text-[10px] sm:text-xs font-bold text-slate-700 truncate">{tx.serviceName || tx.type}</span>
+                                   </div>
+                                </td>
                                 <td className={cn(
                                   'px-4 py-3 text-[10px] sm:text-xs font-black text-right tabular-nums',
                                   tx.grossAmount < 0 ? 'text-rose-600' : 'text-slate-800',

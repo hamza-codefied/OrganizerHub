@@ -10,7 +10,7 @@ import ConfirmationDialog from '../components/ConfirmationDialog';
 import DetailsDialog from '../components/DetailsDialog';
 
 const SettingsPage = () => {
-  type TabKey = 'core' | 'security' | 'financial';
+  type TabKey = 'core' | 'security';
 
   type SettingsState = {
     commissionFactor: number;
@@ -45,9 +45,8 @@ const SettingsPage = () => {
   const tabs = useMemo(
     () =>
       [
-        { key: 'core' as const, name: 'General', icon: SettingsIcon },
+        { key: 'core' as const, name: 'Platform Commission', icon: SettingsIcon },
         { key: 'security' as const, name: 'Security', icon: Shield },
-        { key: 'financial' as const, name: 'Payments', icon: CreditCard },
       ] as const,
     [],
   );
@@ -106,64 +105,22 @@ const SettingsPage = () => {
         <div className="lg:flex-1 space-y-6 lg:space-y-10">
           {activeTab === 'core' && (
             <GlassCard
-              title="General"
-              subtitle="Limits & Fees"
+              title="Platform Commission"
+              subtitle="Service Fees"
             >
-              <div className="space-y-8 mt-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                      Commission (%)
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={settings.commissionFactor}
-                        onChange={(e) => setNumberField('commissionFactor', e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-3.5 text-lg font-black text-slate-800 focus:bg-white focus:border-primary/20 transition-all shadow-inner"
-                      />
-                      <div className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 font-black">%</div>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                      Min Payout ($)
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={settings.minLiquidityRelease}
-                        onChange={(e) => setNumberField('minLiquidityRelease', e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-3.5 text-lg font-black text-slate-800 focus:bg-white focus:border-primary/20 transition-all shadow-inner"
-                      />
-                      <div className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 font-black">$</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-8 border-t border-slate-100 space-y-6">
-                  <div className="flex items-center justify-between gap-4 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 transition-all">
-                    <div className="flex-1">
-                      <p className="font-black text-slate-800 text-sm tracking-tight">
-                        Maintenance Mode
-                      </p>
-                      <p className="text-[10px] font-bold text-slate-400 mt-1 leading-snug">
-                        Instantly suspend all public interfaces.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      aria-pressed={settings.preservationMode}
-                      onClick={() => setSettings((prev) => ({ ...prev, preservationMode: !prev.preservationMode }))}
-                      className={cn(
-                        'cursor-pointer transition-all p-1 rounded-xl border',
-                        settings.preservationMode
-                          ? 'text-secondary bg-white border-secondary/20 shadow-sm'
-                          : 'text-slate-300 bg-white border-slate-100',
-                      )}
-                    >
-                      {settings.preservationMode ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10" />}
-                    </button>
+              <div className="mt-6">
+                <div className="space-y-2 max-w-md">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                    Commission (%)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={settings.commissionFactor}
+                      onChange={(e) => setNumberField('commissionFactor', e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-3.5 text-lg font-black text-slate-800 focus:bg-white focus:border-primary/20 transition-all shadow-inner"
+                    />
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 font-black">%</div>
                   </div>
                 </div>
               </div>
@@ -176,55 +133,34 @@ const SettingsPage = () => {
               subtitle="Verification & Access"
             >
               <div className="space-y-4 mt-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 p-6 sm:p-8 bg-primary/5 rounded-3xl border border-primary/10 transition-all">
-                  <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-primary shadow-lg border border-primary/5 shrink-0">
-                    <Zap className="w-6 h-6" />
-                  </div>
+                <div className="flex items-center justify-between gap-4 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 transition-all">
                   <div className="flex-1">
-                    <p className="text-base font-black text-slate-800 tracking-tight">Auto-approve Organizers</p>
-                    <p className="text-[11px] font-bold text-slate-500 mt-1 leading-snug">
-                      New organizers go live automatically after verification.
+                    <p className="font-black text-slate-800 text-sm tracking-tight">
+                      Maintenance Mode
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-400 mt-1 leading-snug">
+                      Instantly suspend all public interfaces.
                     </p>
                   </div>
                   <button
                     type="button"
-                    aria-pressed={settings.automatedProActivation}
-                    onClick={() => setSettings((prev) => ({ ...prev, automatedProActivation: !prev.automatedProActivation }))}
+                    aria-pressed={settings.preservationMode}
+                    onClick={() => setSettings((prev) => ({ ...prev, preservationMode: !prev.preservationMode }))}
                     className={cn(
-                      'cursor-pointer hover:scale-105 transition-all p-1 rounded-xl border sm:ml-auto self-end sm:self-center',
-                      settings.automatedProActivation
-                        ? 'text-primary bg-white border-primary/20 shadow-sm'
+                      'cursor-pointer transition-all p-1 rounded-xl border',
+                      settings.preservationMode
+                        ? 'text-secondary bg-white border-secondary/20 shadow-sm'
                         : 'text-slate-300 bg-white border-slate-100',
                     )}
                   >
-                    {settings.automatedProActivation ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10" />}
+                    {settings.preservationMode ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10" />}
                   </button>
                 </div>
               </div>
             </GlassCard>
           )}
 
-          {activeTab === 'financial' && (
-            <GlassCard
-              title="Payments"
-              subtitle="Limits & Caps"
-            >
-              <div className="mt-6 space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Max Commission (%)</label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={settings.financialTierCap}
-                      onChange={(e) => setNumberField('financialTierCap', e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-3.5 text-lg font-black text-slate-800 focus:bg-white focus:border-primary/20 transition-all shadow-inner"
-                    />
-                    <div className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 font-black">%</div>
-                  </div>
-                </div>
-              </div>
-            </GlassCard>
-          )}
+
         </div>
       </div>
 

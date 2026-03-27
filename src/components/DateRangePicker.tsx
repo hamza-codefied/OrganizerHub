@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { DayPicker } from "react-day-picker";
 import type { DateRange } from "react-day-picker";
 import { format } from "date-fns";
@@ -26,6 +27,8 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -33,12 +36,25 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
       ) {
-        setIsOpen(false);
+        // Only close if not clicking inside portal
+        const portal = document.getElementById('date-picker-portal');
+        if (!portal?.contains(event.target as Node)) {
+          setIsOpen(false);
+        }
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      const rect = btnRef.current?.getBoundingClientRect();
+      if (rect) {
+        setCoords({
+          top: rect.bottom + window.scrollY,
+          left: rect.left + window.scrollX,
+        });
+      }
+    }
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [isOpen]);
 
   const footer = (
     <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-semibold text-slate-500">
@@ -68,9 +84,10 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   return (
     <div className={cn("relative", className)} ref={containerRef}>
       <button
+        ref={btnRef}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "px-4 py-1.5 text-xs font-semibold rounded-md border transition-all duration-200 flex items-center gap-2",
+          "px-4 py-1.5 text-xs font-semibold rounded-md border transition-all duration-200 flex items-center gap-2 shrink-0",
           isOpen || range?.from
             ? "bg-rose-400 border-rose-400 text-white shadow-sm"
             : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50",
@@ -84,8 +101,16 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           : placeholder}
       </button>
 
-      {isOpen && (
-        <div className="absolute top-full left-0 mt-2 z-50 bg-white border border-slate-200 rounded-xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-200 origin-top-left">
+      {isOpen && createPortal(
+        <div
+          id="date-picker-portal"
+          className="absolute z-[9999] bg-white border border-slate-200 rounded-xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-200 origin-top-left"
+          style={{
+            top: `${coords.top + 8}px`,
+            left: `${Math.max(10, Math.min(window.innerWidth - 620, coords.left))}px`
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="flex items-center justify-between mb-2">
             <h4 className="text-xs font-bold text-slate-900 ml-1">
               Select Range
@@ -156,7 +181,8 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           `,
             }}
           />
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

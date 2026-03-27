@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '../lib/utils';
 import { ChevronLeft, ChevronRight, MoreHorizontal, Search, X, Eye, Edit3, Trash2 } from 'lucide-react';
 
@@ -10,9 +11,10 @@ interface Column<T> {
 
 export interface RowAction<T> {
   label: string | ((item: T) => string);
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string }> | ((item: T) => React.ComponentType<{ className?: string }>);
   onClick: (item: T) => void;
   variant?: 'default' | 'danger' | 'success' | ((item: T) => 'default' | 'danger' | 'success');
+  show?: (item: T) => boolean;
 }
 
 interface DataTableProps<T> {
@@ -30,20 +32,44 @@ interface DataTableProps<T> {
 function ActionDropdown<T>({ item, actions }: { item: T; actions: RowAction<T>[] }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const isOutside = 
+        ref.current && !ref.current.contains(e.target as Node) &&
+        (!menuRef.current || !menuRef.current.contains(e.target as Node));
+      
+      if (isOutside) {
+        setOpen(false);
+      }
     };
-    if (open) document.addEventListener('mousedown', handleClick);
+    if (open) {
+      document.addEventListener('mousedown', handleClick);
+      const rect = buttonRef.current?.getBoundingClientRect();
+      if (rect) {
+        setCoords({
+          top: rect.bottom + window.scrollY,
+          left: rect.right - 160 + window.scrollX,
+        });
+      }
+    }
     return () => document.removeEventListener('mousedown', handleClick);
   }, [open]);
+
+  const toggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpen(!open);
+  };
 
   return (
     <div ref={ref} className="relative">
       <button 
+        ref={buttonRef}
         type="button"
-        onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
+        onClick={toggle}
         className={cn(
           "p-2 rounded-md text-slate-500",
           open ? "bg-slate-100 text-primary" : "hover:bg-slate-100"
@@ -51,32 +77,44 @@ function ActionDropdown<T>({ item, actions }: { item: T; actions: RowAction<T>[]
       >
         <MoreHorizontal className="w-4 h-4" />
       </button>
-      {open && (
-        <div className="absolute right-0 top-full mt-1 bg-white rounded-md border border-slate-200 shadow-md z-50 py-1 min-w-[160px]">
-          {actions.map((action, i) => {
-            const label = typeof action.label === 'function' ? action.label(item) : action.label;
-            const variant = typeof action.variant === 'function' ? action.variant(item) : action.variant;
-            
-            return (
-              <button
-                key={i}
-                type="button"
-                onClick={(e) => { e.stopPropagation(); action.onClick(item); setOpen(false); }}
-                className={cn(
-                  "w-full flex items-center gap-2 px-3 py-2 text-sm text-left",
-                  variant === 'danger' 
-                    ? "text-rose-600 hover:bg-rose-50" 
-                    : variant === 'success'
-                    ? "text-emerald-700 hover:bg-emerald-50" 
-                    : "text-slate-700 hover:bg-slate-50"
-                )}
-              >
-                <action.icon className="w-4 h-4 shrink-0" />
-                {label}
-              </button>
-            );
-          })}
-        </div>
+      {open && createPortal(
+        <div 
+          ref={menuRef}
+          className="absolute z-[9999] bg-white rounded-md border border-slate-200 shadow-xl py-1 min-w-[160px]"
+          style={{ 
+            top: `${coords.top + 4}px`, 
+            left: `${coords.left}px` 
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {actions
+            .filter((action) => !action.show || action.show(item))
+            .map((action, i) => {
+              const label = typeof action.label === 'function' ? action.label(item) : action.label;
+              const variant = typeof action.variant === 'function' ? action.variant(item) : action.variant;
+              const Icon = typeof action.icon === 'function' && !('displayName' in action.icon) ? (action.icon as any)(item) : action.icon;
+              
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); action.onClick(item); setOpen(false); }}
+                  className={cn(
+                    "w-full flex items-center gap-2 px-3 py-2 text-sm text-left",
+                    variant === 'danger' 
+                      ? "text-rose-600 hover:bg-rose-50" 
+                      : variant === 'success'
+                      ? "text-emerald-700 hover:bg-emerald-50" 
+                      : "text-slate-700 hover:bg-slate-50"
+                  )}
+                >
+                  <Icon className="w-4 h-4 shrink-0" />
+                  {label}
+                </button>
+              );
+            })}
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -164,8 +202,8 @@ export function DataTable<T extends { id: string | number }>({
         <div className="w-full flex flex-col sm:flex-row sm:items-center gap-3">{belowSearch}</div>
       ) : null}
 
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden premium-scrollbar">
+        <div className="overflow-x-auto premium-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
