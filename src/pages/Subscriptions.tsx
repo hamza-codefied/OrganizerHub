@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { PageHeader, GlassCard, StatCard, PremiumTabs } from "../components/UI";
 import { DataTable } from "../components/DataTable";
 import { DateRangePicker } from "../components/DateRangePicker";
+import CustomSelect from "../components/CustomSelect";
 import type { DateRange } from "react-day-picker";
 import {
   SUBSCRIPTION_PLANS as INITIAL_PLANS,
@@ -41,6 +42,8 @@ const SubscriptionsPage = () => {
   const [newFeature, setNewFeature] = useState("");
   const [apiMessage, setApiMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [planFilter, setPlanFilter] = useState("All Plans");
+  const [autoRenewFilter, setAutoRenewFilter] = useState("All Status");
 
   const handleOpenPlanModal = (plan: any = null) => {
     if (plan) {
@@ -87,11 +90,17 @@ const SubscriptionsPage = () => {
   };
 
   const filteredSubscribers = ORGANIZERS.filter((org) => {
+    const matchPlan = planFilter === "All Plans" || org.subscriptionPlan === planFilter;
+    const matchAutoRenew = autoRenewFilter === "All Status" || 
+      (autoRenewFilter === "Enabled" && org.autoRenew) || 
+      (autoRenewFilter === "Disabled" && !org.autoRenew);
+    
+    let matchDate = true;
     if (dateRange?.from && dateRange?.to) {
       const expiry = new Date(org.subscriptionExpiry);
-      return expiry >= dateRange.from && expiry <= dateRange.to;
+      matchDate = expiry >= dateRange.from && expiry <= dateRange.to;
     }
-    return true;
+    return matchPlan && matchAutoRenew && matchDate;
   });
 
   const subscriberColumns = [
@@ -307,12 +316,37 @@ const SubscriptionsPage = () => {
               data={filteredSubscribers} 
               searchPlaceholder="Search active subscribers..." 
               belowSearch={
-                <div className="flex items-center gap-2 mt-3 sm:mt-0 w-full xl:w-auto relative z-50">
-                  <DateRangePicker 
-                    range={dateRange}
-                    onRangeChange={setDateRange}
-                    placeholder="Filter by expiry date"
-                  />
+                <div className="flex flex-wrap items-center gap-3 mt-4 sm:mt-0 w-full xl:w-auto relative z-[60]">
+                  <div className="w-full sm:w-40">
+                    <CustomSelect
+                      value={planFilter}
+                      onChange={setPlanFilter}
+                      options={[
+                        { value: "All Plans", label: "All Plans" },
+                        ...plans.map((p: any) => ({ value: p.name, label: p.name })),
+                      ]}
+                      placeholder="Filter by plan"
+                    />
+                  </div>
+                  <div className="w-full sm:w-40">
+                    <CustomSelect
+                      value={autoRenewFilter}
+                      onChange={setAutoRenewFilter}
+                      options={[
+                        { value: "All Status", label: "All Status" },
+                        { value: "Enabled", label: "Auto-renew On" },
+                        { value: "Disabled", label: "Auto-renew Off" },
+                      ]}
+                      placeholder="Auto-renew"
+                    />
+                  </div>
+                  <div className="min-w-[200px]">
+                    <DateRangePicker 
+                      range={dateRange}
+                      onRangeChange={setDateRange}
+                      placeholder="Filter by expiry date"
+                    />
+                  </div>
                   {dateRange && (
                     <button 
                       onClick={() => setDateRange(undefined)}

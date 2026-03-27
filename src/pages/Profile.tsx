@@ -1,18 +1,18 @@
-import type { ElementType } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { PageHeader, GlassCard } from '../components/UI';
-import { Mail, ShieldCheck, Shield, Clock } from 'lucide-react';
+import type { ElementType } from "react";
+import { useNavigate } from "react-router-dom";
+import { PageHeader, GlassCard } from "../components/UI";
+import { Mail, ShieldCheck, Shield, Clock } from "lucide-react";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
 
   const adminData = {
-    name: 'Admin Hub',
-    email: 'admin@organizehub.com',
-    role: 'Global Executive',
-    lastLogin: 'March 17, 2026 15:52',
-    status: 'Peak Access',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=executive',
+    name: "Admin Hub",
+    email: "admin@organizehub.com",
+    role: "Admin",
+    lastLogin: "March 17, 2026 15:52",
+    status: "Peak Access",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=executive",
   };
 
   const InfoRow = ({
@@ -39,10 +39,13 @@ const ProfilePage = () => {
 
   return (
     <div className="space-y-8">
-      <PageHeader title="Admin Profile" description="Quick view of your account details.">
+      <PageHeader
+        title="Admin Profile"
+        description="Quick view of your account details."
+      >
         <button
           type="button"
-          onClick={() => navigate('/settings')}
+          onClick={() => navigate("/settings")}
           className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-md hover:bg-primary/90"
         >
           Open settings
@@ -60,7 +63,9 @@ const ProfilePage = () => {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <h2 className="text-xl font-semibold text-slate-800">{adminData.name}</h2>
+              <h2 className="text-xl font-semibold text-slate-800">
+                {adminData.name}
+              </h2>
               <p className="text-sm text-slate-500 mt-1">{adminData.role}</p>
             </div>
           </GlassCard>
@@ -71,8 +76,16 @@ const ProfilePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
               <InfoRow label="Email" value={adminData.email} icon={Mail} />
               <InfoRow label="Role" value={adminData.role} icon={Shield} />
-              <InfoRow label="Status" value={adminData.status} icon={ShieldCheck} />
-              <InfoRow label="Last login" value={adminData.lastLogin} icon={Clock} />
+              <InfoRow
+                label="Status"
+                value={adminData.status}
+                icon={ShieldCheck}
+              />
+              <InfoRow
+                label="Last login"
+                value={adminData.lastLogin}
+                icon={Clock}
+              />
             </div>
           </GlassCard>
         </div>
