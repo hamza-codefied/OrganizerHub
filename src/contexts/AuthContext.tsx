@@ -25,6 +25,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
+        if (session?.access_token) {
+          console.log('Access Token:', session.access_token);
+        }
         setIsAuthenticated(Boolean(session));
       },
     );
@@ -36,8 +39,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
+    if (data?.session?.access_token) {
+      console.log('Login Successful - Access Token:', data.session.access_token);
+    }
     setIsAuthenticated(true);
   };
 
