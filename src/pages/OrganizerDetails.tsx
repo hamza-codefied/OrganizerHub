@@ -317,10 +317,10 @@ const OrganizerDetails = () => {
                 <button
                   type="button"
                   onClick={() => void updateStatus("Active")}
-                  className="w-full flex items-center justify-between p-4 primary-gradient rounded-2xl text-white transition-all shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity"
+                  className="w-full flex items-center justify-between p-4 bg-emerald-500 rounded-2xl text-white transition-all shadow-lg shadow-emerald-500/20 hover:opacity-90 transition-opacity"
                 >
                   <span className="text-xs font-black uppercase tracking-widest">
-                    Activate Account
+                    Approve Account
                   </span>
                   <CheckCircle2 className="w-5 h-5" />
                 </button>

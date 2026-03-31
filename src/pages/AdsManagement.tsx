@@ -80,16 +80,19 @@ const AdsManagementPage = () => {
       header: "Status", 
       accessor: (ad: any) => (
         <div className={cn(
-          "inline-flex items-center px-2 py-1 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-widest border shadow-sm",
-          ad.status === 'Active' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : 
-          ad.status === 'Pending' ? "bg-amber-50 text-amber-600 border-amber-100" :
-          ad.status === 'Paused' ? "bg-slate-100 text-slate-400 border-slate-200" :
-          "bg-rose-50 text-rose-600 border-rose-100"
+          "inline-flex items-center px-4 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border shadow-sm",
+          ad.status === "Active"
+            ? "bg-emerald-500 border-emerald-500 text-white"
+            : ad.status === "Pending"
+              ? "bg-amber-500 border-amber-500 text-white"
+              : ad.status === "Paused"
+                ? "bg-slate-500 border-slate-500 text-white"
+                : "bg-rose-500 border-rose-500 text-white",
         )}>
           <span className="hidden xs:inline">{ad.status}</span>
           <span className="xs:hidden">{ad.status.charAt(0)}</span>
         </div>
-      )
+      ),
     },
   ];
 

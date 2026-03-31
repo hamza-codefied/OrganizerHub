@@ -173,7 +173,7 @@ const OrganizersPage = () => {
           className={cn(
             "inline-flex items-center px-4 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border",
             org.status === "Active"
-              ? "bg-rose-400 border-rose-400 text-white shadow-sm"
+              ? "bg-emerald-500 border-emerald-500 text-white shadow-sm"
               : org.status === "Pending"
                 ? "bg-slate-100 border-slate-100 text-slate-700"
                 : "bg-rose-500 border-rose-500 text-white shadow-sm",

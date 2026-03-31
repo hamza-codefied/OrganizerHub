@@ -104,9 +104,9 @@ const BookingsPage = () => {
       header: "Status", 
       accessor: (b: any) => (
         <div className={cn(
-          "inline-flex items-center px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm whitespace-nowrap",
-          b.status === 'Completed' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
-          b.status === 'Pending' ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-rose-50 text-rose-600 border-rose-100"
+          "inline-flex items-center px-4 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border shadow-sm whitespace-nowrap",
+          b.status === 'Completed' ? "bg-emerald-500 border-emerald-500 text-white" :
+          b.status === 'Pending' ? "bg-amber-500 border-amber-500 text-white" : "bg-rose-500 border-rose-500 text-white"
         )}>
           <span>{b.status}</span>
         </div>
@@ -134,9 +134,9 @@ const BookingsPage = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
         <StatCard title="Pending" value={String(bookings.filter(b => b.status === 'Pending').length)} icon={Activity} color="amber" />
-        <StatCard title="Completed" value={String(bookings.filter(b => b.status === 'Completed').length)} icon={CheckCircle2} color="primary" />
-        <StatCard title="Gross Volume" value={formatCurrency(bookings.reduce((acc, b) => acc + b.amount, 0))} icon={DollarSign} color="secondary" />
-        <StatCard title="Total Revenue" value={formatCurrency(bookings.reduce((acc, b) => acc + b.amount * 0.15, 0))} icon={Percent} color="emerald" />
+        <StatCard title="Completed" value={String(bookings.filter(b => b.status === 'Completed').length)} icon={CheckCircle2} color="emerald" />
+        <StatCard title="Gross Volume" value={formatCurrency(bookings.reduce((acc, b) => acc + b.amount, 0))} icon={DollarSign} color="blue" />
+        <StatCard title="Total Revenue" value={formatCurrency(bookings.reduce((acc, b) => acc + b.amount * 0.15, 0))} icon={Percent} color="primary" />
       </div>
 
       <div className="mt-8">

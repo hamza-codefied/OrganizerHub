@@ -66,10 +66,10 @@ const PromotionsPage = () => {
       accessor: (req: any) => (
         <span
           className={cn(
-            "px-2.5 py-1 rounded-xl text-[8px] font-black uppercase tracking-widest border",
+            "px-4 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border shadow-sm",
             req.type === "Homepage Spotlight"
-              ? "bg-amber-50 text-amber-600 border-amber-100"
-              : "bg-blue-50 text-blue-600 border-blue-100",
+              ? "bg-amber-500 border-amber-500 text-white"
+              : "bg-blue-600 border-blue-600 text-white",
           )}
         >
           {req.type}
@@ -110,8 +110,8 @@ const PromotionsPage = () => {
       className: "hidden sm:table-cell",
       accessor: (req: any) => (
         <span className={cn(
-          "px-2.5 py-1 rounded-xl text-[8px] font-black uppercase tracking-widest border",
-          req.type === 'Homepage Spotlight' ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-blue-50 text-blue-600 border-blue-100"
+          "px-4 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border shadow-sm",
+          req.type === 'Homepage Spotlight' ? "bg-amber-500 border-amber-500 text-white" : "bg-blue-600 border-blue-600 text-white"
         )}>
           {req.type}
         </span>
@@ -125,10 +125,10 @@ const PromotionsPage = () => {
       header: "Status", 
       accessor: (req: any) => (
         <div className={cn(
-          "inline-flex items-center px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm",
-          req.status === 'Completed' ? "bg-slate-50 text-slate-500 border-slate-200" :
-          req.status === 'Active' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
-          "bg-amber-50 text-amber-600 border-amber-100"
+          "inline-flex items-center px-4 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border shadow-sm",
+          req.status === 'Completed' ? "bg-slate-500 border-slate-500 text-white" :
+          req.status === 'Active' ? "bg-emerald-500 border-emerald-500 text-white" :
+          "bg-amber-500 border-amber-500 text-white"
         )}>
           <span>{req.status}</span>
         </div>

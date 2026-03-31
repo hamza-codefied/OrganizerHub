@@ -159,20 +159,18 @@ const SupportPage = () => {
                 <td className="py-5 px-3 text-[12.5px] text-slate-500 leading-relaxed align-top whitespace-pre-line">{ticket.issue}</td>
                 <td className="py-5 px-3 text-center align-top pt-4">
                   <div className="flex justify-center mt-1.5">
-                    {ticket.status === 'Open' && (
-                      <span className="inline-flex items-center justify-center w-6 h-6 bg-white border border-slate-200 rounded-full text-slate-600 shadow-sm">
-                        <Clock className="w-3 h-3" />
+                    {ticket.status === "Open" && (
+                      <span className="inline-flex items-center px-4 py-1 bg-amber-500 border border-amber-500 rounded-lg text-[10px] font-black uppercase tracking-widest text-white shadow-sm">
+                        Open
                       </span>
                     )}
-                    {ticket.status === 'Pending' && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 rounded-full text-[10px] font-semibold text-slate-700 shadow-sm">
-                        <Clock className="w-3 h-3" />
+                    {ticket.status === "Pending" && (
+                      <span className="inline-flex items-center px-4 py-1 bg-slate-100 border border-slate-100 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-600 shadow-sm">
                         Pending
                       </span>
                     )}
-                    {ticket.status === 'Resolved' && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary text-white rounded-full text-[10px] font-semibold shadow-sm">
-                        <CheckCircle2 className="w-3 h-3" />
+                    {ticket.status === "Resolved" && (
+                      <span className="inline-flex items-center px-4 py-1 bg-emerald-500 border border-emerald-500 rounded-lg text-[10px] font-black uppercase tracking-widest text-white shadow-sm">
                         Resolved
                       </span>
                     )}

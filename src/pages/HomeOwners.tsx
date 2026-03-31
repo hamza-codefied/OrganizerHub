@@ -45,16 +45,17 @@ const HomeOwnersPage = () => {
     { 
       header: "Status", 
       accessor: (homeOwner: typeof HOME_OWNERS[0]) => (
-        <div className={cn(
-          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm",
-          homeOwner.status === 'Active' ? "bg-emerald-50/50 text-emerald-600 border-emerald-100" :
-          "bg-amber-50/50 text-amber-600 border-amber-100"
-        )}>
-           {homeOwner.status === 'Active' ? <BadgeCheck className="w-3 h-3" /> : <Ban className="w-3 h-3" />}
-           <span className="hidden xs:inline">{homeOwner.status}</span>
-           <span className="xs:hidden">{homeOwner.status.charAt(0)}</span>
+        <div
+          className={cn(
+            "inline-flex items-center px-4 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border",
+            homeOwner.status === "Active"
+              ? "bg-emerald-500 border-emerald-500 text-white shadow-sm"
+              : "bg-rose-500 border-rose-500 text-white shadow-sm",
+          )}
+        >
+          <span>{homeOwner.status}</span>
         </div>
-      )
+      ),
     },
   ];
 
@@ -79,8 +80,8 @@ const HomeOwnersPage = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
         <StatCard title="Total" value="12,450" change={12} icon={Users} color="blue" trend="up" />
-        <StatCard title="Active" value="11,180" change={8} icon={UserCheck} color="primary" trend="up" />
-        <StatCard title="Suspended" value="128" icon={ShieldAlert} color="orange" />
+        <StatCard title="Active" value="11,180" change={8} icon={UserCheck} color="emerald" trend="up" />
+        <StatCard title="Suspended" value="128" icon={ShieldAlert} color="rose" />
         <StatCard title="New" value="842" change={15} icon={UserPlus} color="secondary" trend="up" />
       </div>
 

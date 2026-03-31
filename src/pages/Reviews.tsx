@@ -66,9 +66,8 @@ const ReviewsPage = () => {
     { 
       header: "Verification", 
       accessor: () => (
-        <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50/50 border border-emerald-100 rounded-full w-fit">
-           <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-           <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Verified</span>
+        <div className="flex items-center px-4 py-1 bg-emerald-500 border border-emerald-500 rounded-lg text-white shadow-sm w-fit">
+           <span className="text-[10px] font-black uppercase tracking-widest">Verified</span>
         </div>
       )
     },

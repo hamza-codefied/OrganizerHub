@@ -149,11 +149,35 @@ const SettingsPage = () => {
                     className={cn(
                       'cursor-pointer transition-all p-1 rounded-xl border',
                       settings.preservationMode
-                        ? 'text-secondary bg-white border-secondary/20 shadow-sm'
+                        ? 'text-rose-500 bg-white border-rose-100 shadow-sm'
                         : 'text-slate-300 bg-white border-slate-100',
                     )}
                   >
                     {settings.preservationMode ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10" />}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between gap-4 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 transition-all">
+                  <div className="flex-1">
+                    <p className="font-black text-slate-800 text-sm tracking-tight">
+                      Auto Approve Organizations
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-400 mt-1 leading-snug">
+                      Automatically activate organizations upon registration.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    aria-pressed={settings.automatedProActivation}
+                    onClick={() => setSettings((prev) => ({ ...prev, automatedProActivation: !prev.automatedProActivation }))}
+                    className={cn(
+                      'cursor-pointer transition-all p-1 rounded-xl border',
+                      settings.automatedProActivation
+                        ? 'text-primary bg-white border-primary/20 shadow-sm'
+                        : 'text-slate-300 bg-white border-slate-100',
+                    )}
+                  >
+                    {settings.automatedProActivation ? <ToggleRight className="w-10 h-10" /> : <ToggleLeft className="w-10 h-10" />}
                   </button>
                 </div>
               </div>
