@@ -1,6 +1,52 @@
 import { supabase } from './supabase';
 
 const baseUrl = `${import.meta.env.VITE_SUPABASE_URL}`;
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+export async function callEdgeFunctionGet<TResponse>(
+  functionName: string,
+  searchParams: Record<string, string | undefined>,
+): Promise<TResponse> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const token = session?.access_token;
+  if (!token) {
+    throw new Error('No access token found. Please login again.');
+  }
+
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (value !== undefined && value !== '') {
+      params.set(key, value);
+    }
+  }
+
+  const query = params.toString();
+  const url = `${baseUrl}/functions/v1/${functionName}${query ? `?${query}` : ''}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      apikey: anonKey,
+    },
+  });
+
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    let message = `Request failed: ${response.status}`;
+    if (body && typeof body === 'object') {
+      const err = body as { error?: string; message?: string };
+      if (err.error) message = err.error;
+      else if (err.message) message = err.message;
+    }
+    throw new Error(message);
+  }
+
+  return body as TResponse;
+}
 
 type MemberPermissionsPayload = {
   organization_member_id: string;
@@ -34,7 +80,7 @@ type ActivateBoostPayload = {
   source: string;
 };
 
-async function callEdgeFunction<TResponse>(
+export async function callEdgeFunction<TResponse>(
   endpoint: string,
   payload: Record<string, unknown>,
 ): Promise<TResponse> {
@@ -47,21 +93,24 @@ async function callEdgeFunction<TResponse>(
     throw new Error('No access token found. Please login again.');
   }
 
-  // Supabase Edge Functions are served under `/functions/v1/<function-name>`
   const response = await fetch(`${baseUrl}/functions/v1/${endpoint}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
+      apikey: anonKey,
     },
     body: JSON.stringify(payload),
   });
 
   const body = await response.json().catch(() => null);
   if (!response.ok) {
-    const message =
-      (body && (body.error || body.message)) ||
-      `Edge function call failed: ${response.status}`;
+    let message = `Edge function call failed: ${response.status}`;
+    if (body && typeof body === 'object') {
+      const err = body as { error?: string; message?: string };
+      if (err.error) message = err.error;
+      else if (err.message) message = err.message;
+    }
     throw new Error(message);
   }
 
