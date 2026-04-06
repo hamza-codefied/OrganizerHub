@@ -1,15 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { GlassCard, PremiumTabs } from "../components/UI";
 import { cn, formatCurrency } from "../lib/utils";
-import { adminDeactivateProfile } from "../lib/edgeFunctions";
+import { useAdminOrganizerDetails } from "../hooks/useAdminOrganizerDetails";
 import {
-  ORGANIZERS,
-  ORGANIZER_TRANSACTIONS,
-  REVIEWS,
-  ORGANIZER_PACKAGES,
-  ORGANIZER_PROMOTIONS,
-} from "../data/mockData";
+  adminChangeSuspensionStatus,
+  adminVerifyOrganization,
+  type AdminOrganizerDetailsResponse,
+  type AdminOrganizerServiceOffered,
+} from "../lib/adminOrganizersApi";
 import {
   BadgeCheck,
   Ban,
@@ -28,7 +27,6 @@ import {
   CheckCircle2,
   Power,
   TrendingUp,
-  BarChart3,
   Target,
   ExternalLink,
   Users,
@@ -39,18 +37,15 @@ import {
   ArrowUpRight,
   Download,
   Tag,
-  Percent,
   Megaphone,
-  Search,
-  User,
+  Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { TimeFilterTabs, DashboardStatCard } from "../components/UI";
 import { DateRangePicker } from "../components/DateRangePicker";
 import type { DateRange } from "react-day-picker";
 
-type OrganizerStatus = "Active" | "Deactivated";
-
-type OrganizerReview = (typeof REVIEWS)[0];
+type OrganizerReview = { id: string; organizer: string; rating: number; comment: string; date: string; homeOwner: string; service: string };
 type TeamMember = {
   id: string;
   organizerId: string;
@@ -62,56 +57,195 @@ type TeamMember = {
   skills: string[];
 };
 
-const TEAM_MEMBER_SKILLS = [
-  "Problem-solving",
-  "Attention to detail",
-  "Physical organization",
-  "Maintenance",
-  "Habit coaching",
-  "Confidentiality",
-  "Personal Inventory",
-  "Recycling",
-  "home care",
-  "Space Planning",
-  "Decluttering",
-  "Sorting & Categorizing",
-  "Storage Solution Planning",
-  "Labeling System Creation",
-  "Moving-In",
-  "Storage",
-];
+type OrganizerUIModel = {
+  id: string;
+  organizationId: string;
+  name: string;
+  email: string;
+  phone: string;
+  businessName: string;
+  tradeName: string;
+  subscriptionPlan: string;
+  rating: string;
+  bio: string;
+  companyBannerUrl: string;
+  website: string;
+  fullAddress: string;
+  businessLicenseDocument: string;
+  businessLicenseFileUrl: string;
+  tradeRegistrationDocument: string;
+  tradeRegistrationFileUrl: string;
+  location: string;
+  completedJobs: number;
+  earnings: number;
+  responseRate: number | null;
+  onTimeRate: number | null;
+  totalReviews: number;
+  lastActive: string;
+  status: "Active" | "Pending" | "Suspended" | "Rejected";
+  certifications: string[];
+  serviceAreas: string[];
+  services: string[];
+  servicesOffered: AdminOrganizerServiceOffered[];
+  /** From API `gallery` — documents & images */
+  galleryItems: { key: string; url: string }[];
+};
 
-const NATIONALITY_OPTIONS = [
-  "United States",
-  "Canada",
-  "Mexico",
-  "United Kingdom",
-  "Germany",
-  "France",
-  "Spain",
-  "Italy",
-  "Brazil",
-  "Australia",
-  "Japan",
-  "China",
-  "India",
-  "Other",
-];
+function filenameFromUrl(url: string): string {
+  if (!url) return "";
+  try {
+    const last = url.split("/").filter(Boolean).pop() || "";
+    return decodeURIComponent(last.replace(/\+/g, " "));
+  } catch {
+    return url;
+  }
+}
+
+function mapDisplayStatus(
+  o: AdminOrganizerDetailsResponse["organizer"],
+): "Active" | "Pending" | "Suspended" | "Rejected" {
+  if (!o.status) return "Suspended";
+  const v = (o.isVerified || "").toLowerCase();
+  if (v === "false") return "Rejected";
+  if (v === "pending") return "Pending";
+  return "Active";
+}
+
+function organizerDescription(o: AdminOrganizerDetailsResponse["organizer"]): string {
+  const raw = o.Description ?? o.description ?? "";
+  return typeof raw === "string" ? raw.trim() : "";
+}
+
+function buildOrganizerViewModel(res: AdminOrganizerDetailsResponse): OrganizerUIModel {
+  const o = res.organizer;
+  const offered = res.services_offered ?? [];
+  const cats = Array.from(
+    new Set(offered.map((s) => s.category_name).filter(Boolean)),
+  );
+  const serviceAreas =
+    cats.length > 0 ? cats : o.location ? [o.location] : [];
+
+  const galleryItems = (res.gallery ?? [])
+    .filter((g) => g?.url)
+    .map((g) => ({ key: g.key, url: g.url }));
+
+  return {
+    id: o.organizer_id,
+    organizationId: res.organization_id,
+    name: o.name,
+    email: o.email,
+    phone: o.phone,
+    businessName: o.business_name || "",
+    tradeName: o.business_name || "",
+    subscriptionPlan: "—",
+    rating: "—",
+    bio: organizerDescription(o),
+    companyBannerUrl: o.company_banner || "",
+    website: o.website || "",
+    fullAddress: o.address || "",
+    businessLicenseDocument: filenameFromUrl(o.business_license || ""),
+    businessLicenseFileUrl: o.business_license || "",
+    tradeRegistrationDocument: filenameFromUrl(o.trade_reg || ""),
+    tradeRegistrationFileUrl: o.trade_reg || "",
+    location: o.location || "",
+    completedJobs: res.completed_services_count,
+    earnings: res.total_earnings_estimated,
+    responseRate: null,
+    onTimeRate: null,
+    totalReviews: 0,
+    lastActive: "—",
+    status: mapDisplayStatus(o),
+    certifications: [],
+    serviceAreas,
+    services: offered.map((s) => s.service_name),
+    servicesOffered: offered,
+    galleryItems,
+  };
+}
+
+function mapTeamApiToTeamMember(
+  raw: unknown,
+  index: number,
+  organizerId: string,
+): TeamMember | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  const name = String(r.name ?? r.full_name ?? "").trim();
+  const id = String(r.id ?? r.organization_member_id ?? r.member_id ?? index);
+  const pic =
+    typeof r.profile_image_url === "string" && r.profile_image_url
+      ? r.profile_image_url
+      : typeof r.profile_picture === "string" && r.profile_picture
+        ? r.profile_picture
+        : typeof r.avatar_url === "string" && r.avatar_url
+          ? r.avatar_url
+          : `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || id)}`;
+
+  const nationality =
+    typeof r.nationality_iso === "string" && r.nationality_iso.trim()
+      ? r.nationality_iso.trim().toUpperCase()
+      : String(r.nationality ?? r.country ?? "—");
+
+  let skills: string[] = [];
+  if (Array.isArray(r.services)) {
+    skills = r.services
+      .map((item) => {
+        if (item && typeof item === "object" && "service_name" in item) {
+          const svc = item as { service_name?: string; category_name?: string };
+          const sn = svc.service_name?.trim();
+          const cn = svc.category_name?.trim();
+          if (sn && cn) return `${sn} · ${cn}`;
+          return sn || cn || "";
+        }
+        return "";
+      })
+      .filter(Boolean);
+  } else if (Array.isArray(r.skills)) {
+    skills = r.skills.map(String);
+  }
+
+  return {
+    id,
+    organizerId,
+    profilePicture: pic,
+    name: name || "—",
+    nationality,
+    email: String(r.email ?? ""),
+    phone: String(r.phone ?? ""),
+    skills,
+  };
+}
+
+function isLikelyImageUrl(url: string): boolean {
+  const path = url.split("?")[0].toLowerCase();
+  return /\.(jpe?g|png|gif|webp|bmp|svg)$/i.test(path);
+}
+
+function formatGalleryKey(key: string): string {
+  return key
+    .replace(/_/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 const OrganizerDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const foundOrg = ORGANIZERS.find((o) => o.id === id);
-  const normalizedOrg = foundOrg
-    ? {
-        ...foundOrg,
-        status:
-          foundOrg.status === "Active"
-            ? "Active"
-            : ("Deactivated" as OrganizerStatus),
-      }
-    : null;
-  const [org, setOrg] = useState<any>(normalizedOrg);
+  const { data, error, isLoading, refetch } = useAdminOrganizerDetails(id);
+  const org = useMemo(
+    () => (data ? buildOrganizerViewModel(data) : null),
+    [data],
+  );
+  const currentTeamMembers = useMemo(() => {
+    if (!org) return [];
+    const members = data?.team_members ?? [];
+    if (!members.length) return [];
+    return members
+      .map((m, i) => mapTeamApiToTeamMember(m, i, org.id))
+      .filter((m): m is TeamMember => m != null);
+  }, [data?.team_members, org]);
+
   const [activeTab, setActiveTab] = useState<
     | "overview"
     | "services"
@@ -121,11 +255,7 @@ const OrganizerDetails = () => {
     | "team"
     | "transactions"
     | "gallery"
-    | "performance"
   >("overview");
-  const [teamMembersByOrg, setTeamMembersByOrg] = useState<
-    Record<string, TeamMember[]>
-  >({});
   const [apiMessage, setApiMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeFilter, setTimeFilter] = useState("all");
@@ -147,17 +277,24 @@ const OrganizerDetails = () => {
         return 1.0;
     }
   }, [timeFilter]);
-  useEffect(() => {
-    if (foundOrg) setOrg(foundOrg);
-    else setOrg(null);
-  }, [id, foundOrg]);
 
-  const orgTransactions = useMemo(() => {
-    if (!foundOrg) return [];
-    return ORGANIZER_TRANSACTIONS.filter(
-      (t) => t.organizerId === foundOrg.id,
-    ).sort((a, b) => b.date.localeCompare(a.date));
-  }, [foundOrg]);
+  const orgTransactions = useMemo(
+    () =>
+      [] as Array<{
+        id: string;
+        date: string;
+        customerName?: string;
+        customerEmail?: string;
+        reference?: string;
+        serviceName?: string;
+        type?: string;
+        grossAmount: number;
+        platformFee: number;
+        netToOrganizer: number;
+        status: string;
+      }>,
+    [],
+  );
 
   const totalPlatformContribution = useMemo(
     () => orgTransactions.reduce((sum, t) => sum + t.platformFee, 0),
@@ -169,33 +306,114 @@ const OrganizerDetails = () => {
     [orgTransactions],
   );
 
-  const updateStatus = async (status: OrganizerStatus) => {
+  const updateStatus = async (status: "Active" | "Deactivated") => {
     if (!org) return;
     if (status === "Active") {
-      setOrg({ ...org, status });
+      if (org.status === "Pending" || org.status === "Rejected") {
+        setIsSubmitting(true);
+        setApiMessage("");
+        try {
+          await adminVerifyOrganization({
+            organizer_id: org.id,
+            isVerified: true,
+          });
+          await refetch();
+          setApiMessage(
+            org.status === "Rejected"
+              ? "Organization re-approved."
+              : "Organization approved.",
+          );
+        } catch (error: unknown) {
+          setApiMessage(
+            error instanceof Error ? error.message : "Could not update verification.",
+          );
+        } finally {
+          setIsSubmitting(false);
+        }
+        return;
+      }
+      if (org.status === "Suspended") {
+        setIsSubmitting(true);
+        setApiMessage("");
+        try {
+          await adminChangeSuspensionStatus({
+            organizer_id: org.id,
+            isActive: true,
+          });
+          await refetch();
+          setApiMessage("Organization activated.");
+        } catch (error: unknown) {
+          setApiMessage(
+            error instanceof Error ? error.message : "Could not activate organization.",
+          );
+        } finally {
+          setIsSubmitting(false);
+        }
+        return;
+      }
+      await refetch();
+      setApiMessage("");
       return;
     }
 
-    const reason = window.prompt("Reason for deactivation:", "Admin action");
+    const reason = window.prompt("Reason for suspension:", "Admin action");
     if (!reason) return;
 
     setIsSubmitting(true);
     setApiMessage("");
     try {
-      await adminDeactivateProfile({
-        target_profile_id: String(org.id),
-        reason,
+      await adminChangeSuspensionStatus({
+        organizer_id: org.id,
+        isActive: false,
+        message: reason,
       });
-      setOrg({ ...org, status });
-      setApiMessage("Organizer deactivated successfully.");
-    } catch (error: any) {
-      setApiMessage(error?.message || "Failed to deactivate organizer.");
+      await refetch();
+      setApiMessage("Organization suspended.");
+    } catch (error: unknown) {
+      setApiMessage(
+        error instanceof Error ? error.message : "Failed to suspend organization.",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const currentTeamMembers = org ? (teamMembersByOrg[org.id] ?? []) : [];
+  if (isLoading && !org) {
+    return (
+      <div className="h-[60vh] flex flex-col items-center justify-center space-y-4">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <p className="font-semibold text-slate-600">Loading organizer…</p>
+      </div>
+    );
+  }
+
+  if (error && !org) {
+    return (
+      <div className="h-[60vh] flex flex-col items-center justify-center space-y-4 max-w-md mx-auto text-center px-4">
+        <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center text-rose-500 border border-rose-100 font-black text-2xl">
+          !
+        </div>
+        <p className="font-black text-slate-600">{error}</p>
+        <div className="flex flex-wrap gap-3 justify-center">
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-xs font-black uppercase tracking-widest"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Retry
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/users/organizers")}
+            className="text-primary font-black text-xs uppercase tracking-widest hover:underline"
+          >
+            Back to organizers
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!org) {
     return (
@@ -229,9 +447,7 @@ const OrganizerDetails = () => {
           <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">
             Organizer
           </p>
-          <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mt-1">
-            Profile #{org.id}
-          </h2>
+         
         </div>
       </div>
 
@@ -256,14 +472,25 @@ const OrganizerDetails = () => {
                   {org.subscriptionPlan} Tier
                 </span>
                 <div className="flex items-center gap-1 px-2 py-0.5 sm:py-1 bg-white border border-slate-100 rounded-lg shadow-sm">
-                  <Star className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-amber-400 fill-amber-400" />
+                  <Star
+                    className={cn(
+                      "w-3 sm:w-3.5 h-3 sm:h-3.5",
+                      org.rating === "—"
+                        ? "text-slate-200 fill-slate-100"
+                        : "text-amber-400 fill-amber-400",
+                    )}
+                  />
                   <span className="text-[10px] sm:text-xs font-black text-slate-800">
                     {org.rating}
                   </span>
                 </div>
               </div>
-              <p className="text-xs sm:text-sm font-bold text-slate-500 mt-4 sm:mt-6 leading-relaxed italic px-2">
-                "{org.bio}"
+              <p className="text-xs sm:text-sm font-bold text-slate-500 mt-4 sm:mt-6 leading-relaxed px-2">
+                {org.bio ? (
+                  <span className="italic">&ldquo;{org.bio}&rdquo;</span>
+                ) : (
+                  <span className="text-slate-400 not-italic font-medium">No bio provided.</span>
+                )}
               </p>
 
               <div className="w-full space-y-3 sm:space-y-4 mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-slate-100 text-left">
@@ -302,11 +529,24 @@ const OrganizerDetails = () => {
             subtitle="Approve or change organizer status."
           >
             <div className="space-y-4 mt-6">
-              {org.status === "Active" ? (
+              {org.status === "Rejected" ? (
                 <button
                   type="button"
+                  disabled={isSubmitting}
+                  onClick={() => void updateStatus("Active")}
+                  className="w-full flex items-center justify-between p-4 bg-emerald-500 rounded-2xl text-white transition-all shadow-lg shadow-emerald-500/20 hover:opacity-90 transition-opacity disabled:opacity-60 disabled:pointer-events-none"
+                >
+                  <span className="text-xs font-black uppercase tracking-widest">
+                    Reapprove organization
+                  </span>
+                  <CheckCircle2 className="w-5 h-5" />
+                </button>
+              ) : org.status === "Active" ? (
+                <button
+                  type="button"
+                  disabled={isSubmitting}
                   onClick={() => void updateStatus("Deactivated")}
-                  className="w-full flex items-center justify-between p-4 bg-rose-100/40 hover:bg-rose-100/60 rounded-2xl border border-rose-200 transition-all text-rose-600"
+                  className="w-full flex items-center justify-between p-4 bg-rose-100/40 hover:bg-rose-100/60 rounded-2xl border border-rose-200 transition-all text-rose-600 disabled:opacity-60 disabled:pointer-events-none"
                 >
                   <span className="text-xs font-black uppercase tracking-widest">
                     Deactivate Account
@@ -316,8 +556,9 @@ const OrganizerDetails = () => {
               ) : (
                 <button
                   type="button"
+                  disabled={isSubmitting}
                   onClick={() => void updateStatus("Active")}
-                  className="w-full flex items-center justify-between p-4 bg-emerald-500 rounded-2xl text-white transition-all shadow-lg shadow-emerald-500/20 hover:opacity-90 transition-opacity"
+                  className="w-full flex items-center justify-between p-4 bg-emerald-500 rounded-2xl text-white transition-all shadow-lg shadow-emerald-500/20 hover:opacity-90 transition-opacity disabled:opacity-60 disabled:pointer-events-none"
                 >
                   <span className="text-xs font-black uppercase tracking-widest">
                     Approve Account
@@ -328,12 +569,16 @@ const OrganizerDetails = () => {
               <div className="pt-4 border-t border-slate-50">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">
                   Current status:{" "}
-                  <span
+                        <span
                     className={cn(
                       "inline-block ml-1 underline",
                       org.status === "Active"
                         ? "text-emerald-500"
-                        : "text-rose-500",
+                        : org.status === "Pending"
+                          ? "text-amber-500"
+                          : org.status === "Rejected"
+                            ? "text-slate-700"
+                            : "text-rose-500",
                     )}
                   >
                     {org.status}
@@ -382,11 +627,17 @@ const OrganizerDetails = () => {
                         Company banner
                       </p>
                       <div className="relative rounded-2xl sm:rounded-[1.75rem] overflow-hidden border border-slate-100 bg-slate-100 aspect-[21/9] sm:aspect-[21/6]">
-                        <img
-                          src={org.companyBannerUrl}
-                          alt=""
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
+                        {org.companyBannerUrl ? (
+                          <img
+                            src={org.companyBannerUrl}
+                            alt=""
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center bg-slate-200 text-slate-400 text-xs font-bold uppercase tracking-widest">
+                            No banner
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -403,16 +654,20 @@ const OrganizerDetails = () => {
                         <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">
                           Website
                         </p>
-                        <a
-                          href={org.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-primary hover:underline break-all"
-                        >
-                          <Globe className="w-3.5 h-3.5 shrink-0" />
-                          {org.website.replace(/^https?:\/\//, "")}
-                          <ExternalLink className="w-3 h-3 shrink-0 opacity-60" />
-                        </a>
+                        {org.website ? (
+                          <a
+                            href={org.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-primary hover:underline break-all"
+                          >
+                            <Globe className="w-3.5 h-3.5 shrink-0" />
+                            {org.website.replace(/^https?:\/\//, "")}
+                            <ExternalLink className="w-3 h-3 shrink-0 opacity-60" />
+                          </a>
+                        ) : (
+                          <span className="text-xs sm:text-sm font-bold text-slate-400">—</span>
+                        )}
                       </div>
                       <div className="md:col-span-2 space-y-0.5 sm:space-y-1">
                         <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -439,14 +694,18 @@ const OrganizerDetails = () => {
                             </p>
                           </div>
                         </div>
-                        <a
-                          href={org.businessLicenseFileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5 shadow-sm"
-                        >
-                          <Eye className="w-4 h-4" /> View
-                        </a>
+                        {org.businessLicenseFileUrl ? (
+                          <a
+                            href={org.businessLicenseFileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5 shadow-sm"
+                          >
+                            <Eye className="w-4 h-4" /> View
+                          </a>
+                        ) : (
+                          <span className="text-xs font-bold text-slate-400">—</span>
+                        )}
                       </div>
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-100">
                         <div className="flex items-start gap-3 min-w-0">
@@ -462,14 +721,18 @@ const OrganizerDetails = () => {
                             </p>
                           </div>
                         </div>
-                        <a
-                          href={org.tradeRegistrationFileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5 shadow-sm"
-                        >
-                          <Eye className="w-4 h-4" /> View
-                        </a>
+                        {org.tradeRegistrationFileUrl ? (
+                          <a
+                            href={org.tradeRegistrationFileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5 shadow-sm"
+                          >
+                            <Eye className="w-4 h-4" /> View
+                          </a>
+                        ) : (
+                          <span className="text-xs font-bold text-slate-400">—</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -491,7 +754,8 @@ const OrganizerDetails = () => {
                     },
                     {
                       label: "Response",
-                      value: `${org.responseRate}%`,
+                      value:
+                        org.responseRate == null ? "—" : `${org.responseRate}%`,
                       icon: Target,
                       color: "amber",
                     },
@@ -522,7 +786,7 @@ const OrganizerDetails = () => {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
+                <div className="grid grid-cols-1 gap-4 sm:gap-8">
                   <GlassCard title="Subscription" subtitle="Plan details.">
                     <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 bg-slate-50 border border-slate-100 rounded-2xl sm:rounded-3xl gap-4">
                       <div>
@@ -539,46 +803,13 @@ const OrganizerDetails = () => {
                           Renewal
                         </p>
                         <p className="text-xs sm:text-sm font-bold text-slate-800">
-                          Dec 15, 2024
+                          —
                         </p>
                       </div>
                     </div>
                   </GlassCard>
 
-                  <GlassCard title="Certifications" subtitle="Credentials.">
-                    <div className="mt-4 sm:mt-6 flex flex-wrap gap-2">
-                      {org.certifications.map((cert: string, i: number) => (
-                        <div
-                          key={i}
-                          className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-primary/[0.03] text-primary rounded-xl border border-primary/10 w-full sm:w-auto"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Award className="w-3.5 h-3.5 shrink-0" />
-                            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest truncate">
-                              {cert}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            className="sm:ml-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-primary/20 text-primary text-[8px] sm:text-[9px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all w-full sm:w-auto"
-                          >
-                            <Download className="w-3 h-3" /> Download
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </GlassCard>
-
-                  {/* <GlassCard title="Documents" subtitle="Organizer files.">
-                        <div className="mt-4 sm:mt-6 space-y-2">
-                          {org.documents.map((doc: string, i: number) => (
-                            <div key={i} className="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 border border-slate-100">
-                              <span className="text-[10px] sm:text-xs font-bold text-slate-700 truncate mr-4">{doc}</span>
-                              <button type="button" className="text-[9px] font-black uppercase tracking-widest text-primary shrink-0">View</button>
-                            </div>
-                          ))}
-                        </div>
-                      </GlassCard> */}
+              
                 </div>
               </div>
             )}
@@ -590,45 +821,63 @@ const OrganizerDetails = () => {
                   subtitle="Operational regions."
                 >
                   <div className="mt-4 sm:mt-6 flex flex-wrap gap-2">
-                    {org.serviceAreas.map((area: string, i: number) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg sm:rounded-xl bg-primary/5 text-primary text-[10px] sm:text-[11px] font-bold border border-primary/10"
-                      >
-                        <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 opacity-80" />
-                        {area}
-                      </span>
-                    ))}
+                    {org.serviceAreas.length === 0 ? (
+                      <p className="text-sm font-bold text-slate-400">
+                        No service areas listed.
+                      </p>
+                    ) : (
+                      org.serviceAreas.map((area: string, i: number) => (
+                        <span
+                          key={i}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg sm:rounded-xl bg-primary/5 text-primary text-[10px] sm:text-[11px] font-bold border border-primary/10"
+                        >
+                          <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 opacity-80" />
+                          {area}
+                        </span>
+                      ))
+                    )}
                   </div>
                 </GlassCard>
 
                 <div className="flex items-center justify-between px-2">
                   <p className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                    {org.services.length} Services
+                    {org.servicesOffered.length} Services
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {org.services.map((service: string, i: number) => (
-                    <GlassCard
-                      key={i}
-                      className="p-6 sm:p-8 group hover:border-primary/20 transition-all text-center"
-                    >
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl sm:rounded-[1.5rem] bg-primary/5 flex items-center justify-center text-primary mx-auto mb-4 sm:mb-6 border border-primary/10 group-hover:rotate-12 transition-all">
-                        <Briefcase className="w-6 h-6 sm:w-8 sm:h-8" />
-                      </div>
-                      <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tighter leading-none mb-2">
-                        {service}
-                      </h3>
-                      <div className="flex items-center justify-center gap-1.5 py-1.5 sm:py-2 px-3 sm:px-4 bg-slate-50 rounded-xl w-fit mx-auto mt-3 sm:mt-4 border border-slate-100">
-                        <span className="text-lg sm:text-xl font-black text-slate-800">
-                          ${Math.floor(Math.random() * 50 + 100)}
-                        </span>
-                        <span className="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1.5">
-                          / hr
-                        </span>
-                      </div>
+                  {org.servicesOffered.length === 0 ? (
+                    <GlassCard className="col-span-full py-12 text-center border-dashed border-slate-200">
+                      <Briefcase className="w-10 h-10 text-slate-200 mx-auto mb-4" />
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                        No services listed
+                      </p>
                     </GlassCard>
-                  ))}
+                  ) : (
+                    org.servicesOffered.map((service, i) => (
+                      <GlassCard
+                        key={`${service.service_id}-${i}`}
+                        className="p-6 sm:p-8 group hover:border-primary/20 transition-all text-center"
+                      >
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl sm:rounded-[1.5rem] bg-primary/5 flex items-center justify-center text-primary mx-auto mb-4 sm:mb-6 border border-primary/10 group-hover:rotate-12 transition-all">
+                          <Briefcase className="w-6 h-6 sm:w-8 sm:h-8" />
+                        </div>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                          {service.category_name}
+                        </p>
+                        <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tighter leading-none mb-2">
+                          {service.service_name}
+                        </h3>
+                        <div className="flex items-center justify-center gap-1.5 py-1.5 sm:py-2 px-3 sm:px-4 bg-slate-50 rounded-xl w-fit mx-auto mt-3 sm:mt-4 border border-slate-100">
+                          <span className="text-lg sm:text-xl font-black text-slate-800">
+                            ${service.price}
+                          </span>
+                          <span className="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1.5">
+                            / hr
+                          </span>
+                        </div>
+                      </GlassCard>
+                    ))
+                  )}
                 </div>
               </div>
             )}
@@ -641,56 +890,12 @@ const OrganizerDetails = () => {
                   </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {ORGANIZER_PACKAGES.filter(
-                    (p) => p.organizerId === org.id,
-                  ).map((pkg) => (
-                    <GlassCard
-                      key={pkg.id}
-                      className="p-6 relative overflow-hidden group border-white/60"
-                    >
-                      <div className="absolute top-0 right-0 p-4">
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-rose-500 text-white text-[10px] font-black rounded-lg shadow-lg border border-rose-400/20">
-                          <Percent className="w-3 h-3" />
-                          {pkg.discount}% OFF
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-black text-slate-800 tracking-tighter mb-2 group-hover:text-primary transition-colors">
-                        {pkg.name}
-                      </h3>
-                      <p className="text-xs text-slate-500 font-bold mb-8 leading-relaxed italic pr-12">
-                        "{pkg.description}"
-                      </p>
-                      <div className="flex items-center justify-between mt-auto pt-6 border-t border-slate-50/50">
-                        <div className="flex items-end gap-2.5">
-                          <span className="text-3xl font-black text-slate-800 tracking-tighter">
-                            ${pkg.price}
-                          </span>
-                          <span className="text-sm font-bold text-slate-400 line-through mb-1.5">
-                            ${pkg.originalPrice}
-                          </span>
-                        </div>
-                        <div
-                          className={cn(
-                            "px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border",
-                            pkg.active
-                              ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                              : "bg-slate-50 text-slate-400 border-slate-100",
-                          )}
-                        >
-                          {pkg.active ? "Live" : "Inactive"}
-                        </div>
-                      </div>
-                    </GlassCard>
-                  ))}
-                  {ORGANIZER_PACKAGES.filter((p) => p.organizerId === org.id)
-                    .length === 0 && (
-                    <GlassCard className="col-span-full py-12 text-center border-dashed border-slate-200">
-                      <Tag className="w-10 h-10 text-slate-200 mx-auto mb-4" />
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                        No active packages found
-                      </p>
-                    </GlassCard>
-                  )}
+                  <GlassCard className="col-span-full py-12 text-center border-dashed border-slate-200">
+                    <Tag className="w-10 h-10 text-slate-200 mx-auto mb-4" />
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                      No active packages found
+                    </p>
+                  </GlassCard>
                 </div>
               </div>
             )}
@@ -703,74 +908,12 @@ const OrganizerDetails = () => {
                   </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {ORGANIZER_PROMOTIONS.filter(
-                    (p) => p.organizerId === org.id,
-                  ).map((promo) => (
-                    <GlassCard
-                      key={promo.id}
-                      className="p-6 border-white/60 hover:border-primary/20 transition-all"
-                    >
-                      <div className="flex items-center justify-between mb-6">
-                        <div
-                          className={cn(
-                            "px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
-                            promo.status === "Active"
-                              ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                              : promo.status === "Pending"
-                                ? "bg-amber-50 text-amber-600 border-amber-100"
-                                : "bg-slate-50 text-slate-400 border-slate-100",
-                          )}
-                        >
-                          {promo.status}
-                        </div>
-                        <Megaphone className="w-4 h-4 text-slate-300" />
-                      </div>
-                      <h4 className="text-lg font-black text-slate-800 tracking-tighter leading-none mb-1">
-                        {promo.name}
-                      </h4>
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest pb-6">
-                        {promo.startDate} — {promo.endDate}
-                      </p>
-
-                      <div className="grid grid-cols-2 gap-4 border-t border-slate-50 pt-5">
-                        <div className="space-y-0.5">
-                          <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
-                            Impressions
-                          </p>
-                          <p className="text-sm font-black text-slate-800">
-                            {promo.impressions.toLocaleString()}
-                          </p>
-                        </div>
-                        <div className="space-y-0.5">
-                          <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
-                            CLICKS
-                          </p>
-                          <p className="text-sm font-black text-primary">
-                            {promo.clicks.toLocaleString()}
-                          </p>
-                        </div>
-                        <div className="col-span-2 pt-2">
-                          <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                              Total Cost
-                            </span>
-                            <span className="text-sm font-black text-slate-700">
-                              ${promo.cost.toFixed(2)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </GlassCard>
-                  ))}
-                  {ORGANIZER_PROMOTIONS.filter((p) => p.organizerId === org.id)
-                    .length === 0 && (
-                    <GlassCard className="col-span-full py-12 text-center border-dashed border-slate-200">
-                      <Megaphone className="w-10 h-10 text-slate-200 mx-auto mb-4" />
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                        No promotions currently active
-                      </p>
-                    </GlassCard>
-                  )}
+                  <GlassCard className="col-span-full py-12 text-center border-dashed border-slate-200">
+                    <Megaphone className="w-10 h-10 text-slate-200 mx-auto mb-4" />
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                      No promotions currently active
+                    </p>
+                  </GlassCard>
                 </div>
               </div>
             )}
@@ -778,9 +921,7 @@ const OrganizerDetails = () => {
             {activeTab === "reviews" && (
               <div className="space-y-4 sm:space-y-6">
                 {(() => {
-                  const organizerReviews: OrganizerReview[] = REVIEWS.filter(
-                    (r) => r.organizer === org.name,
-                  );
+                  const organizerReviews: OrganizerReview[] = [];
                   const topReviews = organizerReviews.slice(0, 5);
 
                   return (
@@ -922,12 +1063,12 @@ const OrganizerDetails = () => {
 
                         <div className="mt-4 sm:mt-5 pt-4 border-t border-slate-100">
                           <p className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2.5">
-                            Skills ({member.skills.length})
+                            Services ({member.skills.length})
                           </p>
                           <div className="flex flex-wrap gap-1.5 sm:gap-2">
                             {member.skills.length === 0 ? (
                               <span className="text-[10px] sm:text-xs font-bold text-slate-400">
-                                No skills selected.
+                                No services assigned.
                               </span>
                             ) : (
                               member.skills.map((skill: string) => (
@@ -1132,141 +1273,62 @@ const OrganizerDetails = () => {
             {activeTab === "gallery" && (
               <div className="space-y-4 sm:space-y-6">
                 <p className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest px-2">
-                  {org.portfolio.length} Items
+                  {org.galleryItems.length} Items
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {org.portfolio.map((img: string, i: number) => (
-                    <div
-                      key={i}
-                      className="relative rounded-2xl overflow-hidden border border-slate-200 bg-white group shadow-sm"
-                    >
-                      <img
-                        src={img}
-                        alt={`Portfolio ${i + 1}`}
-                        className="w-full h-48 sm:h-56 object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="p-3 bg-white/90 backdrop-blur-sm border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-xs font-bold text-slate-600">
-                        <span className="uppercase tracking-widest">
-                          Item #{String(i + 1).padStart(2, "0")}
-                        </span>
-                        <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-primary transition-colors" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === "performance" && (
-              <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {[
-                    {
-                      label: "Response rate",
-                      value: org.responseRate,
-                      color: "primary",
-                      icon: Clock,
-                    },
-                    {
-                      label: "On-time rate",
-                      value: org.onTimeRate,
-                      color: "blue",
-                      icon: Target,
-                    },
-                    {
-                      label: "Reputation",
-                      value: Math.min(
-                        Math.round(parseFloat(org.rating) * 20),
-                        100,
-                      ),
-                      color: "amber",
-                      icon: Star,
-                    },
-                    {
-                      label: "Retention",
-                      value: Math.floor(Math.random() * 30) + 50,
-                      color: "secondary",
-                      icon: TrendingUp,
-                    },
-                  ].map((metric, i) => (
-                    <GlassCard key={i} className="p-8 border-white/40">
-                      <div className="flex justify-between items-start mb-6">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={cn(
-                              "w-10 h-10 rounded-xl flex items-center justify-center",
-                              metric.color === "primary"
-                                ? "bg-emerald-50 text-emerald-500"
-                                : metric.color === "blue"
-                                  ? "bg-blue-50 text-blue-500"
-                                  : metric.color === "amber"
-                                    ? "bg-amber-50 text-amber-500"
-                                    : "bg-rose-50 text-rose-500",
-                            )}
-                          >
-                            <metric.icon className="w-5 h-5" />
-                          </div>
-                          <span className="text-[11px] font-black text-slate-800 uppercase tracking-widest">
-                            {metric.label}
-                          </span>
-                        </div>
-                        <span className="text-2xl font-black text-slate-800 tracking-tighter">
-                          {metric.value}%
-                        </span>
-                      </div>
-                      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                {org.galleryItems.length === 0 ? (
+                  <GlassCard className="py-12 text-center border-dashed border-slate-200">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                      No gallery items yet.
+                    </p>
+                  </GlassCard>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    {org.galleryItems.map((item, i) => {
+                      const label = formatGalleryKey(item.key) || `Item ${i + 1}`;
+                      const showImage = isLikelyImageUrl(item.url);
+                      return (
                         <div
-                          style={{ width: `${metric.value}%` }}
-                          className={cn(
-                            "h-full rounded-full",
-                            metric.color === "primary"
-                              ? "bg-emerald-500"
-                              : metric.color === "blue"
-                                ? "bg-blue-500"
-                                : metric.color === "amber"
-                                  ? "bg-amber-500"
-                                  : "bg-rose-500",
+                          key={`${item.key}-${i}`}
+                          className="relative rounded-2xl overflow-hidden border border-slate-200 bg-white group shadow-sm flex flex-col"
+                        >
+                          {showImage ? (
+                            <img
+                              src={item.url}
+                              alt={label}
+                              className="w-full h-48 sm:h-56 object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          ) : (
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex flex-col items-center justify-center gap-3 h-48 sm:h-56 bg-slate-50 p-6 text-center hover:bg-slate-100/80 transition-colors"
+                            >
+                              <FileText className="w-10 h-10 text-slate-400" />
+                              <span className="text-[10px] sm:text-xs font-bold text-primary underline break-all line-clamp-3">
+                                Open file
+                              </span>
+                            </a>
                           )}
-                        />
-                      </div>
-                    </GlassCard>
-                  ))}
-                </div>
-
-                <GlassCard className="p-10 border-white/60">
-                  <div className="flex items-center gap-3 mb-10">
-                    <BarChart3 className="w-6 h-6 text-primary" />
-                    <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.2em]">
-                      Summary
-                    </h3>
+                          <div className="p-3 bg-white/90 backdrop-blur-sm border-t border-slate-100 flex items-center justify-between gap-2 text-[10px] sm:text-xs font-bold text-slate-600">
+                            <span className="uppercase tracking-widest truncate" title={item.key}>
+                              {label}
+                            </span>
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="shrink-0 text-slate-400 hover:text-primary"
+                              aria-label="Open in new tab"
+                            >
+                              <ArrowUpRight className="w-3.5 h-3.5" />
+                            </a>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-                    <div className="p-8 bg-slate-50/50 rounded-[2rem] border border-slate-100 text-center group hover:bg-white transition-all">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">
-                        Jobs
-                      </p>
-                      <p className="text-4xl font-black text-slate-800 tracking-tighter">
-                        {org.completedJobs}
-                      </p>
-                    </div>
-                    <div className="p-8 bg-slate-50/50 rounded-[2rem] border border-slate-100 text-center group hover:bg-white transition-all">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">
-                        Reviews
-                      </p>
-                      <p className="text-4xl font-black text-slate-800 tracking-tighter">
-                        {org.totalReviews}
-                      </p>
-                    </div>
-                    <div className="p-8 bg-slate-50/50 rounded-[2rem] border border-slate-100 text-center group hover:bg-white transition-all">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">
-                        Earnings
-                      </p>
-                      <p className="text-4xl font-black text-slate-800 tracking-tighter">
-                        {formatCurrency(org.earnings)}
-                      </p>
-                    </div>
-                  </div>
-                </GlassCard>
+                )}
               </div>
             )}
           </div>

@@ -23,6 +23,8 @@ interface DataTableProps<T> {
   title?: string;
   searchPlaceholder?: string;
   onSearch?: (term: string) => void;
+  /** When true, rows are not filtered by the search box (use for server-driven search). */
+  serverSideSearch?: boolean;
   isLoading?: boolean;
   rowActions?: RowAction<T>[];
   onRowClick?: (item: T) => void;
@@ -125,6 +127,7 @@ export function DataTable<T extends { id: string | number }>({
   data, 
   searchPlaceholder = "Search records...",
   onSearch,
+  serverSideSearch = false,
   rowActions,
   onRowClick,
   belowSearch,
@@ -142,15 +145,18 @@ export function DataTable<T extends { id: string | number }>({
 
   const actions = rowActions || defaultActions;
 
-  const filteredData = searchTerm.trim()
-    ? data.filter((item) => {
-        try {
-          return JSON.stringify(item).toLowerCase().includes(searchTerm.toLowerCase());
-        } catch {
-          return false;
-        }
-      })
-    : data;
+  const filteredData =
+    serverSideSearch
+      ? data
+      : searchTerm.trim()
+        ? data.filter((item) => {
+            try {
+              return JSON.stringify(item).toLowerCase().includes(searchTerm.toLowerCase());
+            } catch {
+              return false;
+            }
+          })
+        : data;
 
   const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
   const safePage = Math.min(currentPage, totalPages);

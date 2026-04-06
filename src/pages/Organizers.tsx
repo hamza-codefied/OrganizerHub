@@ -1,74 +1,121 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { PageHeader, StatCard, PremiumTabs } from "../components/UI";
 import { DataTable } from "../components/DataTable";
-import { ORGANIZERS, CATEGORIES } from "../data/mockData";
 import { cn } from "../lib/utils";
-import { adminDeactivateProfile } from "../lib/edgeFunctions";
-import DetailsDialog from "../components/DetailsDialog";
 import CustomSelect from "../components/CustomSelect";
+import { useAdminOrganizers } from "../hooks/useAdminOrganizers";
+import {
+  adminChangeSuspensionStatus,
+  adminVerifyOrganization,
+  type AdminOrganizerListItem,
+  type OrganizersRange,
+} from "../lib/adminOrganizersApi";
 import {
   Users,
   BadgeCheck,
   Ban,
-  Star,
-  Briefcase,
-  ShieldCheck,
-  UserPlus,
   Clock,
   Eye,
   CheckCircle2,
   XCircle,
   Power,
-  AlertCircle,
   MapPin,
+  Loader2,
+  RefreshCw,
 } from "lucide-react";
+
+const RANGE_TABS: { id: OrganizersRange; label: string }[] = [
+  { id: "monthly", label: "Monthly" },
+  { id: "weekly", label: "Weekly" },
+  { id: "daily", label: "Daily" },
+  { id: "yearly", label: "Yearly" },
+  { id: "all", label: "All time" },
+];
+
+function mapOrganizerStatus(
+  org: AdminOrganizerListItem,
+): "Pending" | "Active" | "Suspended" | "Rejected" {
+  if (!org.status) return "Suspended";
+  const v = (org.isVerified || "").toLowerCase();
+  if (v === "false") return "Rejected";
+  if (v === "pending") return "Pending";
+  return "Active";
+}
+
+function categoryLabel(org: AdminOrganizerListItem): string {
+  if (!org.categories?.length) return "—";
+  return org.categories.map((c) => c.name).join(", ");
+}
+
+type OrganizerRow = AdminOrganizerListItem & { id: string };
 
 const OrganizersPage = () => {
   const navigate = useNavigate();
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const [detailsTitle, setDetailsTitle] = useState("");
-  const [detailsPayload, setDetailsPayload] = useState<any>(null);
+  const [range, setRange] = useState<OrganizersRange>("monthly");
+  const [searchDraft, setSearchDraft] = useState("");
+  const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
+
+  const { data, error, isLoading, refetch } = useAdminOrganizers({
+    range,
+    search: searchDraft,
+    categoryId,
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [selectedOrganizer, setSelectedOrganizer] = useState<any>(null);
+  const [selectedOrganizer, setSelectedOrganizer] = useState<OrganizerRow | null>(null);
   const [deactivationReason, setDeactivationReason] = useState("Admin action");
   const [actionMessage, setActionMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
 
-  type Organizer = (typeof ORGANIZERS)[0];
-  const [organizers, setOrgs] = useState<Organizer[]>(ORGANIZERS);
-
   const [statusFilter, setStatusFilter] = useState<
-    "All" | "Pending" | "Approved" | "Suspended"
+    "All" | "Pending" | "Approved" | "Rejected" | "Suspended"
   >("All");
-  const [categoryFilter, setCategoryFilter] = useState("All Categories");
 
-  const filteredOrganizers = organizers.filter((org) => {
-    const matchStatus =
-      statusFilter === "All" ||
-      (statusFilter === "Approved" && org.status === "Active") ||
-      (statusFilter !== "Approved" && org.status === statusFilter);
-    const matchCategory =
-      categoryFilter === "All Categories" || org.category === categoryFilter;
-    return matchStatus && matchCategory;
-  });
+  const rows: OrganizerRow[] = useMemo(() => {
+    const list = data?.organizers ?? [];
+    return list.map((o) => ({ ...o, id: o.organizer_id }));
+  }, [data?.organizers]);
 
-  const stats = {
-    total: organizers.length,
-    pending: organizers.filter((o) => o.status === "Pending").length,
-    suspended: organizers.filter((o) => o.status === "Suspended").length,
-    approved: organizers.filter((o) => o.status === "Active").length,
-  };
+  const categorySelectOptions = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const o of rows) {
+      for (const c of o.categories ?? []) {
+        map.set(c.id, c.name);
+      }
+    }
+    const sorted = Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+    return [
+      { value: "", label: "All categories" },
+      ...sorted.map(([id, name]) => ({ value: String(id), label: name })),
+    ];
+  }, [rows]);
 
-  const setOrganizers = (updater: (prev: Organizer[]) => Organizer[]) => {
-    setOrgs(updater);
-  };
+  const filteredOrganizers = useMemo(() => {
+    return rows.filter((org) => {
+      const s = mapOrganizerStatus(org);
+      if (statusFilter === "All") return true;
+      if (statusFilter === "Approved") return s === "Active";
+      if (statusFilter === "Pending") return s === "Pending";
+      if (statusFilter === "Rejected") return s === "Rejected";
+      return s === "Suspended";
+    });
+  }, [rows, statusFilter]);
 
-  const openDeactivateModal = (org: Organizer) => {
+  const stats = useMemo(() => {
+    return {
+      total: data?.total_organizers ?? rows.length,
+      pending: rows.filter((o) => mapOrganizerStatus(o) === "Pending").length,
+      rejected: rows.filter((o) => mapOrganizerStatus(o) === "Rejected").length,
+      suspended: rows.filter((o) => mapOrganizerStatus(o) === "Suspended").length,
+    };
+  }, [data?.total_organizers, rows]);
+
+  const openDeactivateModal = (org: OrganizerRow) => {
     setSelectedOrganizer(org);
     setDeactivationReason("Admin action");
     setActionMessage(null);
@@ -79,44 +126,112 @@ const OrganizersPage = () => {
     if (!selectedOrganizer) return;
     setIsSubmitting(true);
     try {
-      await adminDeactivateProfile({
-        target_profile_id: String(selectedOrganizer.id),
-        reason: deactivationReason.trim() || "Admin action",
-      });
-      setOrganizers((prev) =>
-        prev.map((o) =>
-          o.id === selectedOrganizer.id ? { ...o, status: "Suspended" } : o,
-        ),
-      );
-      setActionMessage({
-        type: "success",
-        text: "Organizer suspended successfully.",
-      });
+      if (mapOrganizerStatus(selectedOrganizer) === "Pending") {
+        await adminVerifyOrganization({
+          organizer_id: selectedOrganizer.organizer_id,
+          isVerified: false,
+        });
+        setActionMessage({
+          type: "success",
+          text: "Organization rejected.",
+        });
+      } else {
+        await adminChangeSuspensionStatus({
+          organizer_id: selectedOrganizer.organizer_id,
+          isActive: false,
+          message: deactivationReason.trim() || "Admin action",
+        });
+        setActionMessage({
+          type: "success",
+          text: "Organizer suspended successfully.",
+        });
+      }
       setConfirmOpen(false);
       setSelectedOrganizer(null);
-    } catch (error: any) {
+      await refetch();
+    } catch (error: unknown) {
       setActionMessage({
         type: "error",
-        text: error?.message || "Failed to suspend organizer.",
+        text: error instanceof Error ? error.message : "Action failed.",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleApproveOrActivate = async (org: OrganizerRow) => {
+    const s = mapOrganizerStatus(org);
+    if (s === "Pending" || s === "Rejected") {
+      setIsSubmitting(true);
+      setActionMessage(null);
+      try {
+        await adminVerifyOrganization({
+          organizer_id: org.organizer_id,
+          isVerified: true,
+        });
+        setActionMessage({
+          type: "success",
+          text: s === "Rejected" ? "Organization re-approved." : "Organization approved.",
+        });
+        await refetch();
+      } catch (error: unknown) {
+        setActionMessage({
+          type: "error",
+          text: error instanceof Error ? error.message : "Could not update verification.",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+    if (s === "Suspended") {
+      setIsSubmitting(true);
+      setActionMessage(null);
+      try {
+        await adminChangeSuspensionStatus({
+          organizer_id: org.organizer_id,
+          isActive: true,
+        });
+        setActionMessage({
+          type: "success",
+          text: "Organization activated.",
+        });
+        await refetch();
+      } catch (error: unknown) {
+        setActionMessage({
+          type: "error",
+          text: error instanceof Error ? error.message : "Could not activate organization.",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+    if (s !== "Active") {
+      void refetch();
+      return;
+    }
+    openDeactivateModal(org);
+  };
+
+  type Organizer = OrganizerRow;
+
   const columns = [
     {
       header: "Name",
       accessor: (org: Organizer) => (
         <div className="flex items-center gap-3 py-1">
-          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-primary border border-slate-200 shrink-0">
-            {org.name.split(' ').map(n => n[0]).join('')}
-          </div>
+          
           <div className="flex items-center gap-1.5">
             <span className="font-bold text-slate-800 text-sm whitespace-nowrap">
               {org.name}
             </span>
-            <BadgeCheck className="w-3.5 h-3.5 text-rose-400" />
+            <BadgeCheck
+              className={cn(
+                "w-3.5 h-3.5",
+                mapOrganizerStatus(org) === "Active" ? "text-emerald-500" : "text-slate-300",
+              )}
+            />
           </div>
         </div>
       ),
@@ -124,16 +239,20 @@ const OrganizersPage = () => {
     {
       header: "Email",
       accessor: (org: Organizer) => (
-        <span className="text-xs font-medium text-slate-500">
-          {org.email}
-        </span>
+        <span className="text-xs font-medium text-slate-500">{org.email}</span>
+      ),
+    },
+    {
+      header: "Business",
+      accessor: (org: Organizer) => (
+        <span className="text-xs font-medium text-slate-600">{org.business_name || "—"}</span>
       ),
     },
     {
       header: "Category",
       accessor: (org: Organizer) => (
-        <span className="text-xs font-medium text-slate-600">
-          {org.category}
+        <span className="text-xs font-medium text-slate-600 line-clamp-2 max-w-[200px]">
+          {categoryLabel(org)}
         </span>
       ),
     },
@@ -141,47 +260,38 @@ const OrganizersPage = () => {
       header: "Location",
       accessor: (org: Organizer) => (
         <div className="flex items-center gap-1.5 text-slate-500">
-          <MapPin className="w-3.5 h-3.5" />
-          <span className="text-xs font-medium">{org.location}</span>
+          <MapPin className="w-3.5 h-3.5 shrink-0" />
+          <span className="text-xs font-medium">{org.location || "—"}</span>
         </div>
       ),
     },
     {
       header: "Plan",
-      accessor: (org: Organizer) => (
-        <div className="flex flex-col items-start gap-1">
-          <span
-            className={cn(
-              "px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border shadow-sm bg-slate-100 text-slate-600 border-slate-200",
-              org.subscriptionPlan === "None" && "bg-transparent border-transparent text-slate-400 shadow-none"
-            )}
-          >
-            {org.subscriptionPlan}
-          </span>
-          {org.subscriptionPlan !== "None" && (
-            <span className="text-[9px] font-bold text-slate-400 ml-0.5">
-              ${org.subscriptionPlan === "Premium" ? "49" : "19"}/mo
-            </span>
-          )}
-        </div>
+      accessor: () => (
+        <span className="text-xs font-bold text-slate-400">—</span>
       ),
     },
     {
       header: "Status",
-      accessor: (org: Organizer) => (
-        <div
-          className={cn(
-            "inline-flex items-center px-4 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border",
-            org.status === "Active"
-              ? "bg-emerald-500 border-emerald-500 text-white shadow-sm"
-              : org.status === "Pending"
-                ? "bg-slate-100 border-slate-100 text-slate-700"
-                : "bg-rose-500 border-rose-500 text-white shadow-sm",
-          )}
-        >
-          <span>{org.status === "Active" ? "Approved" : org.status}</span>
-        </div>
-      ),
+      accessor: (org: Organizer) => {
+        const s = mapOrganizerStatus(org);
+        return (
+          <div
+            className={cn(
+              "inline-flex items-center px-4 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border",
+              s === "Active"
+                ? "bg-emerald-500 border-emerald-500 text-white shadow-sm"
+                : s === "Pending"
+                  ? "bg-yellow-200 border-yellow-500 text-yellow-700 shadow-sm"
+                  : s === "Rejected"
+                    ? "bg-slate-700 border-slate-800 text-white shadow-sm"
+                    : "bg-rose-500 border-rose-500 text-white shadow-sm",
+            )}
+          >
+            <span>{s === "Active" ? "Approved" : s}</span>
+          </div>
+        );
+      },
     },
   ];
 
@@ -190,31 +300,60 @@ const OrganizersPage = () => {
       <PageHeader
         title="Organizers"
         description="Manage professional profiles & verification."
-      />
+      >
+        <div className="flex w-full sm:w-auto overflow-x-auto">
+          <PremiumTabs
+            tabs={RANGE_TABS}
+            activeTab={range}
+            onChange={(id) => setRange(id as OrganizersRange)}
+          />
+        </div>
+      </PageHeader>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Organizers"
-          value={stats.total}
+          value={isLoading && !data ? "—" : stats.total}
           icon={Users}
           color="primary"
           className="shadow-md"
         />
         <StatCard
           title="Total Pending"
-          value={stats.pending}
+          value={isLoading && !data ? "—" : stats.pending}
           icon={Clock}
           color="amber"
           className="shadow-md"
         />
         <StatCard
+          title="Total Rejected"
+          value={isLoading && !data ? "—" : stats.rejected}
+          icon={XCircle}
+          color="secondary"
+          className="shadow-md"
+        />
+        <StatCard
           title="Total Suspended"
-          value={stats.suspended}
+          value={isLoading && !data ? "—" : stats.suspended}
           icon={Ban}
           color="rose"
           className="shadow-md"
         />
       </div>
+
+      {error && (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-lg border border-rose-200 bg-rose-50 text-rose-800 text-sm">
+          <p className="flex-1 font-medium">{error}</p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-white border border-rose-200 text-rose-800 text-xs font-bold uppercase tracking-wide hover:bg-rose-100/80"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Retry
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
         <div className="w-full lg:flex-1">
@@ -223,6 +362,7 @@ const OrganizersPage = () => {
               { id: "All", label: "All" },
               { id: "Pending", label: "Pending" },
               { id: "Approved", label: "Approved" },
+              { id: "Rejected", label: "Rejected" },
               { id: "Suspended", label: "Suspended" },
             ]}
             activeTab={statusFilter}
@@ -231,61 +371,57 @@ const OrganizersPage = () => {
         </div>
         <div className="w-full lg:w-72">
           <CustomSelect
-            value={categoryFilter}
-            onChange={setCategoryFilter}
-            options={[
-              { value: "All Categories", label: "All Categories" },
-              ...CATEGORIES.map((c) => ({ value: c.name, label: c.name })),
-            ]}
+            value={categoryId ?? ""}
+            onChange={(v) => setCategoryId(v === "" ? undefined : v)}
+            options={categorySelectOptions}
           />
         </div>
       </div>
 
-      <div className="mt-8 overflow-hidden">
+      <div className="mt-8 overflow-hidden relative">
+        {isLoading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg border border-slate-200 min-h-[240px]">
+            <div className="flex items-center gap-3 text-slate-600">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              <span className="text-sm font-semibold">Loading organizers…</span>
+            </div>
+          </div>
+        )}
         <DataTable
           columns={columns}
           data={filteredOrganizers}
-          searchPlaceholder="Locate organizer..."
-          onRowClick={(org) => navigate(`/users/organizers/${org.id}`)}
+          searchPlaceholder="Search by name…"
+          serverSideSearch
+          onSearch={setSearchDraft}
+          onRowClick={(org) => navigate(`/users/organizers/${org.organizer_id}`)}
           rowActions={[
             {
               label: "View Profile",
               icon: Eye,
-              onClick: (org: any) => navigate(`/users/organizers/${org.id}`),
+              onClick: (org: Organizer) => navigate(`/users/organizers/${org.organizer_id}`),
             },
             {
               label: (org: Organizer) => {
-                if (org.status === "Pending") return "Approve";
-                return org.status === "Suspended" ? "Activate" : "Suspend";
+                const st = mapOrganizerStatus(org);
+                if (st === "Pending") return "Approve";
+                if (st === "Rejected") return "Reapprove";
+                return st === "Suspended" ? "Activate" : "Suspend";
               },
               icon: (org: Organizer) => {
-                if (org.status === "Pending") return CheckCircle2;
+                const st = mapOrganizerStatus(org);
+                if (st === "Pending" || st === "Rejected") return CheckCircle2;
                 return Power;
               },
               onClick: (org: Organizer) => {
-                if (org.status !== "Active") {
-                  setOrganizers((prev) =>
-                    prev.map((o) =>
-                      o.id === org.id ? { ...o, status: "Active" } : o,
-                    ),
-                  );
-                  setActionMessage({
-                    type: "success",
-                    text: `Organizer ${org.status === "Pending" ? "approved" : "activated"} successfully.`,
-                  });
-                  return;
-                }
-                openDeactivateModal(org);
+                void handleApproveOrActivate(org);
               },
               variant: (org: Organizer) =>
-                org.status === "Active"
-                  ? ("danger" as const)
-                  : ("success" as const),
+                mapOrganizerStatus(org) === "Active" ? ("danger" as const) : ("success" as const),
             },
             {
               label: "Reject",
               icon: XCircle,
-              show: (org: Organizer) => org.status === "Pending",
+              show: (org: Organizer) => mapOrganizerStatus(org) === "Pending",
               onClick: (org: Organizer) => {
                 openDeactivateModal(org);
               },
@@ -295,17 +431,13 @@ const OrganizersPage = () => {
           belowSearch={
             <div className="space-y-1">
               {isSubmitting ? (
-                <p className="text-xs text-slate-500 font-medium">
-                  Submitting admin action...
-                </p>
+                <p className="text-xs text-slate-500 font-medium">Submitting admin action...</p>
               ) : null}
               {actionMessage ? (
                 <p
                   className={cn(
                     "text-xs font-medium",
-                    actionMessage.type === "error"
-                      ? "text-rose-600"
-                      : "text-emerald-600",
+                    actionMessage.type === "error" ? "text-rose-600" : "text-emerald-600",
                   )}
                 >
                   {actionMessage.text}
@@ -315,67 +447,6 @@ const OrganizersPage = () => {
           }
         />
       </div>
-
-      <DetailsDialog
-        open={detailsOpen}
-        title={detailsTitle}
-        onClose={() => setDetailsOpen(false)}
-      >
-        {detailsPayload && (
-          <div className="mt-2 space-y-4">
-            {detailsPayload.id && detailsPayload.services ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                  <img
-                    src={detailsPayload.avatar}
-                    alt=""
-                    className="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-md"
-                  />
-                  <div>
-                    <p className="font-black text-slate-800 text-lg">
-                      {detailsPayload.name}
-                    </p>
-                    <p className="text-sm font-bold text-slate-500">
-                      {detailsPayload.email}
-                    </p>
-                    <p className="text-xs font-bold text-slate-400 mt-0.5">
-                      {detailsPayload.phone}
-                    </p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
-                      Plan
-                    </p>
-                    <p className="font-black text-slate-800">
-                      {detailsPayload.subscriptionPlan}
-                    </p>
-                  </div>
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
-                      Status
-                    </p>
-                    <p className="font-black text-slate-800">
-                      {detailsPayload.status}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <p className="font-bold text-slate-700">
-                  Invite sent to{" "}
-                  <span className="text-slate-900">
-                    {detailsPayload.name || "—"}
-                  </span>{" "}
-                  ({detailsPayload.email || "—"}).
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-      </DetailsDialog>
 
       {confirmOpen && typeof document !== "undefined"
         ? createPortal(
@@ -394,16 +465,15 @@ const OrganizersPage = () => {
               />
               <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
                 <h2 className="text-lg font-black text-slate-800">
-                  {selectedOrganizer?.status === "Pending" ? "Reject Signup" : "Confirm suspension"}
+                  {selectedOrganizer && mapOrganizerStatus(selectedOrganizer) === "Pending"
+                    ? "Reject Signup"
+                    : "Confirm suspension"}
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  {selectedOrganizer?.status === "Pending" 
-                    ? `Are you sure you want to reject the application from `
-                    : `This will suspend `}
-                  <span className="font-semibold text-slate-800">
-                    {selectedOrganizer?.name}
-                  </span>
-                  .
+                  {selectedOrganizer && mapOrganizerStatus(selectedOrganizer) === "Pending"
+                    ? "Are you sure you want to reject the application from "
+                    : "This will suspend "}
+                  <span className="font-semibold text-slate-800">{selectedOrganizer?.name}</span>.
                 </p>
                 <label className="mt-4 block text-xs font-black uppercase tracking-widest text-slate-500">
                   Reason
@@ -430,8 +500,10 @@ const OrganizersPage = () => {
                     onClick={() => void handleDeactivate()}
                     className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {isSubmitting 
-                      ? (selectedOrganizer?.status === "Pending" ? "Rejecting..." : "Suspending...") 
+                    {isSubmitting
+                      ? selectedOrganizer && mapOrganizerStatus(selectedOrganizer) === "Pending"
+                        ? "Rejecting..."
+                        : "Suspending..."
                       : "Confirm"}
                   </button>
                 </div>
