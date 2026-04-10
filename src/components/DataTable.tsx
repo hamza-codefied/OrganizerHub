@@ -194,6 +194,7 @@ export function DataTable<T extends { id: string | number }>({
           type="button"
           onClick={() => {
             setSearchTerm('');
+            onSearch?.('');
             setCurrentPage(1);
             searchRef.current?.focus();
           }}

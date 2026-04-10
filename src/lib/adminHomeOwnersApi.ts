@@ -36,9 +36,32 @@ export type HomeOwnerDetail = {
   date_of_birth: string;
   gender: string;
   created_at: string;
+  deactivation_reason?: string | null;
+  deactivated_at?: string | null;
+  favorites?: unknown[];
 };
 
-export type HomeOwnerBooking = Record<string, unknown>;
+/** Booking row from `admin_get_home_owner_detailsbyId`. */
+export type HomeOwnerBooking = {
+  booking_id: string;
+  service_id?: number;
+  category_id?: number;
+  user_id: string;
+  organizer_id: string;
+  assignee: string | null;
+  assignee_name?: string | null;
+  organization_name?: string | null;
+  status: string;
+  service_name: string;
+  scheduled_at: string;
+  start_time: string;
+  end_time: string;
+  lat: number | null;
+  lng: number | null;
+  booking_notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
 
 export type AdminHomeOwnerDetailsResponse = {
   ok: boolean;

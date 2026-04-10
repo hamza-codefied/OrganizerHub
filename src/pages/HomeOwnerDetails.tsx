@@ -22,6 +22,9 @@ import {
   RefreshCw,
   ShieldAlert,
   ShieldCheck,
+  Clock,
+  StickyNote,
+  ExternalLink,
 } from 'lucide-react';
 
 function formatJoinedDate(iso: string) {
@@ -32,12 +35,40 @@ function formatJoinedDate(iso: string) {
   }
 }
 
-function bookingTitle(booking: Record<string, unknown>, index: number) {
-  const title =
-    (typeof booking.service === 'string' && booking.service) ||
-    (typeof booking.service_name === 'string' && booking.service_name) ||
-    (typeof booking.title === 'string' && booking.title);
-  return title || `Booking ${index + 1}`;
+function formatScheduledDate(dateStr: string) {
+  try {
+    return format(parseISO(dateStr), 'EEE, MMM d, yyyy');
+  } catch {
+    return dateStr;
+  }
+}
+
+function formatTimeHm(isoTime: string) {
+  if (!isoTime) return '—';
+  const m = isoTime.match(/^(\d{1,2}):(\d{2})/);
+  return m ? `${m[1]}:${m[2]}` : isoTime;
+}
+
+function formatDateTime(iso: string) {
+  try {
+    return format(parseISO(iso), 'MMM d, yyyy · h:mm a');
+  } catch {
+    return iso;
+  }
+}
+
+function bookingStatusClass(status: string) {
+  const s = status.toLowerCase();
+  if (s === 'active' || s === 'confirmed' || s === 'completed') {
+    return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+  }
+  if (s === 'pending' || s === 'scheduled') {
+    return 'bg-amber-50 text-amber-700 border-amber-100';
+  }
+  if (s === 'cancelled' || s === 'canceled' || s === 'rejected') {
+    return 'bg-rose-50 text-rose-700 border-rose-100';
+  }
+  return 'bg-slate-50 text-slate-700 border-slate-100';
 }
 
 const HomeOwnerDetails = () => {
@@ -153,7 +184,7 @@ const HomeOwnerDetails = () => {
         </button>
         <div>
           <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Home owner</p>
-          <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Profile #{homeOwner.home_owner_id}</h2>
+       
         </div>
       </div>
 
@@ -343,61 +374,108 @@ const HomeOwnerDetails = () => {
                 {bookings.length === 0 ? (
                   <GlassCard className="p-8 text-center text-slate-500 text-sm">No bookings for this home owner yet.</GlassCard>
                 ) : (
-                  bookings.map((booking, i) => {
-                    const b = booking as Record<string, unknown>;
-                    const organizer =
-                      (typeof b.organizer === 'string' && b.organizer) ||
-                      (typeof b.organizer_name === 'string' && b.organizer_name) ||
-                      '';
-                    const date =
-                      (typeof b.date === 'string' && b.date) ||
-                      (typeof b.booking_date === 'string' && b.booking_date) ||
-                      '';
-                    const amount = b.amount;
-                    const status = typeof b.status === 'string' ? b.status : '';
+                  bookings.map((booking) => {
+                    const mapsUrl =
+                      booking.lat != null && booking.lng != null
+                        ? `https://www.google.com/maps?q=${booking.lat},${booking.lng}`
+                        : null;
 
                     return (
-                      <GlassCard key={i} className="flex flex-col sm:flex-row sm:items-center justify-between p-6 hover:border-primary/20 gap-4">
-                        <div className="flex items-center gap-6">
-                          <div className="w-14 h-14 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-primary shadow-xl">
-                            <ShoppingBag className="w-7 h-7" />
+                      <GlassCard key={booking.booking_id} className="p-6 hover:border-primary/20 space-y-5">
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                          <div className="flex items-start gap-4 min-w-0">
+                            <div className="w-14 h-14 shrink-0 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-primary shadow-xl">
+                              <ShoppingBag className="w-7 h-7" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-lg font-black text-slate-800 tracking-tighter">{booking.service_name}</p>
+                              <p
+                                className="text-[10px] font-mono text-slate-400 mt-1 truncate"
+                                title={booking.booking_id}
+                              >
+                                Booking {booking.booking_id}
+                              </p>
+                            </div>
+                          </div>
+                          <div
+                            className={cn(
+                              'self-start px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm shrink-0',
+                              bookingStatusClass(booking.status),
+                            )}
+                          >
+                            {booking.status}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="bg-slate-50/80 border border-slate-100 rounded-2xl p-4">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Scheduled date</p>
+                            <p className="text-sm font-black text-slate-800 flex items-center gap-2">
+                              <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+                              {formatScheduledDate(booking.scheduled_at)}
+                            </p>
+                          </div>
+                          <div className="bg-slate-50/80 border border-slate-100 rounded-2xl p-4">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Time window</p>
+                            <p className="text-sm font-black text-slate-800 flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                              {formatTimeHm(booking.start_time)} – {formatTimeHm(booking.end_time)}
+                            </p>
+                          </div>
+                        </div>
+
+                        {booking.booking_notes ? (
+                          <div className="bg-amber-50/40 border border-amber-100/80 rounded-2xl p-4">
+                            <p className="text-[9px] font-black text-amber-800/70 uppercase tracking-widest mb-2 flex items-center gap-2">
+                              <StickyNote className="w-3.5 h-3.5" />
+                              Notes
+                            </p>
+                            <p className="text-sm font-medium text-slate-700 leading-relaxed">{booking.booking_notes}</p>
+                          </div>
+                        ) : null}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Organization</p>
+                            <p className="font-bold text-slate-800">
+                              {booking.organization_name?.trim() || booking.organizer_id || '—'}
+                            </p>
                           </div>
                           <div>
-                            <p className="text-lg font-black text-slate-800 tracking-tighter">{bookingTitle(b, i)}</p>
-                            {(organizer || date) && (
-                              <p className="text-xs font-bold text-slate-400 mt-1 flex flex-wrap items-center gap-2">
-                                {organizer && (
-                                  <>
-                                    Organizer: <span className="text-primary font-black">{organizer}</span>
-                                  </>
-                                )}
-                                {organizer && date && <span>•</span>}
-                                {date && <span>{date}</span>}
-                              </p>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Assignee</p>
+                            <p className="font-bold text-slate-800">
+                              {booking.assignee_name?.trim() || booking.assignee || '—'}
+                            </p>
+                          </div>
+                          <div className="md:col-span-2">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Location</p>
+                            {mapsUrl ? (
+                              <a
+                                href={mapsUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 text-primary font-bold text-xs hover:underline"
+                              >
+                                <MapPin className="w-4 h-4 shrink-0" />
+                                {booking.lat?.toFixed(4)}, {booking.lng?.toFixed(4)}
+                                <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                              </a>
+                            ) : (
+                              <p className="text-slate-500 font-medium">—</p>
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-8 sm:justify-end">
-                          {amount != null && (
-                            <div className="text-right">
-                              <p className="text-xl font-black text-slate-800 tracking-tighter">{String(amount)}</p>
-                              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Amount</p>
-                            </div>
-                          )}
-                          {status && (
-                            <div
-                              className={cn(
-                                'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm',
-                                status.toLowerCase() === 'completed'
-                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                                  : status.toLowerCase() === 'pending'
-                                    ? 'bg-amber-50 text-amber-600 border-amber-100'
-                                    : 'bg-rose-50 text-rose-600 border-rose-100',
-                              )}
-                            >
-                              {status}
-                            </div>
-                          )}
+
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 pt-2 border-t border-slate-100 text-[11px] text-slate-400">
+                          <span>
+                            <span className="font-black uppercase tracking-widest text-slate-400">Created</span>{' '}
+                            <span className="font-medium text-slate-500">{formatDateTime(booking.created_at)}</span>
+                          </span>
+                          <span className="hidden sm:inline text-slate-200">|</span>
+                          <span>
+                            <span className="font-black uppercase tracking-widest text-slate-400">Updated</span>{' '}
+                            <span className="font-medium text-slate-500">{formatDateTime(booking.updated_at)}</span>
+                          </span>
                         </div>
                       </GlassCard>
                     );
