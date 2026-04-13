@@ -23,6 +23,14 @@ export type AdminHomeOwnersListResponse = {
   home_owners: HomeOwnerListItem[];
 };
 
+/** Favorite organization row from `admin_get_home_owner_detailsbyId`. */
+export type HomeOwnerFavorite = {
+  organization_id: string;
+  organization_name: string;
+  organization_company_banner: string | null;
+  average_rating: number;
+};
+
 export type HomeOwnerDetail = {
   home_owner_id: string;
   name: string;
@@ -38,7 +46,7 @@ export type HomeOwnerDetail = {
   created_at: string;
   deactivation_reason?: string | null;
   deactivated_at?: string | null;
-  favorites?: unknown[];
+  favorites?: HomeOwnerFavorite[];
 };
 
 /** Booking row from `admin_get_home_owner_detailsbyId`. */

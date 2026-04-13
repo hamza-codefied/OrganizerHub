@@ -106,6 +106,18 @@ export type AdminOrganizerGalleryItem = {
   url: string;
 };
 
+/** Review row from `admin_get_organizer_detailsbyId`. */
+export type AdminOrganizerReview = {
+  reviews: string;
+  ratings: number;
+  service_id: number;
+  service_name: string;
+  category_id: number;
+  category_name: string;
+  booking_id: string;
+  home_owner_name: string;
+};
+
 export type AdminOrganizerDetailsResponse = {
   ok: boolean;
   organizer: AdminOrganizerDetailRecord;
@@ -115,6 +127,7 @@ export type AdminOrganizerDetailsResponse = {
   services_offered: AdminOrganizerServiceOffered[];
   team_members?: AdminOrganizerTeamMember[];
   gallery?: AdminOrganizerGalleryItem[];
+  reviews?: AdminOrganizerReview[];
 };
 
 export function fetchAdminOrganizerDetailsById(organizerId: string) {

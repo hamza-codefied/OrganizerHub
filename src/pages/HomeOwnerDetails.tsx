@@ -25,6 +25,7 @@ import {
   Clock,
   StickyNote,
   ExternalLink,
+  Star,
 } from 'lucide-react';
 
 function formatJoinedDate(iso: string) {
@@ -83,6 +84,7 @@ const HomeOwnerDetails = () => {
 
   const homeOwner = data?.home_owner;
   const bookings = data?.bookings ?? [];
+  const favorites = homeOwner?.favorites ?? [];
 
   if (isLoading && !homeOwner) {
     return (
@@ -325,7 +327,7 @@ const HomeOwnerDetails = () => {
           <div className="space-y-8">
             {activeTab === 'overview' && (
               <div className="space-y-8 max-w-full">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <GlassCard className="flex items-center gap-6 p-6">
                     <div className="w-14 h-14 rounded-2xl flex items-center justify-center border shadow-sm bg-emerald-50 text-emerald-500 border-emerald-100">
                       <ShoppingBag className="w-6 h-6" />
@@ -333,6 +335,15 @@ const HomeOwnerDetails = () => {
                     <div>
                       <p className="text-3xl font-black text-slate-800 tracking-tighter">{bookings.length}</p>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Bookings</p>
+                    </div>
+                  </GlassCard>
+                  <GlassCard className="flex items-center gap-6 p-6">
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center border shadow-sm bg-rose-50 text-rose-500 border-rose-100">
+                      <Heart className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-3xl font-black text-slate-800 tracking-tighter">{favorites.length}</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Favorite orgs</p>
                     </div>
                   </GlassCard>
                   <GlassCard className="flex items-center gap-6 p-6">
@@ -485,11 +496,48 @@ const HomeOwnerDetails = () => {
             )}
 
             {activeTab === 'favorites' && (
-              <GlassCard className="p-10 text-center space-y-3">
-                <Heart className="w-10 h-10 text-slate-300 mx-auto" />
-                <p className="text-slate-600 font-medium">Favorite organizers are not included in this profile response yet.</p>
-                <p className="text-xs text-slate-400">When the API provides favorites, they will appear here.</p>
-              </GlassCard>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between px-2 mb-2">
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">{favorites.length} saved</p>
+                </div>
+                {favorites.length === 0 ? (
+                  <GlassCard className="p-10 text-center space-y-3">
+                    <Heart className="w-10 h-10 text-slate-300 mx-auto" />
+                    <p className="text-slate-600 font-medium">No favorite organizations yet.</p>
+                  </GlassCard>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {favorites.map((fav) => (
+                      <GlassCard key={fav.organization_id} className="overflow-hidden p-0 hover:border-primary/20">
+                        <div className="relative h-36 bg-slate-100 border-b border-slate-100">
+                          {fav.organization_company_banner ? (
+                            <img
+                              src={fav.organization_company_banner}
+                              alt=""
+                              className="absolute inset-0 h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 flex items-center justify-center text-slate-300">
+                              <Heart className="w-12 h-12" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-5 space-y-3">
+                          <div className="min-w-0">
+                            <p className="text-lg font-black text-slate-800 tracking-tighter truncate">{fav.organization_name}</p>
+                          
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Star className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" />
+                            <span className="text-sm font-black text-slate-800">{fav.average_rating.toFixed(1)}</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">avg rating</span>
+                          </div>
+                        </div>
+                      </GlassCard>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>

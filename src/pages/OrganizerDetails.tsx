@@ -7,6 +7,7 @@ import {
   adminChangeSuspensionStatus,
   adminVerifyOrganization,
   type AdminOrganizerDetailsResponse,
+  type AdminOrganizerReview,
   type AdminOrganizerServiceOffered,
 } from "../lib/adminOrganizersApi";
 import {
@@ -116,9 +117,16 @@ function organizerDescription(o: AdminOrganizerDetailsResponse["organizer"]): st
   return typeof raw === "string" ? raw.trim() : "";
 }
 
+function averageRatingFromReviews(reviews: AdminOrganizerReview[]): string {
+  if (!reviews.length) return "—";
+  const sum = reviews.reduce((s, r) => s + (Number(r.ratings) || 0), 0);
+  return (sum / reviews.length).toFixed(1);
+}
+
 function buildOrganizerViewModel(res: AdminOrganizerDetailsResponse): OrganizerUIModel {
   const o = res.organizer;
   const offered = res.services_offered ?? [];
+  const reviewRows = res.reviews ?? [];
   const cats = Array.from(
     new Set(offered.map((s) => s.category_name).filter(Boolean)),
   );
@@ -138,7 +146,7 @@ function buildOrganizerViewModel(res: AdminOrganizerDetailsResponse): OrganizerU
     businessName: o.business_name || "",
     tradeName: o.business_name || "",
     subscriptionPlan: "—",
-    rating: "—",
+    rating: averageRatingFromReviews(reviewRows),
     bio: organizerDescription(o),
     companyBannerUrl: o.company_banner || "",
     website: o.website || "",
@@ -152,7 +160,7 @@ function buildOrganizerViewModel(res: AdminOrganizerDetailsResponse): OrganizerU
     earnings: res.total_earnings_estimated,
     responseRate: null,
     onTimeRate: null,
-    totalReviews: 0,
+    totalReviews: reviewRows.length,
     lastActive: "—",
     status: mapDisplayStatus(o),
     certifications: [],
@@ -245,6 +253,21 @@ const OrganizerDetails = () => {
       .map((m, i) => mapTeamApiToTeamMember(m, i, org.id))
       .filter((m): m is TeamMember => m != null);
   }, [data?.team_members, org]);
+
+  const organizerReviews = useMemo((): OrganizerReview[] => {
+    const list = data?.reviews ?? [];
+    if (!list.length || !org) return [];
+    const label = org.businessName || org.name;
+    return list.map((r) => ({
+      id: r.booking_id,
+      organizer: label,
+      rating: Number(r.ratings) || 0,
+      comment: r.reviews ?? "",
+      date: r.booking_id ? `Ref ${r.booking_id.slice(0, 8)}…` : "—",
+      homeOwner: r.home_owner_name ?? "",
+      service: [r.service_name, r.category_name].filter(Boolean).join(" · "),
+    }));
+  }, [data?.reviews, org]);
 
   const [activeTab, setActiveTab] = useState<
     | "overview"
@@ -447,7 +470,7 @@ const OrganizerDetails = () => {
           <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">
             Organizer
           </p>
-         
+
         </div>
       </div>
 
@@ -569,7 +592,7 @@ const OrganizerDetails = () => {
               <div className="pt-4 border-t border-slate-50">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">
                   Current status:{" "}
-                        <span
+                  <span
                     className={cn(
                       "inline-block ml-1 underline",
                       org.status === "Active"
@@ -809,7 +832,7 @@ const OrganizerDetails = () => {
                     </div>
                   </GlassCard>
 
-              
+
                 </div>
               </div>
             )}
@@ -920,96 +943,85 @@ const OrganizerDetails = () => {
 
             {activeTab === "reviews" && (
               <div className="space-y-4 sm:space-y-6">
-                {(() => {
-                  const organizerReviews: OrganizerReview[] = [];
-                  const topReviews = organizerReviews.slice(0, 5);
+                <p className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest px-2 mb-2">
+                  {organizerReviews.length} reviews submitted
+                </p>
 
-                  return (
-                    <>
-                      <p className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest px-2 mb-2">
-                        {organizerReviews.length} reviews submitted
-                      </p>
+                {organizerReviews.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100 italic font-black text-slate-200 text-2xl sm:text-3xl">
+                      !
+                    </div>
+                    <p className="text-xs sm:text-sm font-bold text-slate-400">
+                      No reviews yet for this organizer.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 sm:space-y-6">
+                    {organizerReviews.map((review) => {
+                      const filledStars = Math.min(5, Math.max(0, Math.floor(review.rating)));
+                      return (
+                        <GlassCard key={review.id} className="p-5 sm:p-8">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+                            <div className="flex items-center gap-2">
+                              <div className="flex bg-amber-50 p-1.5 sm:p-2 rounded-lg sm:rounded-xl border border-amber-100 gap-1">
+                                {Array.from({ length: 5 }).map((_, j) => (
+                                  <Star
+                                    key={j}
+                                    className={cn(
+                                      "w-3 h-3 sm:w-4 sm:h-4",
+                                      j < filledStars
+                                        ? "fill-amber-400 text-amber-400"
+                                        : "text-slate-200",
+                                    )}
+                                  />
+                                ))}
+                              </div>
+                              <span className="text-xs sm:text-sm font-black text-slate-800 ml-1 sm:ml-2">
+                                {review.rating.toFixed(1)}
+                              </span>
+                            </div>
 
-                      {topReviews.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12">
-                          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100 italic font-black text-slate-200 text-2xl sm:text-3xl">
-                            !
                           </div>
-                          <p className="text-xs sm:text-sm font-bold text-slate-400">
-                            No reviews yet for this organizer.
+
+                          <p className="text-sm sm:text-lg font-bold text-slate-600 italic leading-relaxed">
+                            &ldquo;{review.comment}&rdquo;
                           </p>
-                        </div>
-                      ) : (
-                        <div className="space-y-4 sm:space-y-6">
-                          {topReviews.map((review) => {
-                            const filledStars = Math.floor(review.rating);
-                            return (
-                              <GlassCard key={review.id} className="p-5 sm:p-8">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
-                                  <div className="flex items-center gap-2">
-                                    <div className="flex bg-amber-50 p-1.5 sm:p-2 rounded-lg sm:rounded-xl border border-amber-100 gap-1">
-                                      {Array.from({ length: 5 }).map((_, j) => (
-                                        <Star
-                                          key={j}
-                                          className={cn(
-                                            "w-3 h-3 sm:w-4 sm:h-4",
-                                            j < filledStars
-                                              ? "fill-amber-400 text-amber-400"
-                                              : "text-slate-200",
-                                          )}
-                                        />
-                                      ))}
-                                    </div>
-                                    <span className="text-xs sm:text-sm font-black text-slate-800 ml-1 sm:ml-2">
-                                      {review.rating.toFixed(1)}
-                                    </span>
-                                  </div>
-                                  <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                    {review.date}
-                                  </span>
-                                </div>
 
-                                <p className="text-sm sm:text-lg font-bold text-slate-600 italic leading-relaxed">
-                                  "{review.comment}"
+                          <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-50/50">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-slate-50 flex items-center justify-center text-primary font-black border border-slate-100 shadow-inner text-[10px] sm:text-xs">
+                                {review.homeOwner
+                                  ? review.homeOwner
+                                    .split(" ")
+                                    .map((x) => x[0])
+                                    .join("")
+                                    .toUpperCase()
+                                  : "R"}
+                              </div>
+                              <div>
+                                <p className="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                  Home owner
                                 </p>
-
-                                <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-50/50">
-                                  <div className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-slate-50 flex items-center justify-center text-primary font-black border border-slate-100 shadow-inner text-[10px] sm:text-xs">
-                                      {review.homeOwner
-                                        ? review.homeOwner
-                                            .split(" ")
-                                            .map((x) => x[0])
-                                            .join("")
-                                            .toUpperCase()
-                                        : "R"}
-                                    </div>
-                                    <div>
-                                      <p className="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                        Home owner
-                                      </p>
-                                      <p className="text-[10px] sm:text-xs font-bold text-primary">
-                                        {review.homeOwner}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <p className="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                      Service
-                                    </p>
-                                    <p className="text-[10px] sm:text-xs font-bold text-slate-700">
-                                      {review.service}
-                                    </p>
-                                  </div>
-                                </div>
-                              </GlassCard>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </>
-                  );
-                })()}
+                                <p className="text-[10px] sm:text-xs font-bold text-primary">
+                                  {review.homeOwner || "—"}
+                                </p>
+                              </div>
+                            </div>
+                            <div>
+                              <p className="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                Service
+                              </p>
+                              <p className="text-[10px] sm:text-xs font-bold text-slate-700">
+                                {review.service}
+                              </p>
+                            </div>
+                          </div>
+                        </GlassCard>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
